@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>قسم الإنتاج | V38 Color Logic Fix</title>
+    <title>قسم الإنتاج | V38 Announcements</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -45,10 +45,9 @@
         select.form-input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: left 12px center; background-size: 16px; padding-left: 40px; }
         .sheet-container { transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; background: white; border-top-left-radius: 32px; border-top-right-radius: 32px; box-shadow: 0 -10px 40px rgba(0,0,0,0.12); max-height: 95vh; display: flex; flex-direction: column; }
         .sheet-container.is-open { transform: translateY(0); }
-        .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 40; backdrop-filter: blur(3px); }
+        .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 40; backdrop-filter: blur(2px); }
         .sheet-overlay.is-open { opacity: 1; pointer-events: auto; }
         
-        /* الحالات اللونية الصارمة */
         @keyframes shift-pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
         .active-now-badge { animation: shift-pulse 2s infinite !important; background-color: #ecfdf5 !important; border: 2.5px solid #10b981 !important; color: #065f46 !important; }
         .rest-badge { background-color: #fef2f2 !important; border: 2.5px solid #fecaca !important; color: #b91c1c !important; }
@@ -62,6 +61,7 @@
 </head>
 <body class="pb-safe pt-safe">
 
+    <!-- HEADER -->
     <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200">
         <div class="h-16 px-5 flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -82,39 +82,48 @@
     </header>
 
     <main id="mainContent" class="px-5 py-4 pb-32">
-        <p class="text-center text-gray-400 py-20 font-bold text-sm">جاري مزامنة البيانات...</p>
+        <p class="text-center text-gray-400 py-20 font-bold text-sm">جاري مزامنة البيانات السحابية...</p>
     </main>
 
+    <!-- FAB -->
     <button id="fabAdd" onclick="App.UI.openFormModal()" class="hidden fixed bottom-8 left-6 z-20 bg-blue-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform"><i data-lucide="plus" class="w-7 h-7"></i></button>
 
     <div id="modalOverlay" class="sheet-overlay" onclick="window.history.back()"></div>
 
+    <!-- FORM SHEET (ADD/EDIT) -->
     <div id="sheetForm" class="sheet-container overflow-hidden">
         <div class="p-6 flex justify-between items-center border-b border-gray-100 shrink-0">
-            <h2 id="uiFormTitle" class="text-lg font-bold text-gray-900">بيانات الموظف</h2>
+            <h2 id="uiFormTitle" class="text-lg font-bold text-gray-900">إضافة جديد</h2>
             <button onclick="window.history.back()" class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
         <div class="p-6 overflow-y-auto no-scrollbar pb-20 flex-1">
             <form id="formEmployee" onsubmit="App.Core.saveEmployee(event)">
                 <input type="hidden" id="inpId"><input type="hidden" id="inpDept">
-                <div class="form-group"><label class="form-label">الاسم بالكامل</label><input type="text" id="inpName" required class="form-input" placeholder="اسم الموظف"></div>
-                <div class="grid grid-cols-5 gap-3">
-                    <div id="codeGroup" class="form-group col-span-2"><label class="form-label">الكود</label><input type="number" id="inpCode" class="form-input text-center"></div>
-                    <div class="form-group col-span-3"><label class="form-label">الموبايل</label><input type="tel" id="inpPhone" required class="form-input text-left font-bold" dir="ltr" placeholder="01xxxxxxxxx"></div>
+                
+                <div class="form-group"><label id="labelName" class="form-label">الاسم بالكامل</label><input type="text" id="inpName" required class="form-input" placeholder="الاسم"></div>
+                
+                <div id="extraFieldsGroup">
+                    <div class="grid grid-cols-5 gap-3">
+                        <div id="codeGroup" class="form-group col-span-2"><label class="form-label">الكود</label><input type="number" id="inpCode" class="form-input text-center"></div>
+                        <div id="phoneGroup" class="form-group col-span-3"><label class="form-label">الموبايل</label><input type="tel" id="inpPhone" class="form-input text-left font-bold" dir="ltr"></div>
+                    </div>
+                    <div id="landlineGroup" class="hidden form-group"><label class="form-label">الهاتف الأرضي</label><input type="tel" id="inpLandline" class="form-input text-left font-bold" dir="ltr"></div>
                 </div>
-                <div id="landlineGroup" class="hidden form-group"><label class="form-label">الهاتف الأرضي</label><input type="tel" id="inpLandline" class="form-input text-left font-bold" dir="ltr"></div>
-                <div class="form-group"><label class="form-label">المسمى الوظيفي</label><input type="text" id="inpJob" required class="form-input"></div>
+
+                <div class="form-group"><label id="labelJob" class="form-label">المسمى الوظيفي</label><input type="text" id="inpJob" required class="form-input"></div>
+                
                 <div id="locFields" class="mt-4 p-5 bg-gray-50 rounded-3xl border border-gray-200 space-y-4 shadow-inner">
                     <div class="grid grid-cols-2 gap-3">
                         <div id="wrapperLine" class="form-group mb-0"><label class="form-label text-blue-700 font-black">الخط</label><select id="inpLine" class="form-input border-blue-200"><option value="1">خط 1</option><option value="2">خط 2</option></select></div>
                         <div id="wrapperShift" class="form-group mb-0"><label class="form-label text-blue-700 font-black">الوردية</label><select id="inpShift" class="form-input border-blue-200"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-blue-600 text-white py-3.5 rounded-2xl font-bold mt-6 shadow-lg active:scale-95 transition-all text-sm">حفظ البيانات</button>
+                <button type="submit" class="w-full bg-blue-600 text-white py-3.5 rounded-2xl font-bold mt-6 shadow-lg active:scale-95 transition-all text-sm">حفظ ومزامنة</button>
             </form>
         </div>
     </div>
 
+    <!-- DETAILS SHEET -->
     <div id="sheetDetails" class="sheet-container overflow-hidden">
         <div class="p-3 flex justify-end shrink-0"><button onclick="window.history.back()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-200 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button></div>
         <div id="uiDetailsContent" class="px-5 pb-8 overflow-y-auto no-scrollbar flex-1 text-right"></div>
@@ -125,7 +134,7 @@
             isAdmin: new URLSearchParams(window.location.search).get('mode') === 'admin',
             isReorderMode: false,
             Config: {
-                deptMap: { 'rolling': 'خطوط الدرفلة', 'prep': 'تجهيزات', 'management': 'إدارة الإنتاج' },
+                deptMap: { 'rolling': 'خطوط الدرفلة', 'prep': 'تجهيزات', 'management': 'إدارة الإنتاج', 'announcements': 'الإعلانات' },
                 lineMap: { '1': '1', '2': '2', 'none': '' }
             },
             State: { employees: [], view: 'home', shift: null, query: '', isModalOpen: false },
@@ -140,12 +149,14 @@
                     const remain = diff % 20;
                     for (let i = 0; i < remain; i++) {
                         day++;
-                        if(type==='morning'&&day>5){type='morning-rest';day=1}
-                        else if(type==='morning-rest'&&day>1){type='noon';day=1}
-                        else if(type==='noon'&&day>5){type='noon-rest';day=1}
-                        else if(type==='noon-rest'&&day>2){type='evening';day=1}
-                        else if(type==='evening'&&day>5){type='evening-rest';day=1}
-                        else if(type==='evening-rest'&&day>2){type='morning';day=1}
+                        switch (type) {
+                            case 'morning': if (day > 5) { type='morning-rest'; day=1; } break;
+                            case 'morning-rest': if (day > 1) { type='noon'; day=1; } break;
+                            case 'noon': if (day > 5) { type='noon-rest'; day=1; } break;
+                            case 'noon-rest': if (day > 2) { type='evening'; day=1; } break;
+                            case 'evening': if (day > 5) { type='evening-rest'; day=1; } break;
+                            case 'evening-rest': if (day > 2) { type='morning'; day=1; } break;
+                        }
                     }
                     return { type, day };
                 },
@@ -156,7 +167,6 @@
                     if (hour >= 8 && hour < 16) { dutyType = 'morning'; dutyName = 'الوردية الأولى'; }
                     else if (hour >= 16 && hour < 24) { dutyType = 'noon'; dutyName = 'الوردية الثانية'; }
                     else { dutyType = 'evening'; dutyName = 'الوردية الثالثة'; targetDate.setDate(targetDate.getDate() - 1); }
-                    
                     let activeGroup = '-'; let activeDayText = '';
                     for (let g of ['A', 'B', 'C', 'D']) {
                         const s = this.getGroupStatus(g, targetDate);
@@ -190,7 +200,7 @@
                     document.getElementById('btnBack').classList.toggle('hidden', view === 'home' && !query);
                     document.getElementById('fabAdd').classList.toggle('hidden', !App.isAdmin || !shift || !!query);
                     document.getElementById('btnWipe').classList.toggle('flex', App.isAdmin && view === 'home');
-                    document.getElementById('uiMainTitle').innerText = query ? 'البحث' : (shift === 'office' ? 'طاقم الإدارة' : shift ? `وردية ${shift}` : 'قسم الإنتاج');
+                    document.getElementById('uiMainTitle').innerText = query ? 'البحث' : (shift === 'office' ? 'طاقم الإدارة' : shift === 'broadcast' ? 'الإعلانات' : shift ? `وردية ${shift}` : 'قسم الإنتاج');
                     lucide.createIcons();
                     if (pushState) history.pushState({ view, shift, query, modal: isModalOpen }, "");
                 },
@@ -209,69 +219,44 @@
                                 <div onclick="App.Core.navigate('line1')" class="bg-white p-3.5 rounded-2xl border border-gray-100 flex justify-between items-center cursor-pointer shadow-sm active:scale-95 transition-transform"><span class="font-bold text-xs text-gray-700">خط درفلة 1</span><span class="text-[10px] bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-black tracking-tighter">${c('rolling', '1')}</span></div>
                                 <div onclick="App.Core.navigate('line2')" class="bg-white p-3.5 rounded-2xl border border-gray-100 flex justify-between items-center cursor-pointer shadow-sm active:scale-95 transition-transform"><span class="font-bold text-xs text-gray-700">خط درفلة 2</span><span class="text-[10px] bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-black tracking-tighter">${c('rolling', '2')}</span></div>
                             </div>
-                            <div onclick="App.Core.navigate('prep')" class="p-5 flex justify-between items-center active:bg-gray-50 transition-all cursor-pointer"><div class="flex items-center gap-4 flex-1"><div class="w-11 h-11 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center shadow-sm border border-teal-100/50"><i data-lucide="wrench" class="w-5 h-5"></i></div><div><h2 class="font-extrabold text-gray-900 text-sm">ورشة التجهيزات</h2><p class="text-[11px] text-gray-500 font-medium">${c('prep')} موظف</p></div></div><i data-lucide="chevron-left" class="w-4 h-4 text-gray-400"></i></div>
+                            <div onclick="App.Core.navigate('prep')" class="p-5 flex justify-between items-center active:bg-gray-50 cursor-pointer transition-all"><div class="flex items-center gap-4 flex-1"><div class="w-11 h-11 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center shadow-sm border border-teal-100/50"><i data-lucide="wrench" class="w-5 h-5"></i></div><div><h2 class="font-extrabold text-gray-900 text-sm">ورشة التجهيزات</h2><p class="text-[11px] text-gray-500 font-medium">${c('prep')} موظف</p></div></div><i data-lucide="chevron-left" class="w-4 h-4 text-gray-400"></i></div>
+                            <div onclick="App.Core.navigate('announcements')" class="p-5 flex justify-between items-center active:bg-gray-50 cursor-pointer transition-all">
+                                <div class="flex items-center gap-4 flex-1"><div class="w-11 h-11 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center shadow-sm border border-orange-100/50"><i data-lucide="megaphone" class="w-5 h-5"></i></div><div><h2 class="font-extrabold text-gray-900 text-sm">الإعلانات الداخلية</h2><p class="text-[11px] text-gray-500 font-medium">تنبيهات وتعليمات وملاحظات مهمة</p></div></div>
+                                <span class="text-[10px] bg-orange-50 text-orange-600 px-2.5 py-1 rounded-full font-black">${c('announcements')} جديد</span>
+                            </div>
                         </div>`;
                 },
 
                 renderShiftMenu(view, live) {
-                    const now = new Date();
-                    const hour = now.getHours();
+                    if (view === 'management') { setTimeout(() => App.Core.navigateShift('office'), 10); return ''; }
+                    if (view === 'announcements') { setTimeout(() => App.Core.navigateShift('broadcast'), 10); return ''; }
+                    const now = new Date(); const hour = now.getHours();
                     let targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                    if (hour < 8) targetDate.setDate(targetDate.getDate() - 1); // مزامنة مع الوردية الثالثة
+                    if (hour < 8) targetDate.setDate(targetDate.getDate() - 1);
 
                     const html = ['A','B','C','D'].map(s => {
                         const count = App.State.employees.filter(e => e.shift === s && (view==='prep'?e.department==='prep':e.line===view.replace('line',''))).length;
-                        
-                        // حساب حالة الوردية المحددة في هذا الحساب
                         const status = App.ShiftEngine.getGroupStatus(s, targetDate);
-                        
-                        // تحديد الأولوية للحالة اللونية
                         const isWorkingNow = (s === live.group);
                         const isResting = status.type.includes('rest');
+                        let badgeClass = isWorkingNow ? 'active-now-badge' : (isResting ? 'rest-badge' : 'standard-badge');
+                        let statusText = isWorkingNow ? 'الآن' : (isResting ? 'راحة' : {'morning':'أولى','noon':'ثانية','evening':'ثالثة'}[status.type]);
+                        let colorClass = isWorkingNow ? 'text-emerald-500' : (isResting ? 'text-rose-500' : 'text-gray-400');
 
-                        let badgeClass = 'standard-badge';
-                        let statusText = '';
-                        let colorClass = 'text-gray-400';
-
-                        if (isWorkingNow) {
-                            badgeClass = 'active-now-badge'; // أخضر فليشر
-                            statusText = 'الآن';
-                            colorClass = 'text-emerald-500';
-                        } else if (isResting) {
-                            badgeClass = 'rest-badge'; // أحمر ثابت
-                            statusText = 'راحة';
-                            colorClass = 'text-rose-500';
-                        } else {
-                            const typeAr = { 'morning': 'أولى', 'noon': 'ثانية', 'evening': 'ثالثة' };
-                            statusText = typeAr[status.type] || '';
-                            colorClass = 'text-gray-400';
-                        }
-
-                        return `
-                            <div onclick="App.Core.navigateShift('${s}')" class="p-4 flex justify-between items-center active:bg-gray-50 border-b border-gray-50 cursor-pointer">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm transition-all ${badgeClass}">${s}</div>
-                                    <div class="flex flex-col">
-                                        <span class="font-bold text-gray-900 text-sm">وردية ${s}</span>
-                                        <span class="text-[10px] font-black ${colorClass} tracking-tighter">${statusText}</span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[10px] bg-gray-100 px-2.5 py-1 rounded-full font-bold text-gray-400">${count}</span>
-                                    <i data-lucide="chevron-left" class="w-4 h-4 text-gray-300"></i>
-                                </div>
-                            </div>`;
+                        return `<div onclick="App.Core.navigateShift('${s}')" class="p-4 flex justify-between items-center active:bg-gray-50 border-b border-gray-50 cursor-pointer"><div class="flex items-center gap-3"><div class="w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm transition-all ${badgeClass}">${s}</div><div class="flex flex-col"><span class="font-bold text-gray-900 text-sm">وردية ${s}</span><span class="text-[10px] font-black ${colorClass} tracking-tighter">${statusText}</span></div></div><div class="flex items-center gap-2"><span class="text-[10px] bg-gray-100 px-2.5 py-1 rounded-full font-bold text-gray-400">${count}</span><i data-lucide="chevron-left" class="w-4 h-4 text-gray-300"></i></div></div>`;
                     }).join('');
-                    return `<h3 class="text-[10px] font-black text-gray-400 uppercase mb-3 mr-2 tracking-widest text-[11px]">اختر الوردية</h3><div class="bg-white rounded-[28px] border border-gray-100 overflow-hidden shadow-sm">${html}</div>`;
+                    return `<h3 class="text-[10px] font-black text-gray-400 uppercase mb-3 mr-2 tracking-widest">اختر الوردية</h3><div class="bg-white rounded-[28px] border border-gray-100 overflow-hidden shadow-sm">${html}</div>`;
                 },
 
                 renderEmployeeList(view, shift) {
-                    const filtered = App.State.employees.filter(e => e.shift === shift && (view==='management'?e.department==='management':view==='prep'?e.department==='prep':e.line===view.replace('line','')));
-                    const sortIcon = App.isAdmin ? `<button onclick="App.UI.toggleReorderMode()" class="p-2 ${App.isReorderMode?'text-blue-600 bg-blue-50':'text-gray-400'} rounded-xl transition-colors"><i data-lucide="arrow-up-down" class="w-4 h-4"></i></button>` : '';
-                    let header = `<div class="flex justify-between items-center mb-4 mr-1"><h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest text-[11px]">قائمة الموظفين</h3>${sortIcon}</div>`;
-                    if(!filtered.length) return header + `<div class="py-20 text-center text-gray-400 font-bold text-xs">لا يوجد موظفين مسجلين</div>`;
+                    const filtered = App.State.employees.filter(e => e.shift === shift && (view==='management'?e.department==='management':view==='prep'?e.department==='prep':view==='announcements'?e.department==='announcements':e.line===view.replace('line','')));
+                    const sortIcon = App.isAdmin ? `<button onclick="App.UI.toggleReorderMode()" class="p-2 ${App.isReorderMode?'text-blue-600 bg-blue-50':'text-gray-400'} rounded-xl transition-colors"><i data-lucide="arrow-up-down" class="w-5 h-5"></i></button>` : '';
+                    let headerText = (view === 'announcements') ? 'قائمة التنبيهات' : 'قائمة الموظفين';
+                    let header = `<div class="flex justify-between items-center mb-4 mr-1"><h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">${headerText}</h3>${sortIcon}</div>`;
+                    if(!filtered.length) return header + `<div class="py-20 text-center text-gray-400 font-bold text-xs">لا يوجد بيانات مسجلة</div>`;
                     return header + `<div class="space-y-2.5">` + filtered.map((e) => {
-                        const avatarContent = (e.department === 'management') ? `<i data-lucide="user-cog" class="w-5 h-5 text-gray-400"></i>` : e.shift;
+                        const icon = (e.department === 'management') ? 'user-cog' : (e.department === 'announcements' ? 'megaphone' : null);
+                        const avatarContent = icon ? `<i data-lucide="${icon}" class="w-5 h-5 text-gray-400"></i>` : e.shift;
                         return `<div class="bg-white p-4 rounded-[22px] border border-gray-100 flex items-center justify-between shadow-sm active:scale-[0.98] transition-all list-item" onclick="if(!App.isReorderMode) App.UI.openDetails('${e.uid}')"><div class="flex items-center gap-4 flex-1 min-w-0"><div class="w-11 h-11 bg-gray-50 rounded-[16px] flex items-center justify-center text-gray-500 font-black text-base shrink-0 border border-gray-100/50">${avatarContent}</div><div class="flex-1 min-w-0"><h3 class="font-bold text-sm text-gray-900 truncate mb-0.5">${e.name}</h3><p class="text-[10px] text-gray-400 font-bold truncate tracking-tight">${e.jobTitle} ${e.code?'| <span class="text-blue-600 font-black">'+e.code+'</span>':''}</p></div></div><div class="flex items-center shrink-0 pr-1">${App.isReorderMode ? `<div class="flex flex-col gap-1"><button onclick="event.stopPropagation(); App.Core.moveEmployee('${e.uid}', -1)" class="p-1.5 bg-gray-50 rounded-lg border border-gray-200 hover:bg-blue-50 hover:text-blue-600"><i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-600"></i></button><button onclick="event.stopPropagation(); App.Core.moveEmployee('${e.uid}', 1)" class="p-1.5 bg-gray-50 rounded-lg border border-gray-200 hover:bg-blue-50 hover:text-blue-600"><i data-lucide="chevron-down" class="w-3.5 h-3.5 text-gray-600"></i></button></div>` : ``}</div></div>`;
                     }).join('') + `</div>`;
                 },
@@ -280,24 +265,29 @@
                     const filtered = App.State.employees.filter(e => e.name.toLowerCase().includes(q.toLowerCase()) || (e.code && e.code.toString().includes(q)));
                     if(!filtered.length) return `<div class="py-20 text-center text-gray-400 font-bold text-xs">لا توجد نتائج مطابقة</div>`;
                     return filtered.map(e => {
-                        const avatarContent = (e.department === 'management') ? `<i data-lucide="user-cog" class="w-5 h-5 text-gray-400"></i>` : e.shift;
+                        const icon = (e.department === 'management') ? 'user-cog' : (e.department === 'announcements' ? 'megaphone' : null);
+                        const avatarContent = icon ? `<i data-lucide="${icon}" class="w-5 h-5 text-blue-600"></i>` : e.shift;
                         return `<div onclick="App.Core.clearSearchAndOpen('${e.uid}')" class="bg-white p-4 rounded-[22px] border border-gray-100 flex items-center justify-between shadow-sm active:scale-[0.98] transition-transform mb-2.5"><div class="flex items-center gap-4 flex-1 min-w-0"><div class="w-11 h-11 bg-blue-50 rounded-[16px] flex items-center justify-center text-blue-600 font-black shrink-0 border border-blue-100/50">${avatarContent}</div><div class="flex-1 min-w-0 text-right"><h3 class="font-bold text-sm text-gray-900 truncate mb-0.5">${e.name}</h3><p class="text-[9px] text-gray-400 font-black uppercase tracking-wider truncate text-[11px]">${App.Config.deptMap[e.department]}</p></div></div></div>`;
                     }).join('');
                 },
 
                 openDetails(uid) {
                     App.State.isModalOpen = true; const e = App.State.employees.find(x => x.uid == uid);
-                    const cleanPhone = e.phone.replace(/\s+/g, ''); const waLink = `https://wa.me/2${cleanPhone}`; const telLink = `tel:${cleanPhone}`;
-                    const avatarContent = (e.department === 'management') ? `<i data-lucide="user-cog" class="w-8 h-8 text-blue-600"></i>` : e.shift;
+                    const isAnn = e.department === 'announcements';
+                    const cleanPhone = e.phone ? e.phone.replace(/\s+/g, '') : '';
+                    const waLink = `https://wa.me/2${cleanPhone}`; const telLink = `tel:${cleanPhone}`;
+                    const icon = (e.department === 'management') ? 'user-cog' : (isAnn ? 'megaphone' : null);
+                    const avatarContent = icon ? `<i data-lucide="${icon}" class="w-10 h-10 text-blue-600"></i>` : e.shift;
+                    
                     document.getElementById('uiDetailsContent').innerHTML = `
                         <div class="flex flex-col items-center mb-6 pt-2"><div class="w-20 h-20 bg-blue-50 rounded-[28px] flex items-center justify-center text-blue-600 font-black text-3xl mb-4 shadow-sm border-2 border-white">${avatarContent}</div><h3 class="text-lg font-extrabold text-gray-900 text-center px-4 mb-1">${e.name}</h3><span class="px-4 py-1 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full">${e.jobTitle}</span></div>
+                        ${!isAnn ? `
                         <div class="grid grid-cols-2 gap-3 mb-6"><a href="${telLink}" class="flex flex-col items-center gap-2 p-3.5 bg-blue-50 rounded-[24px] border border-blue-100 active:scale-95 transition-all"><div class="w-9 h-9 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm border border-blue-100/50"><i data-lucide="phone" class="w-4 h-4"></i></div><span class="text-[10px] font-bold text-blue-700">اتصال هاتف</span></a><a href="${waLink}" target="_blank" class="flex flex-col items-center gap-2 p-3.5 bg-emerald-50 rounded-[24px] border border-emerald-100 active:scale-95 transition-all"><div class="w-9 h-9 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-sm border border-emerald-100/50"><i data-lucide="message-circle" class="w-4 h-4"></i></div><span class="text-[10px] font-bold text-emerald-700">واتساب</span></a></div>
                         <div class="space-y-2.5 mb-8">
-                            ${e.code ? `<div class="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100/60 transition-all hover:bg-white"><div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-gray-400 shadow-sm border border-gray-100"><i data-lucide="hash" class="w-4 h-4"></i></div><div class="flex-1 text-right"><p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0 text-[10px]">كود الموظف</p><p class="text-base font-extrabold text-blue-700">${e.code}</p></div></div>` : ''}
-                            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100/60 transition-all hover:bg-white"><div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-gray-400 shadow-sm border border-gray-100"><i data-lucide="smartphone" class="w-4 h-4"></i></div><div class="flex-1 text-right"><p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0 text-[10px]">رقم الهاتف</p><p class="text-base font-extrabold text-gray-800" dir="ltr">${e.phone}</p></div></div>
-                            ${e.landline ? `<div class="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100/60 transition-all hover:bg-white"><div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-gray-400 shadow-sm border border-gray-100"><i data-lucide="phone-forwarded" class="w-4 h-4"></i></div><div class="flex-1 text-right"><p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0 text-[10px]">هاتف الإدارة</p><p class="text-base font-extrabold text-gray-800" dir="ltr">${e.landline}</p></div></div>` : ''}
-                        </div>
-                        ${App.isAdmin ? `<div class="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100"><button onclick="App.Core.deleteEmployee('${e.uid}')" class="py-3 bg-red-50 text-red-600 rounded-xl font-black text-[10px] active:scale-95 transition-all flex items-center justify-center gap-1.5 border border-red-100/50"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>حذف</button><button onclick="App.UI.closeAllModals(); setTimeout(()=>App.UI.openFormModal('${e.uid}'), 300)" class="py-3 bg-gray-900 text-white rounded-xl font-black text-[10px] shadow-lg active:scale-95 transition-all flex items-center justify-center gap-1.5 border border-gray-700"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i>تعديل</button></div>` : `<button onclick="window.history.back()" class="w-full py-3.5 bg-gray-100 text-gray-500 rounded-xl font-black text-[11px] border border-gray-200 active:scale-95 mt-2">إغلاق</button>`}`;
+                            ${e.code ? `<div class="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100/60 transition-all hover:bg-white"><div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-gray-400 shadow-sm border border-gray-100"><i data-lucide="hash" class="w-4 h-4"></i></div><div class="flex-1 text-right"><p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0">كود الموظف</p><p class="text-base font-extrabold text-blue-700">${e.code}</p></div></div>` : ''}
+                            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100/60 transition-all hover:bg-white"><div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-gray-400 shadow-sm border border-gray-100"><i data-lucide="smartphone" class="w-4 h-4"></i></div><div class="flex-1 text-right"><p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0">رقم الهاتف</p><p class="text-base font-extrabold text-gray-800" dir="ltr">${e.phone}</p></div></div>
+                        </div>` : `<div class="p-6 bg-orange-50 rounded-3xl border border-orange-100 text-gray-700 text-sm font-medium mb-8 leading-relaxed shadow-inner">${e.jobTitle}</div>`}
+                        ${App.isAdmin ? `<div class="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100"><button onclick="App.Core.deleteEmployee('${e.uid}')" class="py-3 bg-red-50 text-red-600 rounded-xl font-black text-[10px] active:scale-95 transition-all flex items-center justify-center gap-1.5 border border-red-100/50"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>حذف</button><button onclick="App.UI.closeAllModals(); setTimeout(()=>App.UI.openFormModal('${e.uid}'), 300)" class="py-3 bg-gray-900 text-white rounded-xl font-black text-[10px] shadow-lg active:scale-95 flex items-center justify-center gap-1.5 border border-gray-700"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i>تعديل</button></div>` : `<button onclick="window.history.back()" class="w-full py-3.5 bg-gray-100 text-gray-500 rounded-xl font-black text-[11px] border border-gray-200 active:scale-95 mt-2">إغلاق</button>`}`;
                     document.getElementById('modalOverlay').classList.add('is-open');
                     document.getElementById('sheetDetails').classList.add('is-open');
                     App.UI.updateAll(true); lucide.createIcons();
@@ -318,10 +308,10 @@
                         document.getElementById('inpShift').value = e.shift; document.getElementById('uiFormTitle').innerText = "تعديل بيانات";
                     } else {
                         document.getElementById('inpId').value = '';
-                        document.getElementById('inpDept').value = (view==='management')?'management':(view==='prep'?'prep':'rolling');
+                        document.getElementById('inpDept').value = (view==='management')?'management':(view==='prep'?'prep':(view==='announcements'?'announcements':'rolling'));
                         if(view.startsWith('line')) document.getElementById('inpLine').value = view.replace('line','');
-                        document.getElementById('inpShift').value = shift || 'A';
-                        document.getElementById('uiFormTitle').innerText = "إضافة موظف جديد";
+                        document.getElementById('inpShift').value = (view==='management'?'office':(view==='announcements'?'broadcast':'A'));
+                        document.getElementById('uiFormTitle').innerText = "إضافة جديد";
                     }
                     App.Core.handleDeptChange(); document.getElementById('modalOverlay').classList.add('is-open');
                     document.getElementById('sheetForm').classList.add('is-open'); App.UI.updateAll(true);
@@ -330,14 +320,24 @@
             },
 
             Core: {
-                navigate(v) { App.State.view = v; App.State.shift = (v === 'management') ? 'office' : null; App.UI.updateAll(true); },
+                navigate(v) { App.State.view = v; App.State.shift = (v === 'management') ? 'office' : (v === 'announcements' ? 'broadcast' : null); App.UI.updateAll(true); },
                 navigateShift(s) { App.State.shift = s; App.UI.updateAll(true); },
-                goBack(byPopState = true) { if (App.State.isModalOpen) { App.UI.closeAllModals(); } else if (App.State.query) { this.clearSearch(); } else if (App.State.shift) { if (App.State.view === 'management') { App.State.view = 'home'; App.State.shift = null; } else App.State.shift = null; } else if (App.State.view !== 'home') App.State.view = 'home'; App.UI.updateAll(false); },
+                goBack(byPopState = true) { if (App.State.isModalOpen) { App.UI.closeAllModals(); } else if (App.State.query) { this.clearSearch(); } else if (App.State.shift) { if (App.State.view === 'management' || App.State.view === 'announcements') { App.State.view = 'home'; App.State.shift = null; } else App.State.shift = null; } else if (App.State.view !== 'home') App.State.view = 'home'; App.UI.updateAll(false); },
                 clearSearchAndOpen(uid) { App.State.query = ''; document.getElementById('searchInput').value = ''; App.State.view = 'home'; App.State.shift = null; App.UI.updateAll(false); setTimeout(() => App.UI.openDetails(uid), 100); },
-                handleDeptChange() { const d = document.getElementById('inpDept').value; const isM = (d === 'management'); const isP = (d === 'prep'); document.getElementById('codeGroup').classList.toggle('hidden', isM); document.getElementById('landlineGroup').classList.toggle('hidden', !isM); document.getElementById('locFields').classList.toggle('hidden', isM); document.getElementById('wrapperLine').classList.toggle('hidden', isM || isP); },
-                saveEmployee(ev) { ev.preventDefault(); if(!window.cloudDB) return alert('خطأ في الاتصال'); const uid = document.getElementById('inpId').value || "ID-"+Date.now(); const dept = document.getElementById('inpDept').value; const lastOrder = App.State.employees.length ? Math.max(...App.State.employees.map(e => e.sortOrder || 0)) : 0; const emp = { uid, name: document.getElementById('inpName').value.trim(), code: (dept==='management') ? '' : (document.getElementById('inpCode').value || ''), jobTitle: document.getElementById('inpJob').value.trim(), department: dept, line: (dept==='rolling')?document.getElementById('inpLine').value:'none', shift: (dept==='management')?'office':document.getElementById('inpShift').value, phone: document.getElementById('inpPhone').value.trim(), landline: document.getElementById('inpLandline').value.trim(), sortOrder: document.getElementById('inpId').value ? (App.State.employees.find(x => x.uid === uid).sortOrder || 0) : lastOrder + 1 }; window.cloudDB.set(window.cloudDB.ref(window.cloudDB.db, 'employees/' + uid), emp); window.history.back(); },
+                handleDeptChange() {
+                    const d = document.getElementById('inpDept').value;
+                    const isM = (d === 'management'), isP = (d === 'prep'), isA = (d === 'announcements');
+                    document.getElementById('labelName').innerText = isA ? 'عنوان الإعلان' : 'الاسم بالكامل';
+                    document.getElementById('labelJob').innerText = isA ? 'نص الإعلان' : 'المسمى الوظيفي';
+                    document.getElementById('codeGroup').classList.toggle('hidden', isM || isA);
+                    document.getElementById('phoneGroup').classList.toggle('hidden', isA);
+                    document.getElementById('landlineGroup').classList.toggle('hidden', !isM);
+                    document.getElementById('locFields').classList.toggle('hidden', isM || isA);
+                    document.getElementById('wrapperLine').classList.toggle('hidden', isM || isP || isA);
+                },
+                saveEmployee(ev) { ev.preventDefault(); if(!window.cloudDB) return alert('خطأ في الاتصال'); const uid = document.getElementById('inpId').value || "ID-"+Date.now(); const dept = document.getElementById('inpDept').value; const lastOrder = App.State.employees.length ? Math.max(...App.State.employees.map(e => e.sortOrder || 0)) : 0; const emp = { uid, name: document.getElementById('inpName').value.trim(), code: (dept==='management' || dept==='announcements') ? '' : (document.getElementById('inpCode').value || ''), jobTitle: document.getElementById('inpJob').value.trim(), department: dept, line: (dept==='rolling')?document.getElementById('inpLine').value:'none', shift: (dept==='management')?'office':(dept==='announcements'?'broadcast':document.getElementById('inpShift').value), phone: document.getElementById('inpPhone').value.trim(), landline: document.getElementById('inpLandline').value.trim(), sortOrder: document.getElementById('inpId').value ? (App.State.employees.find(x => x.uid === uid).sortOrder || 0) : lastOrder + 1 }; window.cloudDB.set(window.cloudDB.ref(window.cloudDB.db, 'employees/' + uid), emp); window.history.back(); },
                 moveEmployee(uid, direction) { 
-                    const currentEmps = App.State.employees.filter(e => e.shift === App.State.shift && (App.State.view==='management'?e.department==='management':App.State.view==='prep'?e.department==='prep':e.line===App.State.view.replace('line','')));
+                    const currentEmps = App.State.employees.filter(e => e.shift === App.State.shift && (App.State.view==='management'?e.department==='management':App.State.view==='prep'?e.department==='prep':App.State.view==='announcements'?e.department==='announcements':e.line===App.State.view.replace('line','')));
                     const idx = currentEmps.findIndex(e => e.uid === uid);
                     const targetIdx = idx + direction;
                     if (targetIdx < 0 || targetIdx >= currentEmps.length) return;
@@ -347,7 +347,7 @@
                     updates[`employees/${cur.uid}/sortOrder`] = newO; updates[`employees/${target.uid}/sortOrder`] = oldO;
                     window.cloudDB.update(window.cloudDB.ref(window.cloudDB.db), updates);
                 },
-                deleteEmployee(uid) { if(confirm('حذف الموظف نهائياً؟')) { window.cloudDB.remove(window.cloudDB.ref(window.cloudDB.db, 'employees/' + uid)); window.history.back(); } },
+                deleteEmployee(uid) { if(confirm('حذف نهائي؟')) { window.cloudDB.remove(window.cloudDB.ref(window.cloudDB.db, 'employees/' + uid)); window.history.back(); } },
                 wipeAllData() { if (confirm("⚠️ تحذير: سيتم مسح كافة البيانات نهائياً. هل أنت متأكد؟")) window.cloudDB.remove(window.cloudDB.ref(window.cloudDB.db, 'employees')); },
                 clearSearch() { App.State.query = ''; document.getElementById('searchInput').value = ''; App.State.view = 'home'; App.State.shift = null; App.UI.updateAll(false); }
             },
