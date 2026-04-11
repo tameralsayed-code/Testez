@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>قسم الإنتاج | V45 Stable</title>
+    <title>قسم الإنتاج | النسخة النهائية V45</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <!-- مكتبات Firebase التقليدية لضمان العمل في كل البيئات -->
+    <!-- مكتبات Firebase بنسخة التوافق لضمان العمل على الهاتف مباشرة -->
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-auth-compat.js"></script>
@@ -18,28 +18,25 @@
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; font-family: 'Tajawal', sans-serif; }
         body { background-color: #F3F4F6; color: #1F2937; line-height: 1.5; overflow-x: hidden; }
         
-        /* تصميم فورم الإدخال المصغر */
         .form-group { width: 100%; display: block; margin-bottom: 12px; }
         .form-label { display: block; font-size: 11px; font-weight: 800; color: #4b5563; margin-bottom: 3px; text-align: right; }
         .form-input { width: 100%; display: block; background: #FFFFFF; border: 1px solid #D1D5DB; padding: 10px 12px; border-radius: 12px; font-size: 13px; color: #111827; }
         .form-input:focus { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
         select.form-input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: left 10px center; background-size: 14px; padding-left: 35px; }
 
-        /* الأوراق المنبثقة */
         .sheet-container { transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; background: white; border-top-left-radius: 32px; border-top-right-radius: 32px; box-shadow: 0 -10px 40px rgba(0,0,0,0.1); max-height: 95vh; display: flex; flex-direction: column; }
         .sheet-container.is-open { transform: translateY(0); }
         .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 40; backdrop-filter: blur(2px); }
         .sheet-overlay.is-open { opacity: 1; pointer-events: auto; }
         
-        /* تلوين الورديات */
-        @keyframes shift-pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
-        .active-now-badge { animation: shift-pulse 2s infinite !important; background-color: #ecfdf5 !important; border: 2px solid #10b981 !important; color: #065f46 !important; }
+        .active-now-badge { animation: shift-pulse 2s infinite !important; background-color: #ecfdf5 !important; border: 2.5px solid #10b981 !important; color: #065f46 !important; }
         .rest-badge { background-color: #fef2f2 !important; border: 2.5px solid #fecaca !important; color: #b91c1c !important; }
         .standard-badge { background-color: #f3f4f6 !important; border: 1.5px solid #e5e7eb !important; color: #6b7280 !important; }
         
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .list-item { animation: fadeIn 0.3s ease forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shift-pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -66,7 +63,7 @@
     </header>
 
     <main id="mainContent" class="px-5 py-4 pb-32">
-        <!-- الواجهة ستحمل هنا فوراً -->
+        <p class="text-center text-gray-400 py-20 font-bold text-sm">جاري تحميل النظام...</p>
     </main>
 
     <!-- FAB -->
@@ -74,29 +71,29 @@
 
     <div id="modalOverlay" class="sheet-overlay" onclick="App.UI.closeAllModals()"></div>
 
-    <!-- FORM SHEET (ADD/EDIT) -->
+    <!-- FORM SHEET -->
     <div id="sheetForm" class="sheet-container overflow-hidden">
         <div class="p-6 flex justify-between items-center border-b border-gray-100 shrink-0">
-            <h2 id="uiFormTitle" class="text-lg font-bold text-gray-900">بيانات الموظف</h2>
-            <button onclick="App.UI.closeAllModals()" class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <h2 id="uiFormTitle" class="text-base font-bold text-gray-900">إضافة جديد</h2>
+            <button onclick="App.UI.closeAllModals()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
         </div>
-        <div class="p-6 overflow-y-auto no-scrollbar pb-20 flex-1">
+        <div class="p-6 overflow-y-auto no-scrollbar pb-16 flex-1">
             <form id="formEmployee" onsubmit="App.Core.saveEmployee(event)">
                 <input type="hidden" id="inpId"><input type="hidden" id="inpDept">
-                <div class="form-group"><label id="labelName" class="form-label font-black">الاسم بالكامل</label><input type="text" id="inpName" required class="form-input" placeholder="اسم الموظف الثلاثي"></div>
-                <div class="grid grid-cols-5 gap-3">
-                    <div id="codeGroup" class="form-group col-span-2"><label class="form-label font-black">الكود</label><input type="number" id="inpCode" class="form-input text-center font-bold" placeholder="0000"></div>
-                    <div class="form-group col-span-3"><label class="form-label font-black">رقم الموبايل</label><input type="tel" id="inpPhone" required class="form-input text-center font-bold" dir="ltr" placeholder="01xxxxxxxxx"></div>
+                <div class="form-group"><label id="labelName" class="form-label font-black">الاسم / العنوان</label><input type="text" id="inpName" required class="form-input" placeholder="اكتب هنا..."></div>
+                <div id="extraFieldsGroup" class="grid grid-cols-5 gap-3">
+                    <div id="codeGroup" class="form-group col-span-2"><label class="form-label font-black text-[11px]">الكود</label><input type="number" id="inpCode" class="form-input text-center font-bold" placeholder="0000"></div>
+                    <div id="phoneGroup" class="form-group col-span-3"><label class="form-label font-black text-[11px]">رقم الموبايل</label><input type="tel" id="inpPhone" class="form-input text-center font-bold" dir="ltr" placeholder="01xxxx"></div>
                 </div>
-                <div id="landlineGroup" class="hidden form-group"><label class="form-label font-black text-blue-600">الهاتف الأرضي</label><input type="tel" id="inpLandline" class="form-input text-center font-bold" dir="ltr"></div>
-                <div class="form-group"><label id="labelJob" class="form-label font-black">المسمى الوظيفي</label><input type="text" id="inpJob" required class="form-input"></div>
-                <div id="locFields" class="mt-4 p-5 bg-gray-50 rounded-3xl border border-gray-200 space-y-4 shadow-inner">
+                <div id="landlineGroup" class="hidden form-group"><label class="form-label font-black text-blue-700 text-[11px]">الهاتف الأرضي</label><input type="tel" id="inpLandline" class="form-input text-center font-bold" dir="ltr"></div>
+                <div class="form-group"><label id="labelJob" class="form-label font-black">المحتوى / المسمى</label><textarea id="inpJob" required class="form-input min-h-[100px] py-3" style="resize: none;"></textarea></div>
+                <div id="locFields" class="mt-4 p-4 bg-gray-50 rounded-2xl border border-gray-200 space-y-3 shadow-inner text-right">
                     <div class="grid grid-cols-2 gap-3">
-                        <div id="wrapperLine" class="form-group mb-0"><label class="form-label text-blue-700 font-black">الخط</label><select id="inpLine" class="form-input border-blue-200 font-bold"><option value="1">خط 1</option><option value="2">خط 2</option></select></div>
-                        <div id="wrapperShift" class="form-group mb-0"><label class="form-label text-blue-700 font-black">الوردية</label><select id="inpShift" class="form-input border-blue-200 font-bold"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>
+                        <div id="wrapperLine" class="form-group mb-0"><label class="form-label text-blue-700 font-black text-[10px]">الخط</label><select id="inpLine" class="form-input border-blue-200 font-bold"><option value="1">خط 1</option><option value="2">خط 2</option></select></div>
+                        <div id="wrapperShift" class="form-group mb-0"><label class="form-label text-blue-700 font-black text-[10px]">الوردية</label><select id="inpShift" class="form-input border-blue-200 font-bold"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-blue-600 text-white py-3.5 rounded-2xl font-bold mt-6 shadow-lg active:scale-95 transition-all text-sm tracking-widest uppercase">حفظ البيانات</button>
+                <button type="submit" class="w-full bg-blue-600 text-white py-3.5 rounded-2xl font-bold mt-6 shadow-lg active:scale-95 transition-all text-sm tracking-widest uppercase">حفظ سحابياً</button>
             </form>
         </div>
     </div>
@@ -108,7 +105,7 @@
     </div>
 
     <script>
-        // تكوين Firebase (Compatible Version)
+        // Firebase Config
         const firebaseConfig = {
           apiKey: "AIzaSyBv9f9VzWWLMn4P_z-U-TKwkJBNaNdbAYI",
           authDomain: "production-ez.firebaseapp.com",
@@ -136,10 +133,11 @@
                 getNumberText(num) { const nums = ['أول', 'ثاني', 'ثالث', 'رابع', 'خامس']; return nums[num - 1] || num; },
                 getGroupStatus(group, date) {
                     const start = new Date(2025, 0, 1);
-                    const diff = Math.round((date - start) / 86400000);
+                    const diff = Math.floor((date.getTime() - start.getTime()) / 86400000);
                     const initial = { 'A': { t: 'evening', d: 3 }, 'B': { t: 'morning-rest', d: 1 }, 'C': { t: 'noon', d: 5 }, 'D': { t: 'morning', d: 1 } };
                     let { t, d } = initial[group];
-                    for (let i = 0; i < (diff % 20); i++) {
+                    const remain = diff % 20;
+                    for (let i = 0; i < remain; i++) {
                         d++;
                         if(t==='morning'&&d>5){t='morning-rest';d=1}
                         else if(t==='morning-rest'&&d>1){t='noon';d=1}
@@ -166,7 +164,6 @@
 
             UI: {
                 syncWithCloud() {
-                    // المزامنة تتم فقط بعد التأكد من تسجيل الدخول
                     db.ref('employees').on('value', (snapshot) => {
                         const data = snapshot.val();
                         const list = data ? Object.values(data).filter(e => e && e.name) : [];
@@ -175,14 +172,10 @@
                     });
                 },
 
-                updateAll(pushToHistory = true) {
+                updateAll(pushState = true) {
                     const { view, shift, query, employees, isModalOpen } = App.State;
                     const live = App.ShiftEngine.getLiveNow();
-                    
                     document.getElementById('searchContainer').style.display = (view === 'announcements') ? 'none' : 'block';
-                    document.getElementById('fabAdd').style.display = (App.isAdmin && shift) ? 'flex' : 'none';
-                    document.getElementById('btnWipe').style.display = (App.isAdmin && view === 'home') ? 'flex' : 'none';
-                    document.getElementById('btnBack').style.display = (view !== 'home' || query) ? 'flex' : 'none';
 
                     let html = '';
                     if (query) html = this.renderSearch(query);
@@ -191,30 +184,33 @@
                     else html = this.renderHome(employees, live);
 
                     document.getElementById('mainContent').innerHTML = html;
+                    document.getElementById('btnBack').style.display = (view !== 'home' || query) ? 'flex' : 'none';
+                    document.getElementById('fabAdd').style.display = (App.isAdmin && shift) ? 'flex' : 'none';
+                    document.getElementById('btnWipe').style.display = (App.isAdmin && view === 'home') ? 'flex' : 'none';
                     document.getElementById('uiMainTitle').innerText = query ? 'البحث' : (shift === 'office' ? 'طاقم الإدارة' : shift === 'broadcast' ? 'الإعلانات' : shift ? `وردية ${shift}` : 'قسم الإنتاج');
                     
                     lucide.createIcons();
-                    if (pushToHistory) history.pushState({ view, shift, query, modal: isModalOpen }, "");
+                    if (pushState) history.pushState({ view, shift, query, modal: isModalOpen }, "");
                 },
 
                 renderHome(employees, live) {
                     const c = (d, l) => employees.filter(e => e.department === d && (l ? e.line === l : true)).length;
                     return `
-                        <div class="bg-slate-900 rounded-[24px] p-4 flex items-center justify-between text-white border border-white/10 shadow-lg mb-6 relative">
-                            <div class="flex items-center gap-4">
+                        <div class="bg-slate-900 rounded-[24px] p-4 flex items-center justify-between text-white border border-white/5 shadow-sm mb-6">
+                            <div class="flex items-center gap-3.5">
                                 <div class="w-11 h-11 bg-emerald-500 rounded-xl flex items-center justify-center text-xl font-black text-white shadow-lg shadow-emerald-500/20">${live.group}</div>
-                                <div><p class="text-[9px] text-emerald-400 font-bold uppercase tracking-widest">المباشرة الآن</p><h2 class="text-sm font-bold leading-tight">${live.name}</h2><p class="text-[10px] text-slate-400 font-medium">${live.dayText}</p></div>
+                                <div><p class="text-[9px] text-emerald-400 font-bold uppercase tracking-widest mb-0.5">المباشرة الآن</p><h2 class="text-[15px] font-bold leading-tight">${live.name}</h2><p class="text-[10px] text-slate-400 font-medium">${live.dayText}</p></div>
                             </div>
                             <div class="relative flex h-2 w-2 mr-1"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></div>
                         </div>
                         <div class="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-50">
-                            <div onclick="App.Core.navigate('management')" class="p-5 flex justify-between items-center active:bg-gray-50 cursor-pointer"><div class="flex items-center gap-4 flex-1"><div class="w-11 h-11 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shadow-sm border border-purple-100/50"><i data-lucide="briefcase" class="w-5 h-5"></i></div><div><h2 class="font-extrabold text-gray-900 text-sm">إدارة الإنتاج</h2><p class="text-[11px] text-gray-500 font-medium">${c('management')} موظف</p></div></div><i data-lucide="chevron-left" class="w-4 h-4 text-gray-400"></i></div>
+                            <div onclick="App.Core.navigate('management')" class="p-5 flex justify-between items-center active:bg-gray-50 cursor-pointer transition-all"><div class="flex items-center gap-4 flex-1"><div class="w-11 h-11 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shadow-sm border border-purple-100/50"><i data-lucide="briefcase" class="w-5 h-5"></i></div><div><h2 class="font-extrabold text-gray-900 text-sm">إدارة الإنتاج</h2><p class="text-[11px] text-gray-500 font-medium">${c('management')} موظف</p></div></div><i data-lucide="chevron-left" class="w-4 h-4 text-gray-400"></i></div>
                             <div onclick="App.UI.toggleAccordion('accRolling')" class="p-5 flex justify-between items-center active:bg-gray-50 cursor-pointer border-t border-gray-50 transition-all"><div class="flex items-center gap-4 flex-1"><div class="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-sm border border-blue-100/50"><i data-lucide="layers" class="w-5 h-5"></i></div><div><h2 class="font-extrabold text-gray-900 text-sm">خطوط الدرفلة</h2><p class="text-[11px] text-gray-500 font-medium">${c('rolling')} موظف</p></div></div><i id="iconRolling" data-lucide="chevron-down" class="w-4 h-4 text-gray-400 transition-transform"></i></div>
                             <div id="accRolling" class="hidden bg-gray-50/50 p-4 space-y-3">
                                 <div onclick="App.Core.navigate('line1')" class="bg-white p-3.5 rounded-2xl border border-gray-100 flex justify-between items-center cursor-pointer shadow-sm active:scale-95 transition-transform"><span class="font-bold text-xs text-gray-700">خط درفلة 1</span><span class="text-[10px] bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-black tracking-tighter">${c('rolling', '1')}</span></div>
                                 <div onclick="App.Core.navigate('line2')" class="bg-white p-3.5 rounded-2xl border border-gray-100 flex justify-between items-center cursor-pointer shadow-sm active:scale-95 transition-transform"><span class="font-bold text-xs text-gray-700">خط درفلة 2</span><span class="text-[10px] bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-black tracking-tighter">${c('rolling', '2')}</span></div>
                             </div>
-                            <div onclick="App.Core.navigate('prep')" class="p-5 flex justify-between items-center active:bg-gray-50 cursor-pointer"><div class="flex items-center gap-4 flex-1"><div class="w-11 h-11 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center shadow-sm border border-teal-100/50"><i data-lucide="wrench" class="w-5 h-5"></i></div><div><h2 class="font-extrabold text-gray-900 text-sm">ورشة التجهيزات</h2><p class="text-[11px] text-gray-500 font-medium">${c('prep')} موظف</p></div></div><i data-lucide="chevron-left" class="w-4 h-4 text-gray-400"></i></div>
+                            <div onclick="App.Core.navigate('prep')" class="p-5 flex justify-between items-center active:bg-gray-50 transition-all cursor-pointer"><div class="flex items-center gap-4 flex-1"><div class="w-11 h-11 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center shadow-sm border border-teal-100/50"><i data-lucide="wrench" class="w-5 h-5"></i></div><div><h2 class="font-extrabold text-gray-900 text-sm">ورشة التجهيزات</h2><p class="text-[11px] text-gray-500 font-medium">${c('prep')} موظف</p></div></div><i data-lucide="chevron-left" class="w-4 h-4 text-gray-400"></i></div>
                             <div onclick="App.Core.navigate('announcements')" class="p-5 flex justify-between items-center active:bg-gray-50 cursor-pointer transition-all border-t border-gray-50">
                                 <div class="flex items-center gap-4 flex-1"><div class="w-11 h-11 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center shadow-sm border border-orange-100/50"><i data-lucide="megaphone" class="w-5 h-5"></i></div><div><h2 class="font-extrabold text-gray-900 text-sm">الإعلانات الداخلية</h2><p class="text-[11px] text-gray-500 font-medium tracking-tight">تنبيهات وملاحظات مهمة</p></div></div>
                                 <span class="text-[9px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-lg font-black">${c('announcements')} جديد</span>
@@ -223,68 +219,75 @@
                 },
 
                 renderShiftMenu(view, live) {
-                    const now = new Date(); let targetDate = new Date(); if(now.getHours()<8) targetDate.setDate(now.getDate()-1);
+                    const now = new Date(); let target = new Date(); if(now.getHours()<8) target.setDate(now.getDate()-1);
                     const html = ['A','B','C','D'].map(s => {
                         const count = App.State.employees.filter(e => e.shift === s && (view==='prep'?e.department==='prep':e.line===view.replace('line',''))).length;
-                        const status = App.ShiftEngine.getGroupStatus(s, targetDate);
+                        const status = App.ShiftEngine.getGroupStatus(s, target);
                         const isWorkingNow = (s === live.group); const isResting = status.type.includes('rest');
                         let bClass = isWorkingNow ? 'active-now-badge' : (isResting ? 'rest-badge' : 'standard-badge');
                         let sText = isWorkingNow ? 'الآن' : (isResting ? 'راحة' : {'morning':'أولى','noon':'ثانية','evening':'ثالثة'}[status.type]);
-                        return `<div onclick="App.Core.navigateShift('${s}')" class="p-4 flex justify-between items-center active:bg-gray-50 border-b border-gray-50 cursor-pointer"><div class="flex items-center gap-3"><div class="w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm transition-all ${bClass}">${s}</div><div class="flex flex-col"><span class="font-bold text-gray-900 text-sm">وردية ${s}</span><span class="text-[10px] font-black ${isWorkingNow?'text-emerald-500':isResting?'text-rose-500':'text-gray-400'}">${sText}</span></div></div><div class="flex items-center gap-2"><span class="text-[10px] bg-gray-100 px-2.5 py-1 rounded-full font-bold text-gray-400">${count}</span><i data-lucide="chevron-left" class="w-4 h-4 text-gray-300"></i></div></div>`;
+                        return `<div onclick="App.Core.navigateShift('${s}')" class="p-4 flex justify-between items-center active:bg-gray-50 border-b border-gray-50 cursor-pointer"><div class="flex items-center gap-3"><div class="w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm transition-all ${bClass}">${s}</div><div class="flex flex-col"><span class="font-bold text-gray-900 text-sm">وردية ${s}</span><span class="text-[10px] font-black ${isWorkingNow?'text-emerald-500':isResting?'text-rose-500':'text-gray-400'} tracking-tighter">${sText}</span></div></div><div class="flex items-center gap-2"><span class="text-[10px] bg-gray-100 px-2.5 py-1 rounded-full font-bold text-gray-400">${count}</span><i data-lucide="chevron-left" class="w-4 h-4 text-gray-300"></i></div></div>`;
                     }).join('');
-                    return `<h3 class="text-[10px] font-black text-gray-400 uppercase mb-3 mr-2 tracking-widest">اختر الوردية</h3><div class="bg-white rounded-[28px] border border-gray-100 overflow-hidden shadow-sm">${html}</div>`;
+                    return `<h3 class="text-[10px] font-black text-gray-400 uppercase mb-3 mr-2 tracking-widest text-[11px]">اختر الوردية</h3><div class="bg-white rounded-[28px] border border-gray-100 overflow-hidden shadow-sm">${html}</div>`;
                 },
 
                 renderEmployeeList(view, shift) {
                     const filtered = App.State.employees.filter(e => e.shift === shift && (view==='management'?e.department==='management':view==='prep'?e.department==='prep':view==='announcements'?e.department==='announcements':e.line===view.replace('line','')));
-                    const sortIcon = App.isAdmin ? `<button onclick="App.UI.toggleReorderMode()" class="p-2 ${App.isReorderMode?'text-blue-600 bg-blue-50':'text-gray-400'} rounded-xl transition-colors"><i data-lucide="arrow-up-down" class="w-5 h-5"></i></button>` : '';
+                    const sortIcon = App.isAdmin ? `<button onclick="App.UI.toggleReorderMode()" class="p-2 ${App.isReorderMode?'text-blue-600 bg-blue-50':'text-gray-400'} rounded-xl transition-colors"><i data-lucide="arrow-up-down" class="w-4 h-4"></i></button>` : '';
                     let header = `<div class="flex justify-between items-center mb-4 mr-1"><h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">${view==='announcements'?'آخر التنبيهات':'قائمة الموظفين'}</h3>${sortIcon}</div>`;
                     if(!filtered.length) return header + `<div class="py-20 text-center text-gray-400 font-bold text-xs">لا يوجد بيانات مسجلة</div>`;
                     
-                    return header + `<div class="space-y-3">` + filtered.map((e) => {
+                    return header + `<div class="space-y-4">` + filtered.map((e) => {
                         if (view === 'announcements') {
-                            return `<div class="bg-white rounded-[24px] border border-gray-100 shadow-sm overflow-hidden list-item"><div class="p-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/30"><div class="flex items-center gap-3"><div class="w-9 h-9 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-sm"><i data-lucide="megaphone" class="w-4 h-4"></i></div><div><h3 class="font-extrabold text-gray-900 text-sm">${e.name}</h3><p class="text-[9px] text-gray-400 font-black tracking-widest uppercase">${e.dateAdded || ''}</p></div></div>${App.isAdmin ? `<div class="flex gap-1.5"><button onclick="App.UI.openFormModal('${e.uid}')" class="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i></button><button onclick="App.Core.deleteEmployee('${e.uid}')" class="p-1.5 bg-red-50 text-red-600 rounded-lg"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div>` : ''}</div><div class="p-5 text-sm text-gray-700 font-medium whitespace-pre-wrap">${e.jobTitle}</div>${App.isReorderMode ? `<div class="p-3 bg-gray-50 border-t border-gray-100 flex justify-center gap-6"><button onclick="App.Core.moveEmployee('${e.uid}', -1)" class="p-1.5 bg-white rounded-full shadow-sm text-gray-400"><i data-lucide="chevron-up"></i></button><button onclick="App.Core.moveEmployee('${e.uid}', 1)" class="p-1.5 bg-white rounded-full shadow-sm text-gray-400"><i data-lucide="chevron-down"></i></button></div>` : ''}</div>`;
+                            return `
+                            <div class="bg-white rounded-[28px] border border-gray-100 shadow-sm overflow-hidden list-item">
+                                <div class="p-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-sm"><i data-lucide="megaphone" class="w-5 h-5"></i></div>
+                                        <div><h3 class="font-extrabold text-gray-900 text-sm">${e.name}</h3><p class="text-[9px] text-gray-400 font-black tracking-widest uppercase">${e.dateAdded || 'تنبيه رسمي'}</p></div>
+                                    </div>
+                                    ${App.isAdmin ? `<div class="flex gap-1.5"><button onclick="App.UI.openFormModal('${e.uid}')" class="p-2 bg-blue-50 text-blue-600 rounded-lg"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i></button><button onclick="App.Core.deleteEmployee('${e.uid}')" class="p-2 bg-red-50 text-red-600 rounded-lg"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div>` : ''}
+                                </div>
+                                <div class="p-5 text-sm text-gray-700 leading-relaxed font-medium whitespace-pre-wrap text-right">${e.jobTitle}</div>
+                                ${App.isReorderMode ? `<div class="p-3 bg-gray-50 border-t border-gray-100 flex justify-center gap-6"><button onclick="App.Core.moveEmployee('${e.uid}', -1)" class="p-1.5 bg-white rounded-full shadow-sm text-gray-400 hover:text-blue-600"><i data-lucide="chevron-up"></i></button><button onclick="App.Core.moveEmployee('${e.uid}', 1)" class="p-1.5 bg-white rounded-full shadow-sm text-gray-400 hover:text-blue-600"><i data-lucide="chevron-down"></i></button></div>` : ''}
+                            </div>`;
                         } else {
-                            const avatar = (e.department === 'management') ? `<i data-lucide="user-cog" class="w-5 h-5 text-gray-400"></i>` : e.shift;
-                            return `<div class="bg-white p-4 rounded-[22px] border border-gray-100 flex items-center justify-between shadow-sm active:scale-[0.98] list-item" onclick="if(!App.isReorderMode) App.UI.openDetails('${e.uid}')"><div class="flex items-center gap-4 flex-1 min-w-0"><div class="w-11 h-11 bg-gray-50 rounded-[16px] flex items-center justify-center text-gray-500 font-black text-base shrink-0 border border-gray-100/50">${avatar}</div><div class="flex-1 min-w-0"><h3 class="font-bold text-sm text-gray-900 truncate mb-0.5">${e.name}</h3><p class="text-[10px] text-gray-400 font-bold truncate tracking-tight">${e.jobTitle} ${e.code?'| <span class="text-blue-600 font-black">'+e.code+'</span>':''}</p></div></div><div class="flex items-center shrink-0 pr-1">${App.isReorderMode ? `<div class="flex flex-col gap-1"><button onclick="event.stopPropagation(); App.Core.moveEmployee('${e.uid}', -1)" class="p-1.5 bg-gray-50 rounded-lg border border-gray-200 hover:bg-blue-50"><i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-600"></i></button><button onclick="event.stopPropagation(); App.Core.moveEmployee('${e.uid}', 1)" class="p-1.5 bg-gray-50 rounded-lg border border-gray-200 hover:bg-blue-50"><i data-lucide="chevron-down" class="w-3.5 h-3.5 text-gray-600"></i></button></div>` : ``}</div></div>`;
+                            const avatarContent = (e.department === 'management') ? `<i data-lucide="user-cog" class="w-5 h-5 text-gray-400"></i>` : e.shift;
+                            return `<div class="bg-white p-4 rounded-[22px] border border-gray-100 flex items-center justify-between shadow-sm active:scale-[0.98] transition-all list-item" onclick="if(!App.isReorderMode) App.UI.openDetails('${e.uid}')"><div class="flex items-center gap-4 flex-1 min-w-0"><div class="w-11 h-11 bg-gray-50 rounded-[16px] flex items-center justify-center text-gray-500 font-black text-base shrink-0 border border-gray-100/50">${avatarContent}</div><div class="flex-1 min-w-0"><h3 class="font-bold text-sm text-gray-900 truncate mb-0.5">${e.name}</h3><p class="text-[10px] text-gray-400 font-bold truncate tracking-tight">${e.jobTitle} ${e.code?'| <span class="text-blue-600 font-black">'+e.code+'</span>':''}</p></div></div><div class="flex items-center shrink-0 pr-1">${App.isReorderMode ? `<div class="flex flex-col gap-1"><button onclick="event.stopPropagation(); App.Core.moveEmployee('${e.uid}', -1)" class="p-1.5 bg-gray-50 rounded-lg border border-gray-200 hover:bg-blue-50 hover:text-blue-600"><i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-600"></i></button><button onclick="event.stopPropagation(); App.Core.moveEmployee('${e.uid}', 1)" class="p-1.5 bg-gray-50 rounded-lg border border-gray-200 hover:bg-blue-50 hover:text-blue-600"><i data-lucide="chevron-down" class="w-3.5 h-3.5 text-gray-600"></i></button></div>` : ``}</div></div>`;
                         }
                     }).join('') + `</div>`;
                 },
 
                 renderSearch(q) {
                     const filtered = App.State.employees.filter(e => e.name.toLowerCase().includes(q.toLowerCase()) || (e.code && e.code.toString().includes(q)));
-                    if(!filtered.length) return `<div class="py-20 text-center text-gray-400 font-bold text-xs">لا توجد نتائج</div>`;
+                    if(!filtered.length) return `<div class="py-20 text-center text-gray-400 font-bold text-xs">لا توجد نتائج مطابقة</div>`;
                     return filtered.map(e => {
-                        const avatar = (e.department === 'management') ? `<i data-lucide="user-cog" class="w-5 h-5 text-blue-600"></i>` : e.shift;
-                        return `<div onclick="App.Core.clearSearchAndOpen('${e.uid}')" class="bg-white p-4 rounded-[22px] border border-gray-100 flex items-center justify-between shadow-sm active:scale-[0.98] transition-transform mb-2.5"><div class="flex items-center gap-4 flex-1 min-w-0"><div class="w-11 h-11 bg-blue-50 rounded-[16px] flex items-center justify-center text-blue-600 font-black shrink-0 border border-blue-100/50">${avatar}</div><div class="flex-1 min-w-0 text-right"><h3 class="font-bold text-sm text-gray-900 truncate mb-0.5">${e.name}</h3><p class="text-[9px] text-gray-400 font-black uppercase tracking-wider truncate text-[11px]">${App.Config.deptMap[e.department]}</p></div></div></div>`;
+                        const avatarContent = (e.department === 'management') ? `<i data-lucide="user-cog" class="w-5 h-5 text-blue-600"></i>` : e.shift;
+                        return `<div onclick="App.Core.clearSearchAndOpen('${e.uid}')" class="bg-white p-4 rounded-[22px] border border-gray-100 flex items-center justify-between shadow-sm active:scale-[0.98] transition-transform mb-2.5"><div class="flex items-center gap-4 flex-1 min-w-0"><div class="w-11 h-11 bg-blue-50 rounded-[16px] flex items-center justify-center text-blue-600 font-black shrink-0 border border-blue-100/50">${avatarContent}</div><div class="flex-1 min-w-0 text-right"><h3 class="font-bold text-sm text-gray-900 truncate mb-0.5">${e.name}</h3><p class="text-[9px] text-gray-400 font-black uppercase tracking-wider truncate text-[11px]">${App.Config.deptMap[e.department]}</p></div></div></div>`;
                     }).join('');
                 },
 
                 openDetails(uid) {
                     App.State.isModalOpen = true; const e = App.State.employees.find(x => x.uid == uid);
-                    const isAnn = e.department === 'announcements';
                     const cleanPhone = e.phone ? e.phone.replace(/\s+/g, '') : '';
-                    const avatar = (e.department === 'management') ? `<i data-lucide="user-cog" class="w-10 h-10 text-blue-600"></i>` : e.shift;
-                    
+                    const avatarContent = (e.department === 'management') ? `<i data-lucide="user-cog" class="w-10 h-10 text-blue-600"></i>` : e.shift;
                     document.getElementById('uiDetailsContent').innerHTML = `
-                        <div class="flex flex-col items-center mb-6 pt-2"><div class="w-20 h-20 bg-blue-50 rounded-[28px] flex items-center justify-center text-blue-600 font-black text-3xl mb-4 shadow-sm border-2 border-white">${avatar}</div><h3 class="text-lg font-extrabold text-gray-900 text-center px-4 leading-tight mb-1">${e.name}</h3><span class="px-4 py-1 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-sm">${isAnn ? 'إشعار رسمي' : e.jobTitle}</span></div>
-                        ${!isAnn ? `<div class="grid grid-cols-2 gap-3 mb-6"><a href="tel:${cleanPhone}" class="flex flex-col items-center gap-2 p-3.5 bg-blue-50 rounded-[24px] border border-blue-100 active:scale-95 transition-all"><div class="w-9 h-9 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm border border-blue-100/50"><i data-lucide="phone" class="w-4 h-4"></i></div><span class="text-[10px] font-bold text-blue-700">اتصال هاتف</span></a><a href="https://wa.me/2${cleanPhone}" target="_blank" class="flex flex-col items-center gap-2 p-3.5 bg-emerald-50 rounded-[24px] border border-emerald-100 active:scale-95 transition-all"><div class="w-9 h-9 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-sm border border-emerald-100/50"><i data-lucide="message-circle" class="w-4 h-4"></i></div><span class="text-[10px] font-bold text-emerald-700">واتساب</span></a></div>
-                        <div class="space-y-3 mb-8">
-                            ${e.code ? `<div class="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100/60 transition-all"><div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-gray-400 shadow-sm border border-gray-100"><i data-lucide="hash" class="w-4 h-4"></i></div><div class="flex-1 text-right"><p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0">كود الموظف</p><p class="text-base font-extrabold text-blue-700">${e.code}</p></div></div>` : ''}
-                            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100/60 transition-all"><div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-gray-400 shadow-sm border border-gray-100"><i data-lucide="smartphone" class="w-4 h-4"></i></div><div class="flex-1 text-right"><p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0">رقم الهاتف</p><p class="text-base font-extrabold text-gray-800" dir="ltr">${e.phone}</p></div></div>
-                        </div>` : `<div class="p-6 bg-orange-50/50 rounded-3xl border border-orange-100 text-gray-800 text-sm font-medium mb-8 leading-relaxed text-center shadow-inner">${e.jobTitle}</div>`}
-                        ${App.isAdmin ? `<div class="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100"><button onclick="App.Core.deleteEmployee('${e.uid}')" class="py-3 bg-red-50 text-red-600 rounded-xl font-black text-[10px] active:scale-95 transition-all flex items-center justify-center gap-1.5 border border-red-100/50"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>حذف</button><button onclick="App.UI.closeAllModals(); setTimeout(()=>App.UI.openFormModal('${e.uid}'), 300)" class="py-3 bg-gray-900 text-white rounded-xl font-black text-[10px] shadow-lg active:scale-95 flex items-center justify-center gap-1.5 border border-gray-700"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i>تعديل</button></div>` : `<button onclick="window.history.back()" class="w-full py-3.5 bg-gray-100 text-gray-500 rounded-xl font-black text-[11px] border border-gray-200 active:scale-95 mt-2 tracking-widest uppercase">إغلاق</button>`}`;
+                        <div class="flex flex-col items-center mb-6 pt-2"><div class="w-20 h-20 bg-blue-50 rounded-[28px] flex items-center justify-center text-blue-600 font-black text-3xl mb-4 shadow-sm border-2 border-white">${avatarContent}</div><h3 class="text-lg font-extrabold text-gray-900 text-center px-4 mb-1">${e.name}</h3><span class="px-4 py-1 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-sm">${e.jobTitle}</span></div>
+                        <div class="grid grid-cols-2 gap-3 mb-6"><a href="tel:${cleanPhone}" class="flex flex-col items-center gap-2 p-3.5 bg-blue-50 rounded-[24px] border border-blue-100 active:scale-95 transition-all"><div class="w-9 h-9 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm border border-blue-100/50"><i data-lucide="phone" class="w-4 h-4"></i></div><span class="text-[10px] font-bold text-blue-700">اتصال هاتف</span></a><a href="https://wa.me/2${cleanPhone}" target="_blank" class="flex flex-col items-center gap-2 p-3.5 bg-emerald-50 rounded-[24px] border border-emerald-100 active:scale-95 transition-all"><div class="w-9 h-9 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-sm border border-emerald-100/50"><i data-lucide="message-circle" class="w-4 h-4"></i></div><span class="text-[10px] font-bold text-emerald-700">واتساب</span></a></div>
+                        <div class="space-y-2.5 mb-8">
+                            ${e.code ? `<div class="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100/60 transition-all hover:bg-white"><div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-gray-400 shadow-sm border border-gray-100"><i data-lucide="hash" class="w-4 h-4"></i></div><div class="flex-1 text-right"><p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0">كود الموظف</p><p class="text-base font-extrabold text-blue-700">${e.code}</p></div></div>` : ''}
+                            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100/60 transition-all hover:bg-white"><div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-gray-400 shadow-sm border border-gray-100"><i data-lucide="smartphone" class="w-4 h-4"></i></div><div class="flex-1 text-right"><p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0 text-[10px]">رقم الهاتف</p><p class="text-base font-extrabold text-gray-800" dir="ltr">${e.phone}</p></div></div>
+                            ${e.landline ? `<div class="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100/60 transition-all hover:bg-white"><div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-gray-400 shadow-sm border border-gray-100"><i data-lucide="phone-forwarded" class="w-4 h-4"></i></div><div class="flex-1 text-right"><p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0 text-[10px]">هاتف الإدارة</p><p class="text-base font-extrabold text-gray-800" dir="ltr">${e.landline}</p></div></div>` : ''}
+                        </div>
+                        ${App.isAdmin ? `<div class="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100"><button onclick="App.Core.deleteEmployee('${e.uid}')" class="py-3 bg-red-50 text-red-600 rounded-xl font-black text-[10px] active:scale-95 flex items-center justify-center gap-1.5 border border-red-100/50"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>حذف</button><button onclick="App.UI.closeAllModals(); setTimeout(()=>App.UI.openFormModal('${e.uid}'), 300)" class="py-3 bg-gray-900 text-white rounded-xl font-black text-[10px] shadow-lg active:scale-95 flex items-center justify-center gap-1.5 border border-gray-700"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i>تعديل</button></div>` : `<button onclick="window.history.back()" class="w-full py-3.5 bg-gray-100 text-gray-500 rounded-xl font-black text-[11px] border border-gray-200 active:scale-95 mt-2 tracking-widest uppercase">إغلاق</button>`}`;
                     document.getElementById('modalOverlay').classList.add('is-open');
                     document.getElementById('sheetDetails').classList.add('is-open');
-                    App.UI.updateAll(true);
-                    lucide.createIcons();
+                    App.UI.updateAll(true); lucide.createIcons();
                 },
 
                 toggleReorderMode() { App.isReorderMode = !App.isReorderMode; App.UI.updateAll(false); },
                 toggleAccordion(id) { const el = document.getElementById(id); el.classList.toggle('hidden'); const icon = document.getElementById('iconRolling'); if(icon) icon.style.transform = el.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)'; },
-                
                 openFormModal(uid = null) {
-                    if(!App.isAdmin) return;
                     App.State.isModalOpen = true; document.getElementById('formEmployee').reset(); const { view, shift, employees } = App.State;
                     if(uid) {
                         const e = employees.find(x => x.uid == uid);
@@ -312,39 +315,18 @@
                 goBack(byPopState = true) { if (App.State.isModalOpen) { App.UI.closeAllModals(); } else if (App.State.query) { this.clearSearch(); } else if (App.State.shift) { if (App.State.view === 'management' || App.State.view === 'announcements') { App.State.view = 'home'; App.State.shift = null; } else App.State.shift = null; } else if (App.State.view !== 'home') App.State.view = 'home'; App.UI.updateAll(false); },
                 clearSearchAndOpen(uid) { App.State.query = ''; document.getElementById('searchInput').value = ''; App.State.view = 'home'; App.State.shift = null; App.UI.updateAll(false); setTimeout(() => App.UI.openDetails(uid), 100); },
                 handleDeptChange() { const d = document.getElementById('inpDept').value; const isM = (d === 'management'); const isP = (d === 'prep'); const isA = (d === 'announcements'); document.getElementById('labelName').innerText = isA ? 'عنوان الإعلان' : 'الاسم بالكامل'; document.getElementById('labelJob').innerText = isA ? 'محتوى الإعلان بالتفصيل' : 'المسمى الوظيفي'; document.getElementById('codeGroup').classList.toggle('hidden', isM || isA); document.getElementById('phoneGroup').classList.toggle('hidden', isA); document.getElementById('landlineGroup').classList.toggle('hidden', !isM); document.getElementById('locFields').classList.toggle('hidden', isM || isA); document.getElementById('wrapperLine').classList.toggle('hidden', isM || isP || isA); },
-                saveEmployee(ev) {
-                    ev.preventDefault();
-                    const uid = document.getElementById('inpId').value || "ID-"+Date.now();
-                    const dept = document.getElementById('inpDept').value;
-                    const lastOrder = App.State.employees.length ? Math.max(...App.State.employees.map(e => e.sortOrder || 0)) : 0;
-                    const today = new Date().toLocaleDateString('ar-EG', { day:'numeric', month:'long', year:'numeric' });
-                    const emp = { uid, name: document.getElementById('inpName').value.trim(), code: (dept==='management' || dept==='announcements') ? '' : (document.getElementById('inpCode').value || ''), jobTitle: document.getElementById('inpJob').value.trim(), department: dept, line: (dept==='rolling')?document.getElementById('inpLine').value:'none', shift: (dept==='management')?'office':(dept==='announcements'?'broadcast':document.getElementById('inpShift').value), phone: document.getElementById('inpPhone').value.trim(), landline: document.getElementById('inpLandline').value.trim(), dateAdded: document.getElementById('inpId').value ? (App.State.employees.find(x => x.uid === uid).dateAdded || today) : today, sortOrder: document.getElementById('inpId').value ? (App.State.employees.find(x => x.uid === uid).sortOrder || 0) : lastOrder + 1, adminKey: "123456" };
-                    db.ref('employees/' + uid).set(emp); window.history.back();
-                },
-                moveEmployee(uid, direction) { 
-                    const currentEmps = App.State.employees.filter(e => e.shift === App.State.shift && (App.State.view==='management'?e.department==='management':App.State.view==='prep'?e.department==='prep':App.State.view==='announcements'?e.department==='announcements':e.line===App.State.view.replace('line','')));
-                    const idx = currentEmps.findIndex(e => e.uid === uid); const targetIdx = idx + direction;
-                    if (targetIdx >= 0 && targetIdx < currentEmps.length) {
-                        const updates = {};
-                        updates[`employees/${currentEmps[idx].uid}/sortOrder`] = currentEmps[targetIdx].sortOrder || 0;
-                        updates[`employees/${currentEmps[targetIdx].uid}/sortOrder`] = currentEmps[idx].sortOrder || 0;
-                        db.ref().update(updates);
-                    }
-                },
-                deleteEmployee(uid) { if(confirm('حذف الموظف نهائياً؟')) { db.ref('employees/' + uid).remove(); window.history.back(); } },
+                saveEmployee(ev) { ev.preventDefault(); const uid = document.getElementById('inpId').value || "ID-"+Date.now(); const dept = document.getElementById('inpDept').value; const lastOrder = App.State.employees.length ? Math.max(...App.State.employees.map(e => e.sortOrder || 0)) : 0; const today = new Date().toLocaleDateString('ar-EG', { day:'numeric', month:'long', year:'numeric' }); const emp = { uid, name: document.getElementById('inpName').value.trim(), code: (dept==='management' || dept==='announcements') ? '' : (document.getElementById('inpCode').value || ''), jobTitle: document.getElementById('inpJob').value.trim(), department: dept, line: (dept==='rolling')?document.getElementById('inpLine').value:'none', shift: (dept==='management')?'office':(dept==='announcements'?'broadcast':document.getElementById('inpShift').value), phone: document.getElementById('inpPhone').value.trim(), landline: document.getElementById('inpLandline').value.trim(), dateAdded: document.getElementById('inpId').value ? (App.State.employees.find(x => x.uid === uid).dateAdded || today) : today, sortOrder: document.getElementById('inpId').value ? (App.State.employees.find(x => x.uid === uid).sortOrder || 0) : lastOrder + 1, adminKey: "123456" }; db.ref('employees/' + uid).set(emp); window.history.back(); },
+                moveEmployee(uid, direction) { const currentEmps = App.State.employees.filter(e => e.shift === App.State.shift && (App.State.view==='management'?e.department==='management':App.State.view==='prep'?e.department==='prep':App.State.view==='announcements'?e.department==='announcements':e.line===App.State.view.replace('line',''))); const idx = currentEmps.findIndex(e => e.uid === uid); const targetIdx = idx + direction; if (targetIdx >= 0 && targetIdx < currentEmps.length) { const cur = currentEmps[idx], target = currentEmps[targetIdx]; const updates = {}; updates[`employees/${cur.uid}/sortOrder`] = target.sortOrder || 0; updates[`employees/${target.uid}/sortOrder`] = cur.sortOrder || 0; db.ref().update(updates); } },
+                deleteEmployee(uid) { if(confirm('حذف نهائياً؟')) { db.ref('employees/' + uid).remove(); window.history.back(); } },
                 wipeAllData() { if (confirm("⚠️ تحذير: سيتم مسح كافة البيانات نهائياً.")) db.ref('employees').remove(); },
                 clearSearch() { App.State.query = ''; document.getElementById('searchInput').value = ''; App.State.view = 'home'; App.State.shift = null; App.UI.updateAll(false); }
             },
 
             init() {
-                // تفعيل تسجيل الدخول المجهول لفتح الصلاحيات السحابية
-                auth.signInAnonymously().then(() => {
-                    App.UI.syncWithCloud();
-                }).catch(err => alert("فشل الاتصال السحابي"));
-
+                auth.signInAnonymously().then(() => App.UI.syncWithCloud()).catch(err => alert("فشل الاتصال السحابي"));
                 window.addEventListener('popstate', () => App.Core.goBack(true));
                 document.getElementById('searchInput').addEventListener('input', e => { App.State.query = e.target.value; if(App.State.query.length > 0) App.UI.updateAll(true); else App.UI.updateAll(false); });
-                document.getElementById('formEmployee').onsubmit = App.Core.saveEmployee;
+                document.getElementById('formEmployee').addEventListener('submit', App.Core.saveEmployee);
                 App.UI.updateAll(false);
             }
         };
