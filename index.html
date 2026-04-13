@@ -363,7 +363,6 @@
                                 <div class="text-sm text-gray-700 leading-relaxed font-normal bg-orange-50/30 p-4 rounded-2xl border border-orange-50">${e.jobTitle}</div>
                             </div>`;
                         }
-                        // Job title and Code color: Blue for shifts and management
                         const subTextColor = (view === 'management' || shift !== 'office') ? 'text-blue-600' : 'text-gray-400';
                         
                         return `<div onclick="if(!App.isReorderMode) App.UI.openDetails('${e.uid}')" class="bg-white p-4 rounded-[22px] border border-gray-100 flex items-center justify-between shadow-sm active:scale-[0.98] transition-all list-item">
@@ -391,9 +390,14 @@
                     if(!e) return;
                     const isA = e.department === 'announcements';
                     const isM = e.department === 'management';
+                    const isRolling = e.department === 'rolling';
                     
-                    // Avatar icon logic (Briefcase for management, shift letter for others)
                     const avatarContent = isM ? '💼' : (isA ? '📢' : e.shift);
+
+                    // WhatsApp Logic: Remove any spaces/dashes, ensure 20 prefix for Egypt without leading zero
+                    const cleanPhone = e.phone ? e.phone.replace(/\D/g, '') : '';
+                    const waPhone = cleanPhone.startsWith('0') ? '20' + cleanPhone.substring(1) : (cleanPhone.startsWith('1') ? '20' + cleanPhone : cleanPhone);
+                    const waLink = `https://wa.me/${waPhone}`;
 
                     document.getElementById('uiDetailsContent').innerHTML = `
                         <div class="flex flex-col items-center mb-6 pt-2">
@@ -403,13 +407,13 @@
                         </div>
                         ${!isA ? `<div class="grid grid-cols-2 gap-3 mb-6">
                             <a href="tel:${e.phone}" class="p-4 bg-blue-50 rounded-2xl text-center border border-blue-100 flex flex-col items-center"><i data-lucide="phone" class="w-5 h-5 mb-1 text-blue-600"></i><span class="text-[10px] text-blue-700">اتصال هاتف</span></a>
-                            <a href="https://wa.me/2${e.phone}" class="p-4 bg-emerald-50 rounded-2xl text-center border border-emerald-100 flex flex-col items-center"><i data-lucide="message-circle" class="w-5 h-5 mb-1 text-emerald-600"></i><span class="text-[10px] text-emerald-700">واتساب</span></a>
+                            <a href="${waLink}" target="_blank" class="p-4 bg-emerald-50 rounded-2xl text-center border border-emerald-100 flex flex-col items-center"><i data-lucide="message-circle" class="w-5 h-5 mb-1 text-emerald-600"></i><span class="text-[10px] text-emerald-700">واتساب</span></a>
                         </div>` : `<div class="p-6 bg-orange-50/50 rounded-3xl border border-orange-100 text-gray-800 text-sm font-normal mb-8 leading-relaxed text-center">${e.jobTitle}</div>`}
                         
-                        <!-- Details Rows with Swapped Label/Value -->
                         <div class="space-y-3 mb-8">
                             ${e.code?`<div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">كود الموظف</span><span class="text-gray-900 font-normal">${e.code}</span></div>`:''}
                             ${e.phone?`<div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">رقم الهاتف</span><span class="text-gray-900 font-normal" dir="ltr">${e.phone}</span></div>`:''}
+                            ${isRolling?`<div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">المسمى الوظيفي</span><span class="text-gray-900 font-normal">${e.jobTitle}</span></div>`:''}
                         </div>
                         
                         ${App.isAdmin ? `<div class="grid grid-cols-2 gap-3 pt-4 border-t">
@@ -506,6 +510,7 @@
                     };
                     window.cloudDB.set(window.cloudDB.ref(window.cloudDB.db, 'employees/' + uid), emp);
                     Toast.show("تم الحفظ بنجاح", "success");
+                    // Exiting the "Edit/Add" mode only by going back in history
                     window.history.back();
                 },
                 moveEmployee(uid, direction) {
