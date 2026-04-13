@@ -328,19 +328,30 @@
                     const now = new Date(); let targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                     if (now.getHours() < 8) targetDate.setDate(targetDate.getDate() - 1);
 
+                    const typeMap = {
+                        'morning': 'الوردية الأولى',
+                        'noon': 'الوردية الثانية',
+                        'evening': 'الوردية الثالثة',
+                        'morning-rest': 'راحة',
+                        'noon-rest': 'راحة',
+                        'evening-rest': 'راحة'
+                    };
+
                     return `<div class="mb-5"><h3 class="text-base font-normal text-gray-700">اختر الوردية</h3></div>
                     <div class="space-y-4">
                         ${['A','B','C','D'].map(s => {
                             const status = App.ShiftEngine.getGroupStatus(s, targetDate);
                             const isWorking = (s === live.group);
                             const isRest = status.type.includes('rest');
+                            const statusLabel = typeMap[status.type] || 'خارج الدوام';
+                            
                             let cardG = isWorking ? 'from-emerald-50 to-teal-50 border-emerald-200' : (isRest ? 'from-rose-50 to-red-50 border-rose-200' : 'from-gray-50 to-slate-50 border-gray-200');
                             let iconG = isWorking ? 'from-emerald-500 to-teal-500' : (isRest ? 'from-rose-500 to-red-500' : 'from-gray-400 to-slate-500');
                             
                             return `<div onclick="App.Core.navigateShift('${s}')" class="bg-gradient-to-br ${cardG} p-4 rounded-2xl border flex items-center justify-between shadow-sm hover:shadow-md transition-all">
                                 <div class="flex items-center gap-4">
                                     <div class="w-12 h-12 rounded-xl bg-gradient-to-br ${iconG} text-white flex items-center justify-center text-lg shadow-md">${s}</div>
-                                    <div><h3 class="text-gray-900 font-normal">وردية ${s}</h3><p class="text-xs ${isWorking?'text-emerald-600':isRest?'text-rose-600':'text-gray-500'} font-normal">${isWorking?'تعمل الآن':isRest?'راحة':'خارج الدوام'}</p></div>
+                                    <div><h3 class="text-gray-900 font-normal">وردية ${s}</h3><p class="text-xs ${isWorking?'text-emerald-600':isRest?'text-rose-600':'text-gray-500'} font-normal">${statusLabel}</p></div>
                                 </div>
                                 <i data-lucide="chevron-left" class="w-5 h-5 text-gray-300"></i>
                             </div>`;
@@ -394,7 +405,6 @@
                     
                     const avatarContent = isM ? '💼' : (isA ? '📢' : e.shift);
 
-                    // WhatsApp Logic: Remove any spaces/dashes, ensure 20 prefix for Egypt without leading zero
                     const cleanPhone = e.phone ? e.phone.replace(/\D/g, '') : '';
                     const waPhone = cleanPhone.startsWith('0') ? '20' + cleanPhone.substring(1) : (cleanPhone.startsWith('1') ? '20' + cleanPhone : cleanPhone);
                     const waLink = `https://wa.me/${waPhone}`;
@@ -419,7 +429,7 @@
                         ${App.isAdmin ? `<div class="grid grid-cols-2 gap-3 pt-4 border-t">
                             <button onclick="App.Core.deleteEmployee('${e.uid}')" class="py-3 bg-red-50 text-red-600 rounded-xl text-xs font-normal">حذف</button>
                             <button onclick="App.UI.closeAllModals(); setTimeout(()=>App.UI.openFormModal('${e.uid}'), 300)" class="py-3 bg-gray-900 text-white rounded-xl text-xs font-normal">تعديل</button>
-                        </div>` : `<button onclick="window.history.back()" class="w-full py-3.5 bg-gray-100 text-gray-500 rounded-xl text-[11px] font-normal">إغلاق</button>`}`;
+                        </div>` : `<button onclick="window.history.back()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-[12px] font-bold shadow-lg shadow-blue-500/30 active:scale-95 transition-all">إغلاق</button>`}`;
                     
                     history.pushState({ modal: 'details', uid }, "");
                     this.showModal('sheetDetails');
@@ -510,7 +520,6 @@
                     };
                     window.cloudDB.set(window.cloudDB.ref(window.cloudDB.db, 'employees/' + uid), emp);
                     Toast.show("تم الحفظ بنجاح", "success");
-                    // Exiting the "Edit/Add" mode only by going back in history
                     window.history.back();
                 },
                 moveEmployee(uid, direction) {
