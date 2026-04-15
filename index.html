@@ -84,7 +84,6 @@
     <header class="sticky top-0 z-30 bg-white/85 backdrop-blur-xl border-b border-gray-100">
         <div style="height: 68px;" class="px-5 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <!-- تم حذف سهم العودة من الواجهة -->
                 <h1 id="uiMainTitle" class="text-xl font-normal text-gray-900 tracking-tight">قسم الإنتاج</h1>
             </div>
             <div class="flex items-center gap-2.5">
@@ -115,7 +114,6 @@
 
     <div id="modalOverlay" class="sheet-overlay" onclick="window.history.back()"></div>
 
-    <!-- بطاقة الإضافة والتعديل -->
     <div id="sheetForm" class="sheet-container overflow-hidden">
         <div class="p-5 flex justify-between items-center border-b shrink-0">
             <h2 id="uiFormTitle" class="text-lg font-bold text-gray-900">بيانات الموظف</h2>
@@ -219,9 +217,7 @@
 
         const App = {
             isAdmin: new URLSearchParams(window.location.search).get('mode') === 'admin',
-            isReorderMode: false,
             Hierarchy: ["مهندس الوردية", "ملاحظ الوردية", "مشغل غرفة التحكم الرئيسية", "مشغل غرفة تحكم الفرن", "مشغل غرفة التحكم النهائية", "فني درفلة المرحلة الإبتدائية", "فني درفلة المرحلة النهائية", "فني مراقبة سرير التبريد", "فني تمييز المنتج النهائي"],
-            
             SourceData: [
                 {job:"مهندس الوردية", name:"م/ محمد ناصر", code:"3206", phone:"01094078874"},
                 {job:"مشغل غرفة التحكم الرئيسية", name:"أحمد أمين السيد", code:"653", phone:"01008036236"},
@@ -311,7 +307,7 @@
                 {job:"فني مراقبة سرير التبريد", name:"محمد عبدالعليم", code:"1204", phone:""}
             ],
 
-            State: { employees: [], view: 'home', shift: null, query: '', isModalOpen: false },
+            State: { employees: [], view: 'home', shift: null, query: '', modal: null, uid: null },
 
             ShiftEngine: {
                 getGroupStatus(group, date) {
@@ -358,8 +354,9 @@
                 },
 
                 updateAll() {
-                    const { view, shift, query, employees } = App.State;
+                    const { view, shift, query, employees, modal, uid } = App.State;
                     const live = App.ShiftEngine.getLiveNow();
+                    
                     const searchBox = document.getElementById('searchContainer');
                     if(searchBox) searchBox.style.display = (view === 'announcements') ? 'none' : 'block';
                     const clearBtn = document.getElementById('clearSearch');
@@ -375,7 +372,31 @@
                     document.getElementById('btnWipe').classList.toggle('flex', App.isAdmin && view === 'home');
                     document.getElementById('fabAdd').classList.toggle('hidden', !App.isAdmin || !shift || !!query);
                     document.getElementById('uiMainTitle').innerText = query ? 'البحث' : (shift === 'office' ? 'طاقم الإدارة' : shift === 'broadcast' ? 'الإعلانات' : shift ? `وردية ${shift}` : 'قسم الإنتاج');
+                    
+                    // إدارة المودالات بناءً على الـ State
+                    this.handleModalUI(modal, uid);
                     lucide.createIcons();
+                },
+
+                handleModalUI(modal, uid) {
+                    const overlay = document.getElementById('modalOverlay');
+                    const sheetForm = document.getElementById('sheetForm');
+                    const sheetDetails = document.getElementById('sheetDetails');
+
+                    // إغلاق كل شيء أولاً
+                    overlay.classList.remove('is-open');
+                    sheetForm.classList.remove('is-open');
+                    sheetDetails.classList.remove('is-open');
+
+                    if (modal === 'form') {
+                        overlay.classList.add('is-open');
+                        sheetForm.classList.add('is-open');
+                        this.fillFormUI(uid);
+                    } else if (modal === 'details') {
+                        overlay.classList.add('is-open');
+                        sheetDetails.classList.add('is-open');
+                        this.fillDetailsUI(uid);
+                    }
                 },
 
                 renderHome(employees, live) {
@@ -401,8 +422,6 @@
                 },
 
                 renderShiftMenu(view, live) {
-                    if (view === 'management') { App.State.shift = 'office'; return ''; }
-                    if (view === 'announcements') { App.State.shift = 'broadcast'; return ''; }
                     const now = new Date(); let targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                     if (now.getHours() < 8) targetDate.setDate(targetDate.getDate() - 1);
                     const typeMap = { 'morning':'الوردية الأولى', 'noon':'الوردية الثانية', 'evening':'الوردية الثالثة', 'morning-rest':'راحة', 'noon-rest':'راحة', 'evening-rest':'راحة' };
@@ -438,6 +457,14 @@
                 },
 
                 openDetails(uid) {
+                    // بدلاً من فتح المودال مباشرة، نقوم بتحديث الـ State وعمل pushState شاملة
+                    App.State.modal = 'details';
+                    App.State.uid = uid;
+                    history.pushState({...App.State}, "");
+                    App.UI.updateAll();
+                },
+
+                fillDetailsUI(uid) {
                     const e = App.State.employees.find(x => x.uid == uid);
                     if(!e) return;
                     const isSick = e.status === 'sick';
@@ -460,13 +487,18 @@
                             ${e.code?`<div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">كود الموظف</span><span class="text-gray-900 font-normal">${e.code}</span></div>`:''}
                             ${e.phone?`<div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">رقم الهاتف</span><span class="text-gray-900 font-normal" dir="ltr">${e.phone}</span></div>`:''}
                         </div>
-                        ${App.isAdmin ? `<div class="grid grid-cols-2 gap-3 pt-4 border-t"><button onclick="App.Core.deleteEmployee('${e.uid}')" class="py-3 bg-red-50 text-red-600 rounded-xl text-xs font-normal">حذف</button><button onclick="App.UI.closeAllModals(); setTimeout(()=>App.UI.openFormModal('${e.uid}'), 300)" class="py-3 bg-gray-900 text-white rounded-xl text-xs font-normal">تعديل</button></div>` : `<button onclick="window.history.back()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-[12px] font-bold shadow-lg active:scale-95 transition-all">إغلاق البطاقة</button>`}`;
-                    history.pushState({ modal: 'details', uid }, "");
-                    this.showModal('sheetDetails'); lucide.createIcons();
+                        ${App.isAdmin ? `<div class="grid grid-cols-2 gap-3 pt-4 border-t"><button onclick="App.Core.deleteEmployee('${e.uid}')" class="py-3 bg-red-50 text-red-600 rounded-xl text-xs font-normal">حذف</button><button onclick="App.UI.openFormModal('${e.uid}')" class="py-3 bg-gray-900 text-white rounded-xl text-xs font-normal">تعديل</button></div>` : `<button onclick="window.history.back()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-[12px] font-bold shadow-lg active:scale-95 transition-all">إغلاق البطاقة</button>`}`;
+                    lucide.createIcons();
                 },
 
                 openFormModal(uid = null) {
-                    if(!App.isAdmin) return;
+                    App.State.modal = 'form';
+                    App.State.uid = uid;
+                    history.pushState({...App.State}, "");
+                    App.UI.updateAll();
+                },
+
+                fillFormUI(uid) {
                     const { view, shift, employees } = App.State;
                     document.getElementById('formEmployee').reset();
                     document.getElementById('newNameContainer').classList.add('hidden');
@@ -478,17 +510,19 @@
 
                     if(uid) {
                         const e = employees.find(x => x.uid == uid);
-                        document.getElementById('inpId').value = e.uid;
-                        document.getElementById('inpJob').value = e.jobTitle;
-                        App.Core.onJobSelect(e.jobTitle);
-                        document.getElementById('inpName').value = e.name;
-                        document.getElementById('inpCode').value = e.code || '';
-                        document.getElementById('inpPhone').value = e.phone;
-                        document.getElementById('inpDept').value = e.department;
-                        document.getElementById('inpLine').value = e.line;
-                        document.getElementById('inpShift').value = e.shift;
-                        document.getElementById('inpStatus').value = e.status || 'active';
-                        document.getElementById('uiFormTitle').innerText = "تعديل البيانات";
+                        if(e) {
+                            document.getElementById('inpId').value = e.uid;
+                            document.getElementById('inpJob').value = e.jobTitle;
+                            App.Core.onJobSelect(e.jobTitle);
+                            document.getElementById('inpName').value = e.name;
+                            document.getElementById('inpCode').value = e.code || '';
+                            document.getElementById('inpPhone').value = e.phone;
+                            document.getElementById('inpDept').value = e.department;
+                            document.getElementById('inpLine').value = e.line;
+                            document.getElementById('inpShift').value = e.shift;
+                            document.getElementById('inpStatus').value = e.status || 'active';
+                            document.getElementById('uiFormTitle').innerText = "تعديل البيانات";
+                        }
                     } else {
                         document.getElementById('inpId').value = '';
                         document.getElementById('inpDept').value = (view==='management'?'management':(view==='prep'?'prep':(view==='announcements'?'announcements':'rolling')));
@@ -497,20 +531,20 @@
                         document.getElementById('uiFormTitle').innerText = "إضافة موظف";
                         document.getElementById('inpName').innerHTML = '<option value="">اختر الوظيفة أولاً...</option>';
                     }
-                    history.pushState({ modal: 'form', uid }, "");
-                    this.showModal('sheetForm');
-                },
-
-                showModal(id) {
-                    App.State.isModalOpen = true;
-                    document.getElementById('modalOverlay').classList.add('is-open');
-                    document.getElementById(id).classList.add('is-open');
+                    App.Core.handleDeptChange();
                 },
 
                 closeAllModals() {
-                    App.State.isModalOpen = false;
+                    // المودال يُغلق الآن طبيعياً عن طريق popstate
                     document.querySelectorAll('.sheet-container, .sheet-overlay').forEach(el => el.classList.remove('is-open'));
-                }
+                },
+
+                toggleAccordion(id) {
+                    const el = document.getElementById(id); if(el) el.classList.toggle('hidden');
+                    const icon = document.getElementById('iconRolling');
+                    if(icon && el) icon.style.transform = el.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+                },
+                toggleReorderMode() { App.isReorderMode = !App.isReorderMode; App.UI.updateAll(); }
             },
 
             Core: {
@@ -535,9 +569,24 @@
                         }
                     }
                 },
-                navigate(v) { App.State.view = v; App.State.shift = (v === 'management' ? 'office' : v === 'announcements' ? 'broadcast' : null); history.pushState({ view: v, shift: App.State.shift }, ""); App.UI.updateAll(); },
-                navigateShift(s) { App.State.shift = s; history.pushState({ view: App.State.view, shift: s }, ""); App.UI.updateAll(); },
-                clearSearchAndOpen(uid) { App.State.query = ''; App.UI.updateAll(); setTimeout(() => App.UI.openDetails(uid), 100); },
+                navigate(v) { 
+                    App.State.view = v; 
+                    App.State.shift = (v === 'management' ? 'office' : v === 'announcements' ? 'broadcast' : null); 
+                    App.State.modal = null;
+                    history.pushState({...App.State}, ""); 
+                    App.UI.updateAll(); 
+                },
+                navigateShift(s) { 
+                    App.State.shift = s; 
+                    App.State.modal = null;
+                    history.pushState({...App.State}, ""); 
+                    App.UI.updateAll(); 
+                },
+                clearSearchAndOpen(uid) { 
+                    App.State.query = ''; 
+                    App.UI.updateAll(); 
+                    setTimeout(() => App.UI.openDetails(uid), 100); 
+                },
                 saveEmployee(ev) {
                     ev.preventDefault();
                     if(!window.cloudDB) return Toast.show("خطأ سحابي", "error");
@@ -571,14 +620,26 @@
             },
 
             init() {
-                history.replaceState({ view: 'home', shift: null }, "");
+                // ضبط الحالة الأولية
+                history.replaceState({...App.State}, "");
+
                 window.addEventListener('popstate', (e) => {
-                    App.UI.closeAllModals();
-                    const s = e.state || { view: 'home', shift: null };
-                    App.State.view = s.view || 'home'; App.State.shift = s.shift || null; App.State.query = '';
-                    App.UI.updateAll();
+                    if (e.state) {
+                        App.State = e.state;
+                        // لا نقوم بعمل pushState هنا لأننا بالفعل نستجيب لحدث popstate
+                        App.UI.updateAll();
+                    } else {
+                        // حالة افتراضية إذا لم يوجد ستايت
+                        App.State = { view: 'home', shift: null, query: '', modal: null, uid: null };
+                        App.UI.updateAll();
+                    }
                 });
-                document.getElementById('searchInput').addEventListener('input', (e) => { App.State.query = e.target.value; App.UI.updateAll(); });
+
+                document.getElementById('searchInput').addEventListener('input', (e) => { 
+                    App.State.query = e.target.value; 
+                    App.UI.updateAll(); 
+                });
+
                 App.UI.updateAll();
             }
         };
