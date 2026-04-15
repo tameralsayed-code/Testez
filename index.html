@@ -1,4 +1,3 @@
---- START OF FILE index.html ---
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -105,12 +104,10 @@
         </div>
     </main>
 
-    <!-- مفتاح الإضافة -->
     <button id="fabAdd" onclick="App.Core.openFormModal()" class="hidden fab-enhanced"><i data-lucide="plus" class="w-7 h-7"></i></button>
 
     <div id="modalOverlay" class="sheet-overlay" onclick="window.history.back()"></div>
 
-    <!-- بطاقة الإضافة والتعديل -->
     <div id="sheetForm" class="sheet-container overflow-hidden">
         <div class="p-5 flex justify-between items-center border-b shrink-0">
             <h2 id="uiFormTitle" class="text-lg font-bold text-gray-900">بيانات الموظف</h2>
@@ -419,7 +416,19 @@
                     const now = new Date(); let targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                     if (now.getHours() < 8) targetDate.setDate(targetDate.getDate() - 1);
                     const typeMap = { 'morning':'الوردية الأولى', 'noon':'الوردية الثانية', 'evening':'الوردية الثالثة', 'morning-rest':'راحة', 'noon-rest':'راحة', 'evening-rest':'راحة' };
-                    return `<div class="mb-5"><h3 class="text-base font-normal text-gray-700">اختر الوردية</h3></div><div class="space-y-4">${['A','B','C','D'].map(s => {
+                    
+                    const totalEmp = App.State.employees.length;
+                    const activeTotal = App.State.employees.filter(e => e.status !== 'sick').length;
+                    const sickTotal = App.State.employees.filter(e => e.status === 'sick').length;
+
+                    return `<div class="mb-5 flex justify-between items-center">
+                        <h3 class="text-base font-normal text-gray-700">اختر الوردية <span class="font-bold text-gray-900 mr-1">${totalEmp}</span></h3>
+                        <div class="flex items-center gap-3">
+                           <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div><span class="text-sm font-bold text-emerald-700">${activeTotal}</span></div>
+                           <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-rose-500"></div><span class="text-sm font-bold text-rose-700">${sickTotal}</span></div>
+                        </div>
+                    </div>
+                    <div class="space-y-4">${['A','B','C','D'].map(s => {
                             const status = App.ShiftEngine.getGroupStatus(s, targetDate);
                             const isWorking = (s === live.group);
                             const isRest = status.type.includes('rest');
@@ -435,11 +444,14 @@
 
                     if(!filtered.length) return `<div class="py-20 text-center text-gray-400 text-xs font-normal">لا توجد بيانات مسجلة</div>`;
                     return `<div class="flex justify-between items-center mb-4 mr-1">
-                        <h3 class="text-[10px] text-gray-400 uppercase tracking-widest flex items-center gap-3">
+                        <h3 class="text-[10px] text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
                             <span>قائمة الموظفين</span>
-                            <span class="flex items-center gap-1"><span class="text-emerald-600 font-bold">نشط:</span> ${activeCount}</span>
-                            <span class="flex items-center gap-1"><span class="text-rose-600 font-bold">غير نشط:</span> ${sickCount}</span>
+                            <span class="text-gray-900 font-bold">${filtered.length}</span>
                         </h3>
+                        <div class="flex items-center gap-3">
+                           <div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-emerald-500"></div><span class="text-[11px] font-bold text-emerald-700">${activeCount}</span></div>
+                           <div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-rose-500"></div><span class="text-[11px] font-bold text-rose-700">${sickCount}</span></div>
+                        </div>
                     </div>
                     <div class="space-y-4">${filtered.map(e => {
                         const isSick = e.status === 'sick';
@@ -493,6 +505,7 @@
                             document.getElementById('inpShift').value = e.shift;
                             document.getElementById('inpStatus').value = e.status || 'active';
                             document.getElementById('uiFormTitle').innerText = "تعديل البيانات";
+                            document.getElementById('newNameContainer').classList.add('hidden');
                         }
                     } else {
                         document.getElementById('inpId').value = '';
