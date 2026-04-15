@@ -36,7 +36,7 @@
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
 
-        .form-group { width: 100%; display: block; margin-bottom: 14px; } /* تصغير المسافات */
+        .form-group { width: 100%; display: block; margin-bottom: 14px; }
         .form-label { display: block; font-size: 11px; font-weight: 800; color: #64748B; margin-bottom: 6px; text-align: right; text-transform: uppercase; }
         
         .form-input { 
@@ -54,7 +54,7 @@
             position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; 
             background: var(--glass-bg); backdrop-filter: blur(30px) saturate(180%);
             border-top-left-radius: 32px; border-top-right-radius: 32px; 
-            box-shadow: var(--shadow-xl); max-height: 85vh; display: flex; flex-direction: column; /* تصغير البطاقة */
+            box-shadow: var(--shadow-xl); max-height: 85vh; display: flex; flex-direction: column;
             border: 1px solid var(--glass-border);
         }
         .sheet-container.is-open { transform: translateY(0); }
@@ -74,6 +74,7 @@
         .list-item { animation: fadeInScale 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; opacity: 0; }
         .btn-primary { background: var(--primary-gradient); color: white; padding: 14px 24px; border-radius: var(--radius-lg); font-weight: 600; border: none; cursor: pointer; }
         .fab-enhanced { position: fixed; bottom: 28px; left: 24px; z-index: 20; width: 60px; height: 60px; border-radius: 50%; background: var(--primary-gradient); color: white; display: flex; align-items: center; justify-content: center; shadow: var(--shadow-xl); border: none; }
+        .badge-modern { padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 500; }
     </style>
 </head>
 <body class="pb-safe pt-safe">
@@ -83,12 +84,12 @@
     <header class="sticky top-0 z-30 bg-white/85 backdrop-blur-xl border-b border-gray-100">
         <div style="height: 68px;" class="px-5 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <button id="btnBack" onclick="window.history.back()" class="hidden w-11 h-11 rounded-full hover:bg-gray-100 flex items-center justify-center transition-all"><i data-lucide="arrow-right" class="w-5 h-5"></i></button>
+                <!-- تم حذف سهم العودة من الواجهة -->
                 <h1 id="uiMainTitle" class="text-xl font-normal text-gray-900 tracking-tight">قسم الإنتاج</h1>
             </div>
             <div class="flex items-center gap-2.5">
                 <button id="btnWipe" onclick="App.Core.wipeAllData()" class="hidden w-11 h-11 rounded-xl bg-red-50 text-red-600 items-center justify-center border border-red-100"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
-                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg"><i data-lucide="factory" class="w-5 h-5 text-white"></i></div>
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/30"><i data-lucide="factory" class="w-5 h-5 text-white"></i></div>
             </div>
         </div>
         <div id="searchContainer" class="px-5 pb-3.5">
@@ -138,7 +139,6 @@
                     </select>
                 </div>
 
-                <!-- حقل إدخال اسم جديد يدوياً -->
                 <div id="newNameContainer" class="form-group hidden">
                     <label class="form-label text-blue-600">اكتب الاسم الجديد هنا</label>
                     <input type="text" id="inpNewName" class="form-input no-arrow" placeholder="أدخل الاسم بالكامل...">
@@ -220,7 +220,6 @@
         const App = {
             isAdmin: new URLSearchParams(window.location.search).get('mode') === 'admin',
             isReorderMode: false,
-            // هيكل ترتيب الوظائف
             Hierarchy: ["مهندس الوردية", "ملاحظ الوردية", "مشغل غرفة التحكم الرئيسية", "مشغل غرفة تحكم الفرن", "مشغل غرفة التحكم النهائية", "فني درفلة المرحلة الإبتدائية", "فني درفلة المرحلة النهائية", "فني مراقبة سرير التبريد", "فني تمييز المنتج النهائي"],
             
             SourceData: [
@@ -262,7 +261,7 @@
                 {job:"مشغل غرفة التحكم النهائية", name:"أحمد بهلول", code:"2238", phone:"01276376158"},
                 {job:"فني تمييز المنتج النهائي", name:"أسامه رشاد", code:"2716", phone:""},
                 {job:"فني درفلة المرحلة الإبتدائية", name:"أحمد سعد خوذ", code:"2803", phone:"01064112733"},
-                {job:"فني درفلة المرحلة النهائية", name:"وليد تووفيق", code:"1762", phone:"01093009744"},
+                {job:"فني درفلة المرحلة النهائية", name:"وليد توفيق", code:"1762", phone:"01093009744"},
                 {job:"فني درفلة المرحلة النهائية", name:"مصطفى محمد", code:"1740", phone:"01007433435"},
                 {job:"فني مراقبة سرير التبريد", name:"السيد عبدالعزيز", code:"1199", phone:""},
                 {job:"فني مراقبة سرير التبريد", name:"ولاء عبد الستار", code:"200888", phone:"01062004919"},
@@ -373,9 +372,8 @@
                     else html = this.renderHome(employees, live);
 
                     document.getElementById('mainContent').innerHTML = html;
-                    document.getElementById('btnBack').classList.toggle('hidden', view === 'home' && !query);
-                    document.getElementById('fabAdd').classList.toggle('hidden', !App.isAdmin || !shift || !!query);
                     document.getElementById('btnWipe').classList.toggle('flex', App.isAdmin && view === 'home');
+                    document.getElementById('fabAdd').classList.toggle('hidden', !App.isAdmin || !shift || !!query);
                     document.getElementById('uiMainTitle').innerText = query ? 'البحث' : (shift === 'office' ? 'طاقم الإدارة' : shift === 'broadcast' ? 'الإعلانات' : shift ? `وردية ${shift}` : 'قسم الإنتاج');
                     lucide.createIcons();
                 },
@@ -512,14 +510,7 @@
                 closeAllModals() {
                     App.State.isModalOpen = false;
                     document.querySelectorAll('.sheet-container, .sheet-overlay').forEach(el => el.classList.remove('is-open'));
-                },
-
-                toggleAccordion(id) {
-                    const el = document.getElementById(id); if(el) el.classList.toggle('hidden');
-                    const icon = document.getElementById('iconRolling');
-                    if(icon && el) icon.style.transform = el.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
-                },
-                toggleReorderMode() { App.isReorderMode = !App.isReorderMode; App.UI.updateAll(); }
+                }
             },
 
             Core: {
@@ -534,8 +525,7 @@
                 onNameSelect(val) {
                     if (val === "__NEW__") {
                         document.getElementById('newNameContainer').classList.remove('hidden');
-                        document.getElementById('inpCode').value = '';
-                        document.getElementById('inpPhone').value = '';
+                        document.getElementById('inpCode').value = ''; document.getElementById('inpPhone').value = '';
                     } else {
                         document.getElementById('newNameContainer').classList.add('hidden');
                         const person = App.SourceData.find(i => i.name === val);
@@ -551,23 +541,16 @@
                 saveEmployee(ev) {
                     ev.preventDefault();
                     if(!window.cloudDB) return Toast.show("خطأ سحابي", "error");
-                    
                     const nameVal = document.getElementById('inpName').value;
                     const finalName = (nameVal === "__NEW__") ? document.getElementById('inpNewName').value.trim() : nameVal;
                     if(!finalName) return Toast.show("يرجى إدخال الاسم", "error");
-
                     const uid = document.getElementById('inpId').value || "ID-"+Date.now();
                     const job = document.getElementById('inpJob').value;
-                    
-                    // حساب ترتيب الوظيفة تلقائياً
                     const jobIndex = App.Hierarchy.indexOf(job);
                     const sortOrder = jobIndex !== -1 ? jobIndex * 100 + Date.now() % 100 : 9999;
-
                     const emp = {
-                        uid, name: finalName,
-                        code: document.getElementById('inpCode').value || '',
-                        jobTitle: job,
-                        department: document.getElementById('inpDept').value,
+                        uid, name: finalName, code: document.getElementById('inpCode').value || '',
+                        jobTitle: job, department: document.getElementById('inpDept').value,
                         line: (document.getElementById('inpDept').value==='rolling')?document.getElementById('inpLine').value:'none',
                         shift: document.getElementById('inpShift').value,
                         phone: document.getElementById('inpPhone').value.trim(),
@@ -580,7 +563,11 @@
                 },
                 deleteEmployee(uid) { if(confirm('حذف نهائي؟')) { window.cloudDB.remove(window.cloudDB.ref(window.cloudDB.db, 'employees/' + uid)); window.history.back(); } },
                 wipeAllData() { if(confirm("مسح كافة البيانات؟")) window.cloudDB.remove(window.cloudDB.ref(window.cloudDB.db, 'employees')); },
-                clearSearch() { App.State.query = ''; document.getElementById('searchInput').value = ''; App.UI.updateAll(); }
+                clearSearch() { App.State.query = ''; document.getElementById('searchInput').value = ''; App.UI.updateAll(); },
+                handleDeptChange() {
+                    const d = document.getElementById('inpDept').value;
+                    document.getElementById('locFields').classList.toggle('hidden', d === 'management');
+                }
             },
 
             init() {
