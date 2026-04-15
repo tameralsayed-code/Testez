@@ -350,7 +350,6 @@
             UI: {
                 syncWithCloud() {
                     if (!window.cloudDB) return;
-                    // مزامنة الموظفين
                     window.cloudDB.onValue(window.cloudDB.ref(window.cloudDB.db, 'employees'), (snapshot) => {
                         const data = snapshot.val();
                         App.State.employees = data ? Object.values(data).sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)) : [];
@@ -358,7 +357,6 @@
                         if(loader) loader.classList.add('hidden');
                         App.UI.updateAll();
                     });
-                    // مزامنة الأسماء المضافة حديثاً
                     window.cloudDB.onValue(window.cloudDB.ref(window.cloudDB.db, 'contacts'), (snapshot) => {
                         const data = snapshot.val();
                         App.State.customContacts = data ? Object.values(data) : [];
@@ -431,8 +429,18 @@
 
                 renderEmployeeList(view, shift) {
                     const filtered = App.State.employees.filter(e => e.shift === shift && (view==='management'?e.department==='management':view==='prep'?e.department==='prep':view==='announcements'?e.department==='announcements':e.line===view.replace('line','')));
+                    
+                    const activeCount = filtered.filter(e => e.status !== 'sick').length;
+                    const sickCount = filtered.filter(e => e.status === 'sick').length;
+
                     if(!filtered.length) return `<div class="py-20 text-center text-gray-400 text-xs font-normal">لا توجد بيانات مسجلة</div>`;
-                    return `<div class="flex justify-between items-center mb-4 mr-1"><h3 class="text-[10px] text-gray-400 uppercase tracking-widest">${view==='announcements'?'التنبيهات':'قائمة الموظفين'}</h3></div>
+                    return `<div class="flex justify-between items-center mb-4 mr-1">
+                        <h3 class="text-[10px] text-gray-400 uppercase tracking-widest flex items-center gap-3">
+                            <span>قائمة الموظفين</span>
+                            <span class="flex items-center gap-1"><span class="text-emerald-600 font-bold">نشط:</span> ${activeCount}</span>
+                            <span class="flex items-center gap-1"><span class="text-rose-600 font-bold">غير نشط:</span> ${sickCount}</span>
+                        </h3>
+                    </div>
                     <div class="space-y-4">${filtered.map(e => {
                         const isSick = e.status === 'sick';
                         const subColor = isSick ? 'text-red-500' : ((view === 'management' || shift !== 'office') ? 'text-blue-600' : 'text-gray-400');
@@ -455,8 +463,13 @@
                     document.getElementById('uiDetailsContent').innerHTML = `
                         <div class="flex flex-col items-center mb-6 pt-2"><div class="w-20 h-20 ${isSick?'bg-red-50 text-red-600':'bg-blue-50 text-blue-600'} rounded-[28px] flex items-center justify-center text-3xl mb-4 border-2 border-white shadow-lg">${avatar}</div><h3 class="text-lg font-normal ${isSick?'text-red-900':'text-gray-900'} text-center mb-1">${isSick?'[مرضي] ':''}${e.name}</h3><span class="px-4 py-1 ${isSick?'bg-red-600':'bg-blue-600'} text-white text-[10px] font-normal rounded-full">${e.jobTitle}</span></div>
                         <div class="grid grid-cols-2 gap-3 mb-6"><a href="tel:${e.phone}" class="p-4 bg-blue-50 rounded-2xl text-center border border-blue-100 flex flex-col items-center"><i data-lucide="phone" class="w-5 h-5 mb-1 text-blue-600"></i><span class="text-[10px] text-blue-700">اتصال هاتف</span></a><a href="https://wa.me/${waP}" target="_blank" class="p-4 bg-emerald-50 rounded-2xl text-center border border-emerald-100 flex flex-col items-center"><i data-lucide="message-circle" class="w-5 h-5 mb-1 text-emerald-600"></i><span class="text-[10px] text-emerald-700">واتساب</span></a></div>
-                        <div class="space-y-3 mb-8">${isSick ? `<div class="p-3 bg-red-50 rounded-xl flex justify-between items-center border border-red-100"><span class="text-red-400 text-xs">الحالة</span><span class="text-red-600 font-bold">مرضي</span></div>` : ''}${e.code?`<div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">كود الموظف</span><span class="text-gray-900 font-normal">${e.code}</span></div>`:''}${e.phone?`<div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">رقم الهاتف</span><span class="text-gray-900 font-normal" dir="ltr">${e.phone}</span></div>`:''}</div>
-                        ${App.isAdmin ? `<div class="grid grid-cols-2 gap-3 pt-4 border-t"><button onclick="App.Core.deleteEmployee('${e.uid}')" class="py-3 bg-red-50 text-red-600 rounded-xl text-xs font-normal">حذف</button><button onclick="App.Core.openFormModal('${e.uid}')" class="py-3 bg-gray-900 text-white rounded-xl text-xs font-normal">تعديل</button></div>` : `<button onclick="window.history.back()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-[12px] font-bold shadow-lg active:scale-95 transition-all">إغلاق البطاقة</button>`}`;
+                        <div class="space-y-3 mb-8">
+                            ${isSick ? `<div class="p-3 bg-red-50 rounded-xl flex justify-between items-center border border-red-100"><span class="text-red-400 text-xs">الحالة</span><span class="text-red-600 font-bold">مرضي</span></div>` : ''}
+                            ${e.code?`<div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">كود الموظف</span><span class="text-gray-900 font-normal">${e.code}</span></div>`:''}
+                            ${e.phone?`<div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">رقم الهاتف</span><span class="text-gray-900 font-normal" dir="ltr">${e.phone}</span></div>`:''}
+                            <div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">المسمى الوظيفي</span><span class="text-gray-900 font-normal">${e.jobTitle}</span></div>
+                        </div>
+                        ${App.isAdmin ? `<div class="grid grid-cols-2 gap-3 pt-4 border-t"><button onclick="App.Core.deleteEmployee('${e.uid}')" class="py-3 bg-red-50 text-red-600 rounded-xl text-xs font-normal">حذف</button><button onclick="App.Core.openFormModal('${e.uid}')" class="py-3 bg-gray-900 text-white rounded-xl text-xs font-normal">تعديل</button></div>` : `<button onclick="window.history.back()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-[12px] font-bold shadow-lg active:scale-95 transition-all">إغلاق</button>`}`;
                     lucide.createIcons();
                 },
 
@@ -503,7 +516,6 @@
 
             Core: {
                 onJobSelect(jobTitle, resetName = true) {
-                    // دمج البيانات الثابتة مع البيانات المضافة سحابياً
                     const combined = [...App.SourceData, ...App.State.customContacts];
                     const names = [...new Set(combined.filter(i => i.job === jobTitle).map(i => i.name))].sort();
                     
@@ -549,10 +561,8 @@
                     const code = document.getElementById('inpCode').value || '';
                     const phone = document.getElementById('inpPhone').value.trim();
                     
-                    // إذا كان الاسم جديداً، نحفظه في عقدة Contacts السحابية ليكون متاحاً مستقبلاً
                     if(isNewName) {
                         const newContact = { job: job, name: finalName, code: code, phone: phone };
-                        // نستخدم الاسم كمفتاح لتجنب التكرار
                         window.cloudDB.set(window.cloudDB.ref(window.cloudDB.db, 'contacts/' + finalName.replace(/[.#$[\]]/g, "")), newContact);
                     }
 
