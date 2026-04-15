@@ -71,7 +71,6 @@
         .btn-primary { background: var(--primary-gradient); color: white; padding: 14px 24px; border-radius: var(--radius-lg); font-weight: 600; border: none; cursor: pointer; transition: 0.2s; }
         .btn-primary:active { transform: scale(0.98); }
         .fab-enhanced { position: fixed; bottom: 28px; left: 24px; z-index: 20; width: 60px; height: 60px; border-radius: 50%; background: var(--primary-gradient); color: white; display: flex; align-items: center; justify-content: center; shadow: var(--shadow-xl); border: none; }
-        .badge-modern { padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 500; }
     </style>
 </head>
 <body class="pb-safe pt-safe">
@@ -83,7 +82,7 @@
             <h1 id="uiMainTitle" class="text-xl font-normal text-gray-900 tracking-tight">قسم الإنتاج</h1>
             <div class="flex items-center gap-2.5">
                 <button id="btnWipe" onclick="App.Core.wipeAllData()" class="hidden w-11 h-11 rounded-xl bg-red-50 text-red-600 items-center justify-center border border-red-100"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
-                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg"><i data-lucide="factory" class="w-5 h-5 text-white"></i></div>
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/30"><i data-lucide="factory" class="w-5 h-5 text-white"></i></div>
             </div>
         </div>
         <div id="searchContainer" class="px-5 pb-3.5">
@@ -105,7 +104,8 @@
         </div>
     </main>
 
-    <button id="fabAdd" onclick="App.UI.openFormModal()" class="hidden fab-enhanced"><i data-lucide="plus" class="w-7 h-7"></i></button>
+    <!-- مفتاح الإضافة -->
+    <button id="fabAdd" onclick="App.Core.openFormModal()" class="hidden fab-enhanced"><i data-lucide="plus" class="w-7 h-7"></i></button>
 
     <div id="modalOverlay" class="sheet-overlay" onclick="window.history.back()"></div>
 
@@ -118,14 +118,45 @@
         <div class="p-5 overflow-y-auto no-scrollbar pb-20 flex-1">
             <form id="formEmployee" onsubmit="App.Core.saveEmployee(event)">
                 <input type="hidden" id="inpId"><input type="hidden" id="inpDept">
-                <div class="form-group"><label class="form-label">الوظيفة</label><select id="inpJob" required class="form-input" onchange="App.Core.onJobSelect(this.value)"><option value="">اختر الوظيفة...</option></select></div>
-                <div class="form-group"><label class="form-label">الاسم</label><select id="inpName" required class="form-input" onchange="App.Core.onNameSelect(this.value)"><option value="">اختر الاسم...</option></select></div>
-                <div id="newNameContainer" class="form-group hidden"><label class="form-label text-blue-600">اكتب الاسم الجديد هنا</label><input type="text" id="inpNewName" class="form-input no-arrow" placeholder="أدخل الاسم بالكامل..."></div>
-                <div class="grid grid-cols-5 gap-3">
-                    <div class="form-group col-span-2"><label class="form-label">الكود</label><input type="number" id="inpCode" class="form-input no-arrow text-center"></div>
-                    <div class="form-group col-span-3"><label class="form-label">الموبايل</label><input type="tel" id="inpPhone" class="form-input no-arrow text-left" dir="ltr"></div>
+                
+                <div class="form-group">
+                    <label class="form-label">الوظيفة</label>
+                    <select id="inpJob" required class="form-input" onchange="App.Core.onJobSelect(this.value)">
+                        <option value="">اختر الوظيفة...</option>
+                    </select>
                 </div>
-                <div class="form-group"><label class="form-label">الحالة</label><select id="inpStatus" class="form-input"><option value="active">متواجد بالعمل</option><option value="sick">مرضي</option></select></div>
+
+                <div class="form-group">
+                    <label class="form-label">الاسم</label>
+                    <select id="inpName" required class="form-input" onchange="App.Core.onNameSelect(this.value)">
+                        <option value="">اختر الاسم...</option>
+                    </select>
+                </div>
+
+                <div id="newNameContainer" class="form-group hidden">
+                    <label class="form-label text-blue-600">اكتب الاسم الجديد هنا</label>
+                    <input type="text" id="inpNewName" class="form-input no-arrow" placeholder="أدخل الاسم بالكامل...">
+                </div>
+                
+                <div class="grid grid-cols-5 gap-3">
+                    <div class="form-group col-span-2">
+                        <label class="form-label">الكود</label>
+                        <input type="number" id="inpCode" class="form-input no-arrow text-center">
+                    </div>
+                    <div class="form-group col-span-3">
+                        <label class="form-label">الموبايل</label>
+                        <input type="tel" id="inpPhone" class="form-input no-arrow text-left" dir="ltr">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">الحالة</label>
+                    <select id="inpStatus" class="form-input">
+                        <option value="active">متواجد بالعمل</option>
+                        <option value="sick">مرضي</option>
+                    </select>
+                </div>
+
                 <div id="locFields" class="mt-2 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50 space-y-3">
                     <div class="grid grid-cols-2 gap-3">
                         <div class="form-group mb-0"><label class="form-label">الخط</label><select id="inpLine" class="form-input"><option value="1">خط 1</option><option value="2">خط 2</option></select></div>
@@ -164,7 +195,7 @@
       signInAnonymously(auth).then(() => {
           window.cloudDB = { db, ref, set, onValue, remove, update };
           App.UI.syncWithCloud();
-      }).catch(err => console.error("Firebase Connection Failed"));
+      }).catch(err => console.error("Firebase Error"));
     </script>
 
     <script>
@@ -272,26 +303,11 @@
                 {job:"فني مراقبة سرير التبريد", name:"محمد عبدالعليم", code:"1204", phone:""}
             ],
 
-            // الحالة المركزية للتطبيق
-            State: { 
-                employees: [], // البيانات الضخمة تأتي من Firebase فقط
-                view: 'home', 
-                shift: null, 
-                query: '', 
-                modal: null, 
-                uid: null 
-            },
+            State: { employees: [], view: 'home', shift: null, query: '', modal: null, uid: null },
 
-            // دالة التنقل المركزية (تسجل في الـ History بدون البيانات لضمان السرعة)
             Navigate: (target, replace = false) => {
                 Object.assign(App.State, target);
-                const navSnapshot = {
-                    view: App.State.view,
-                    shift: App.State.shift,
-                    query: App.State.query,
-                    modal: App.State.modal,
-                    uid: App.State.uid
-                };
+                const navSnapshot = { view: App.State.view, shift: App.State.shift, query: App.State.query, modal: App.State.modal, uid: App.State.uid };
                 if (replace) history.replaceState(navSnapshot, "");
                 else history.pushState(navSnapshot, "");
                 App.UI.updateAll();
@@ -346,9 +362,10 @@
                     const { view, shift, query, modal, uid } = App.State;
                     const live = App.ShiftEngine.getLiveNow();
                     
-                    document.getElementById('searchContainer').style.display = (view === 'announcements') ? 'none' : 'block';
-                    document.getElementById('clearSearch').classList.toggle('hidden', !query);
-                    document.getElementById('searchInput').value = query;
+                    const searchBox = document.getElementById('searchContainer');
+                    if(searchBox) searchBox.style.display = (view === 'announcements') ? 'none' : 'block';
+                    const clearBtn = document.getElementById('clearSearch');
+                    if(clearBtn) clearBtn.classList.toggle('hidden', !query);
 
                     let html = '';
                     if (query) html = this.renderSearch(query);
@@ -365,9 +382,7 @@
                     lucide.createIcons();
                 },
 
-                getLoadingState() {
-                    return `<div class="py-20 text-center text-gray-400">جاري تحميل البيانات...</div>`;
-                },
+                getLoadingState() { return `<div class="py-20 text-center text-gray-400">جاري التحميل...</div>`; },
 
                 handleModalUI(modal, uid) {
                     const overlay = document.getElementById('modalOverlay');
@@ -383,20 +398,12 @@
                 renderHome(live) {
                     const employees = App.State.employees;
                     const c = (d, l) => employees.filter(e => e.department === d && (l ? e.line === l : true)).length;
-                    return `
-                        <div class="mb-6 relative">
-                            <div class="relative bg-white/90 backdrop-blur-xl rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden px-4 py-3 flex items-center justify-between gap-3">
-                                <div class="flex items-center gap-2.5 flex-1 min-w-0"><div class="relative w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-sm"></div><div class="flex flex-col min-w-0"><span class="text-[11px] text-gray-500 font-normal leading-tight">الوردية الآن</span><span class="text-sm font-normal text-gray-900 leading-tight">الوردية ${live.name}</span></div></div>
-                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200/50 flex items-center justify-center shadow-sm"><span class="text-base font-normal text-emerald-600">${live.group}</span></div>
-                            </div>
-                        </div>
-                        <div class="bg-white/80 backdrop-blur-xl rounded-[32px] shadow-lg border border-white/50 overflow-hidden">
-                            ${this.menuItem('management', 'briefcase', 'purple', 'إدارة الإنتاج', `${c('management')} موظف`)}
+                    return `<div class="mb-6 relative"><div class="relative bg-white/90 backdrop-blur-xl rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden px-4 py-3 flex items-center justify-between gap-3"><div class="flex items-center gap-2.5 flex-1 min-w-0"><div class="relative w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-sm"></div><div class="flex flex-col min-w-0"><span class="text-[11px] text-gray-500 font-normal leading-tight">الوردية الآن</span><span class="text-sm font-normal text-gray-900 leading-tight">الوردية ${live.name}</span></div></div><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200/50 flex items-center justify-center shadow-sm"><span class="text-base font-normal text-emerald-600">${live.group}</span></div></div></div>
+                        <div class="bg-white/80 backdrop-blur-xl rounded-[32px] shadow-lg border border-white/50 overflow-hidden">${this.menuItem('management', 'briefcase', 'purple', 'إدارة الإنتاج', `${c('management')} موظف`)}
                             <div onclick="App.UI.toggleAccordion('accRolling')" class="p-5 flex justify-between items-center cursor-pointer border-b hover:bg-gray-50/50 transition-all"><div class="flex items-center gap-4 flex-1"><div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/30"><i data-lucide="layers"></i></div><div class="flex-1"><h2 class="font-normal text-gray-900 text-base">خطوط الدرفلة</h2><p class="text-xs text-gray-500 font-normal mt-1">${c('rolling')} موظف</p></div></div><i id="iconRolling" data-lucide="chevron-down" class="w-5 h-5 text-gray-400 transition-transform"></i></div>
                             <div id="accRolling" class="hidden bg-gray-50/50 p-5 space-y-3"><div onclick="App.Core.navigate('line1')" class="bg-white p-4 rounded-2xl border flex justify-between items-center shadow-sm"><span class="font-normal text-[13px] text-gray-800">خط درفلة 1</span><span class="badge-modern bg-blue-50 text-blue-700">${c('rolling', '1')}</span></div><div onclick="App.Core.navigate('line2')" class="bg-white p-4 rounded-2xl border flex justify-between items-center shadow-sm"><span class="font-normal text-[13px] text-gray-800">خط درفلة 2</span><span class="badge-modern bg-blue-50 text-blue-700">${c('rolling', '2')}</span></div></div>
                             ${this.menuItem('prep', 'wrench', 'teal', 'ورشة التجهيزات', `${c('prep')} موظف`)}
-                            <div onclick="App.Core.navigate('announcements')" class="p-5 flex justify-between items-center cursor-pointer hover:bg-gray-50/50 transition-all"><div class="flex items-center gap-4 flex-1"><div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-orange-500/30"><i data-lucide="megaphone"></i></div><div class="flex-1"><h2 class="font-normal text-gray-900 text-base">الإعلانات الداخلية</h2><p class="text-xs text-gray-500 font-normal mt-1">تنبيهات وملاحظات</p></div></div><span class="badge-modern bg-orange-100 text-orange-800 text-xs">${c('announcements')} جديد</span></div>
-                        </div>`;
+                            <div onclick="App.Core.navigate('announcements')" class="p-5 flex justify-between items-center cursor-pointer hover:bg-gray-50/50 transition-all"><div class="flex items-center gap-4 flex-1"><div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-orange-500/30"><i data-lucide="megaphone"></i></div><div class="flex-1"><h2 class="font-normal text-gray-900 text-base">الإعلانات الداخلية</h2><p class="text-xs text-gray-500 font-normal mt-1">تنبيهات وملاحظات</p></div></div><span class="badge-modern bg-orange-100 text-orange-800 text-xs">${c('announcements')} جديد</span></div></div>`;
                 },
 
                 menuItem(view, icon, color, title, sub) {
@@ -407,28 +414,22 @@
                     const now = new Date(); let targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                     if (now.getHours() < 8) targetDate.setDate(targetDate.getDate() - 1);
                     const typeMap = { 'morning':'الوردية الأولى', 'noon':'الوردية الثانية', 'evening':'الوردية الثالثة', 'morning-rest':'راحة', 'noon-rest':'راحة', 'evening-rest':'راحة' };
-                    return `<div class="mb-5"><h3 class="text-base font-normal text-gray-700">اختر الوردية</h3></div>
-                    <div class="space-y-4">
-                        ${['A','B','C','D'].map(s => {
+                    return `<div class="mb-5"><h3 class="text-base font-normal text-gray-700">اختر الوردية</h3></div><div class="space-y-4">${['A','B','C','D'].map(s => {
                             const status = App.ShiftEngine.getGroupStatus(s, targetDate);
                             const isWorking = (s === live.group);
                             const isRest = status.type.includes('rest');
                             return `<div onclick="App.Core.navigateShift('${s}')" class="bg-gradient-to-br ${isWorking?'from-emerald-50 to-teal-50 border-emerald-200':isRest?'from-rose-50 to-red-50 border-rose-200':'from-gray-50 to-slate-50 border-gray-200'} p-4 rounded-2xl border flex items-center justify-between shadow-sm hover:shadow-md transition-all"><div class="flex items-center gap-4"><div class="w-12 h-12 rounded-xl bg-gradient-to-br ${isWorking?'from-emerald-500 to-teal-500':isRest?'from-rose-500 to-red-500':'from-gray-400 to-slate-500'} text-white flex items-center justify-center text-lg shadow-md">${s}</div><div><h3 class="text-gray-900 font-normal">وردية ${s}</h3><p class="text-xs ${isWorking?'text-emerald-600':isRest?'text-rose-600':'text-gray-500'} font-normal">${typeMap[status.type] || 'خارج الدوام'}</p></div></div><i data-lucide="chevron-left" class="w-5 h-5 text-gray-300"></i></div>`;
-                        }).join('')}
-                    </div>`;
+                        }).join('')}</div>`;
                 },
 
                 renderEmployeeList(view, shift) {
-                    const employees = App.State.employees;
-                    const filtered = employees.filter(e => e.shift === shift && (view==='management'?e.department==='management':view==='prep'?e.department==='prep':view==='announcements'?e.department==='announcements':e.line===view.replace('line','')));
+                    const filtered = App.State.employees.filter(e => e.shift === shift && (view==='management'?e.department==='management':view==='prep'?e.department==='prep':view==='announcements'?e.department==='announcements':e.line===view.replace('line','')));
                     if(!filtered.length) return `<div class="py-20 text-center text-gray-400 text-xs font-normal">لا توجد بيانات مسجلة</div>`;
                     return `<div class="flex justify-between items-center mb-4 mr-1"><h3 class="text-[10px] text-gray-400 uppercase tracking-widest">${view==='announcements'?'التنبيهات':'قائمة الموظفين'}</h3></div>
                     <div class="space-y-4">${filtered.map(e => {
                         const isSick = e.status === 'sick';
                         const subColor = isSick ? 'text-red-500' : ((view === 'management' || shift !== 'office') ? 'text-blue-600' : 'text-gray-400');
-                        return `<div onclick="App.Core.openDetails('${e.uid}')" class="${isSick ? 'bg-red-50 border-red-200' : 'bg-white border-gray-100'} p-4 rounded-[22px] border flex items-center justify-between shadow-sm active:scale-[0.98] transition-all list-item">
-                            <div class="flex items-center gap-4 flex-1 min-w-0"><div class="w-11 h-11 ${isSick?'bg-red-100 text-red-600':'bg-gray-50 text-gray-500'} rounded-[16px] flex items-center justify-center shrink-0 border border-black/5">${e.department==='management'?'💼':e.shift}</div><div class="flex-1 min-w-0"><h3 class="font-normal text-sm ${isSick?'text-red-900':'text-gray-900'} truncate">${isSick?'[مرضي] ':''}${e.name}</h3><p class="text-[10px] ${subColor} truncate">${e.jobTitle} ${e.code?'| '+e.code:''}</p></div></div>
-                        </div>`;
+                        return `<div onclick="App.Core.openDetails('${e.uid}')" class="${isSick ? 'bg-red-50 border-red-200' : 'bg-white border-gray-100'} p-4 rounded-[22px] border flex items-center justify-between shadow-sm active:scale-[0.98] transition-all list-item"><div class="flex items-center gap-4 flex-1 min-w-0"><div class="w-11 h-11 ${isSick?'bg-red-100 text-red-600':'bg-gray-50 text-gray-500'} rounded-[16px] flex items-center justify-center shrink-0 border border-black/5">${e.department==='management'?'💼':e.shift}</div><div class="flex-1 min-w-0"><h3 class="font-normal text-sm ${isSick?'text-red-900':'text-gray-900'} truncate">${isSick?'[مرضي] ':''}${e.name}</h3><p class="text-[10px] ${subColor} truncate">${e.jobTitle} ${e.code?'| '+e.code:''}</p></div></div></div>`;
                     }).join('')}</div>`;
                 },
 
@@ -445,20 +446,9 @@
                     const waP = cleanP.startsWith('0') ? '20' + cleanP.substring(1) : (cleanP.startsWith('1') ? '20' + cleanP : cleanP);
                     const avatar = e.department === 'management' ? '💼' : e.shift;
                     document.getElementById('uiDetailsContent').innerHTML = `
-                        <div class="flex flex-col items-center mb-6 pt-2">
-                            <div class="w-20 h-20 ${isSick?'bg-red-50 text-red-600':'bg-blue-50 text-blue-600'} rounded-[28px] flex items-center justify-center text-3xl mb-4 border-2 border-white shadow-lg">${avatar}</div>
-                            <h3 class="text-lg font-normal ${isSick?'text-red-900':'text-gray-900'} text-center mb-1">${isSick?'[مرضي] ':''}${e.name}</h3>
-                            <span class="px-4 py-1 ${isSick?'bg-red-600':'bg-blue-600'} text-white text-[10px] font-normal rounded-full">${e.jobTitle}</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3 mb-6">
-                            <a href="tel:${e.phone}" class="p-4 bg-blue-50 rounded-2xl text-center border border-blue-100 flex flex-col items-center"><i data-lucide="phone" class="w-5 h-5 mb-1 text-blue-600"></i><span class="text-[10px] text-blue-700">اتصال هاتف</span></a>
-                            <a href="https://wa.me/${waP}" target="_blank" class="p-4 bg-emerald-50 rounded-2xl text-center border border-emerald-100 flex flex-col items-center"><i data-lucide="message-circle" class="w-5 h-5 mb-1 text-emerald-600"></i><span class="text-[10px] text-emerald-700">واتساب</span></a>
-                        </div>
-                        <div class="space-y-3 mb-8">
-                            ${isSick ? `<div class="p-3 bg-red-50 rounded-xl flex justify-between items-center border border-red-100"><span class="text-red-400 text-xs">الحالة</span><span class="text-red-600 font-bold">مرضي</span></div>` : ''}
-                            ${e.code?`<div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">كود الموظف</span><span class="text-gray-900 font-normal">${e.code}</span></div>`:''}
-                            ${e.phone?`<div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">رقم الهاتف</span><span class="text-gray-900 font-normal" dir="ltr">${e.phone}</span></div>`:''}
-                        </div>
+                        <div class="flex flex-col items-center mb-6 pt-2"><div class="w-20 h-20 ${isSick?'bg-red-50 text-red-600':'bg-blue-50 text-blue-600'} rounded-[28px] flex items-center justify-center text-3xl mb-4 border-2 border-white shadow-lg">${avatar}</div><h3 class="text-lg font-normal ${isSick?'text-red-900':'text-gray-900'} text-center mb-1">${isSick?'[مرضي] ':''}${e.name}</h3><span class="px-4 py-1 ${isSick?'bg-red-600':'bg-blue-600'} text-white text-[10px] font-normal rounded-full">${e.jobTitle}</span></div>
+                        <div class="grid grid-cols-2 gap-3 mb-6"><a href="tel:${e.phone}" class="p-4 bg-blue-50 rounded-2xl text-center border border-blue-100 flex flex-col items-center"><i data-lucide="phone" class="w-5 h-5 mb-1 text-blue-600"></i><span class="text-[10px] text-blue-700">اتصال هاتف</span></a><a href="https://wa.me/${waP}" target="_blank" class="p-4 bg-emerald-50 rounded-2xl text-center border border-emerald-100 flex flex-col items-center"><i data-lucide="message-circle" class="w-5 h-5 mb-1 text-emerald-600"></i><span class="text-[10px] text-emerald-700">واتساب</span></a></div>
+                        <div class="space-y-3 mb-8">${isSick ? `<div class="p-3 bg-red-50 rounded-xl flex justify-between items-center border border-red-100"><span class="text-red-400 text-xs">الحالة</span><span class="text-red-600 font-bold">مرضي</span></div>` : ''}${e.code?`<div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">كود الموظف</span><span class="text-gray-900 font-normal">${e.code}</span></div>`:''}${e.phone?`<div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">رقم الهاتف</span><span class="text-gray-900 font-normal" dir="ltr">${e.phone}</span></div>`:''}</div>
                         ${App.isAdmin ? `<div class="grid grid-cols-2 gap-3 pt-4 border-t"><button onclick="App.Core.deleteEmployee('${e.uid}')" class="py-3 bg-red-50 text-red-600 rounded-xl text-xs font-normal">حذف</button><button onclick="App.Core.openFormModal('${e.uid}')" class="py-3 bg-gray-900 text-white rounded-xl text-xs font-normal">تعديل</button></div>` : `<button onclick="window.history.back()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-[12px] font-bold shadow-lg active:scale-95 transition-all">إغلاق البطاقة</button>`}`;
                     lucide.createIcons();
                 },
@@ -486,7 +476,8 @@
                         }
                     } else {
                         document.getElementById('inpId').value = '';
-                        document.getElementById('inpDept').value = (view==='management'?'management':(view==='prep'?'prep':(view==='announcements'?'announcements':'rolling')));
+                        const dept = (view==='management'?'management':(view==='prep'?'prep':(view==='announcements'?'announcements':'rolling')));
+                        document.getElementById('inpDept').value = dept;
                         if(view.startsWith('line')) document.getElementById('inpLine').value = view.replace('line','');
                         document.getElementById('inpShift').value = (shift && !['office','broadcast'].includes(shift)) ? shift : 'A';
                         document.getElementById('uiFormTitle').innerText = "إضافة موظف";
@@ -508,31 +499,19 @@
                     const names = App.SourceData.filter(i => i.job === jobTitle).map(i => i.name).sort();
                     const nameSelect = document.getElementById('inpName');
                     nameSelect.innerHTML = '<option value="">اختر الاسم...</option>' + names.map(n => `<option value="${n}">${n}</option>`).join('') + '<option value="__NEW__">➕ إضافة اسم جديد غير مسجل</option>';
-                    if(resetName) {
-                        document.getElementById('newNameContainer').classList.add('hidden');
-                        document.getElementById('inpCode').value = '';
-                        document.getElementById('inpPhone').value = '';
-                    }
+                    if(resetName) { document.getElementById('newNameContainer').classList.add('hidden'); document.getElementById('inpCode').value = ''; document.getElementById('inpPhone').value = ''; }
                 },
                 onNameSelect(val) {
                     const isNew = (val === "__NEW__");
                     document.getElementById('newNameContainer').classList.toggle('hidden', !isNew);
-                    if (isNew) { document.getElementById('inpCode').value = ''; document.getElementById('inpPhone').value = ''; }
-                    else {
-                        const p = App.SourceData.find(i => i.name === val);
-                        if (p) { document.getElementById('inpCode').value = p.code; document.getElementById('inpPhone').value = p.phone; }
-                    }
+                    if (!isNew) { const p = App.SourceData.find(i => i.name === val); if (p) { document.getElementById('inpCode').value = p.code; document.getElementById('inpPhone').value = p.phone; } }
                 },
-                navigate(v) { App.Navigate({ view: v, shift: (v === 'management' ? 'office' : v === 'announcements' ? 'broadcast' : null), modal: null, query: '' }); },
-                navigateShift(s) { App.Navigate({ shift: s, modal: null, query: '' }); },
-                openDetails(uid) { App.Navigate({ modal: 'details', uid: uid }); },
-                openFormModal(uid = null) { App.Navigate({ modal: 'form', uid: uid }); },
-                clearSearch() { App.Navigate({ query: '' }); },
-                handleDeptChange() {
-                    const d = document.getElementById('inpDept').value;
-                    const loc = document.getElementById('locFields');
-                    if(loc) loc.classList.toggle('hidden', d === 'management');
-                },
+                navigate: (v) => App.Navigate({ view: v, shift: (v === 'management' ? 'office' : v === 'announcements' ? 'broadcast' : null), modal: null, query: '' }),
+                navigateShift: (s) => App.Navigate({ shift: s, modal: null, query: '' }),
+                openDetails: (uid) => App.Navigate({ modal: 'details', uid: uid }),
+                openFormModal: (uid = null) => App.Navigate({ modal: 'form', uid: uid }),
+                clearSearch: () => App.Navigate({ query: '' }),
+                handleDeptChange: () => { const d = document.getElementById('inpDept').value; const loc = document.getElementById('locFields'); if(loc) loc.classList.toggle('hidden', d === 'management'); },
                 saveEmployee(ev) {
                     ev.preventDefault();
                     const nameVal = document.getElementById('inpName').value;
@@ -540,17 +519,9 @@
                     if(!finalName) return Toast.show("يرجى إدخال الاسم", "error");
                     const uid = document.getElementById('inpId').value || "ID-"+Date.now();
                     const job = document.getElementById('inpJob').value;
-                    const jobIndex = App.Hierarchy.indexOf(job);
-                    const sortOrder = jobIndex !== -1 ? jobIndex * 100 + Date.now() % 100 : 9999;
-                    const emp = {
-                        uid, name: finalName, code: document.getElementById('inpCode').value || '',
-                        jobTitle: job, department: document.getElementById('inpDept').value,
-                        line: (document.getElementById('inpDept').value==='rolling')?document.getElementById('inpLine').value:'none',
-                        shift: document.getElementById('inpShift').value,
-                        phone: document.getElementById('inpPhone').value.trim(),
-                        status: document.getElementById('inpStatus').value,
-                        sortOrder: document.getElementById('inpId').value ? (App.State.employees.find(x => x.uid === uid).sortOrder) : sortOrder
-                    };
+                    const jobIdx = App.Hierarchy.indexOf(job);
+                    const sortOrder = jobIdx !== -1 ? jobIdx * 100 + Date.now() % 100 : 9999;
+                    const emp = { uid, name: finalName, code: document.getElementById('inpCode').value || '', jobTitle: job, department: document.getElementById('inpDept').value, line: (document.getElementById('inpDept').value==='rolling')?document.getElementById('inpLine').value:'none', shift: document.getElementById('inpShift').value, phone: document.getElementById('inpPhone').value.trim(), status: document.getElementById('inpStatus').value, sortOrder: document.getElementById('inpId').value ? (App.State.employees.find(x => x.uid === uid).sortOrder) : sortOrder };
                     window.cloudDB.set(window.cloudDB.ref(window.cloudDB.db, 'employees/' + uid), emp);
                     Toast.show("تم حفظ البيانات بنجاح", "success");
                     window.history.back();
@@ -560,30 +531,9 @@
             },
 
             init() {
-                // ضبط سجل التاريخ المبدئي
-                const initialNav = { view: 'home', shift: null, query: '', modal: null, uid: null };
-                history.replaceState(initialNav, "");
-
-                window.addEventListener('popstate', (e) => {
-                    if (e.state) {
-                        // استعادة إحداثيات الملاحة فقط دون المساس ببيانات الموظفين
-                        App.State.view = e.state.view;
-                        App.State.shift = e.state.shift;
-                        App.State.query = e.state.query;
-                        App.State.modal = e.state.modal;
-                        App.State.uid = e.state.uid;
-                        App.UI.updateAll();
-                    }
-                });
-
-                document.getElementById('searchInput').addEventListener('input', (e) => {
-                    // البحث يغير الحالة برمجياً ويسجلها في التاريخ لتمكين الرجوع
-                    const updatedNav = { view: App.State.view, shift: App.State.shift, query: e.target.value, modal: null, uid: null };
-                    App.State.query = e.target.value;
-                    history.replaceState(updatedNav, ""); // استخدام replaceState لمنع تراكم آلاف الخطوات أثناء الكتابة
-                    App.UI.updateAll();
-                });
-
+                history.replaceState({ view: 'home', shift: null, query: '', modal: null, uid: null }, "");
+                window.addEventListener('popstate', (e) => { if (e.state) { Object.assign(App.State, e.state); App.UI.updateAll(); } });
+                document.getElementById('searchInput').addEventListener('input', (e) => { App.State.query = e.target.value; history.replaceState({ ...App.State }, ""); App.UI.updateAll(); });
                 App.UI.updateAll();
             }
         };
