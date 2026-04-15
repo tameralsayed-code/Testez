@@ -72,28 +72,10 @@
         .btn-primary:active { transform: scale(0.98); }
         .fab-enhanced { position: fixed; bottom: 28px; left: 24px; z-index: 20; width: 60px; height: 60px; border-radius: 50%; background: var(--primary-gradient); color: white; display: flex; align-items: center; justify-content: center; shadow: var(--shadow-xl); border: none; }
 
+        /* ستايل مخصص للبادج الاحترافي */
         .badge-status { display: flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 99px; border: 1px solid transparent; }
         .badge-active { background-color: #ecfdf5; border-color: #d1fae5; }
         .badge-inactive { background-color: #fef2f2; border-color: #fee2e2; }
-
-        /* ستايل الانفوجرافيك المبتكر */
-        .premium-stats-bg { background: #020617; border-radius: 32px; padding: 24px 16px; min-height: 75vh; border: 1px solid rgba(255,255,255,0.05); }
-        .header-glow-card { background: linear-gradient(135deg, rgba(30,41,59,0.5) 0%, rgba(15,23,42,0.8) 100%); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 20px; margin-bottom: 24px; position: relative; overflow: hidden; }
-        .header-glow-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%); }
-        
-        .info-row { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; position: relative; }
-        .info-label-box { width: 90px; flex-shrink: 0; }
-        .info-label-text { font-size: 12px; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 2px; }
-        .info-label-main { font-size: 13px; font-weight: 900; color: #f8fafc; }
-        
-        .info-icon-circle { width: 38px; height: 38px; border-radius: 50%; background: #1e293b; border: 1.5px solid rgba(59,130,246,0.4); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #3b82f6; box-shadow: 0 0 15px rgba(59,130,246,0.15); flex-shrink: 0; }
-        
-        .info-track { flex-grow: 1; height: 10px; background: rgba(255,255,255,0.03); border-radius: 20px; position: relative; overflow: visible; }
-        .info-bar { height: 100%; border-radius: 20px; background: linear-gradient(90deg, #2563eb, #3b82f6, #60a5fa); position: relative; transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1); box-shadow: 0 0 10px rgba(37,99,235,0.3); }
-        .info-bar::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 100%); border-radius: 20px; }
-        
-        .info-value-pop { position: absolute; left: 0; top: -20px; font-size: 11px; font-weight: 900; color: #60a5fa; }
-        .info-count-badge { position: absolute; left: -42px; top: -2px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); color: #fff; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 800; min-width: 35px; text-align: center; }
     </style>
 </head>
 <body class="pb-safe pt-safe">
@@ -105,9 +87,7 @@
             <h1 id="uiMainTitle" class="text-xl font-normal text-gray-900 tracking-tight">قسم الإنتاج</h1>
             <div class="flex items-center gap-2.5">
                 <button id="btnWipe" onclick="App.Core.wipeAllData()" class="hidden w-11 h-11 rounded-xl bg-red-50 text-red-600 items-center justify-center border border-red-100"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
-                <button id="btnStats" onclick="App.Core.navigate('stats')" class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/30 transition-transform active:scale-90">
-                    <i data-lucide="layout-dashboard" class="w-5 h-5 text-white"></i>
-                </button>
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/30"><i data-lucide="factory" class="w-5 h-5 text-white"></i></div>
             </div>
         </div>
         <div id="searchContainer" class="px-5 pb-3.5">
@@ -390,26 +370,20 @@
                     const live = App.ShiftEngine.getLiveNow();
                     
                     const searchBox = document.getElementById('searchContainer');
-                    if(searchBox) searchBox.style.display = (view === 'announcements' || view === 'stats') ? 'none' : 'block';
+                    if(searchBox) searchBox.style.display = (view === 'announcements') ? 'none' : 'block';
                     const clearBtn = document.getElementById('clearSearch');
                     if(clearBtn) clearBtn.classList.toggle('hidden', !query);
 
                     let html = '';
                     if (query) html = this.renderSearch(query);
-                    else if (view === 'stats') html = this.renderStatsView();
                     else if (shift) html = this.renderEmployeeList(view, shift);
                     else if (view !== 'home') html = this.renderShiftMenu(view, live);
                     else html = this.renderHome(live);
 
                     document.getElementById('mainContent').innerHTML = html || this.getLoadingState();
                     document.getElementById('btnWipe').classList.toggle('flex', App.isAdmin && view === 'home');
-                    document.getElementById('fabAdd').classList.toggle('hidden', !App.isAdmin || !shift || !!query || view === 'stats');
-                    
-                    document.getElementById('uiMainTitle').innerText = query ? 'البحث' : 
-                                                                    (view === 'stats' ? 'لوحة المعلومات' :
-                                                                    (shift === 'office' ? 'طاقم الإدارة' : 
-                                                                    (shift === 'broadcast' ? 'الإعلانات' : 
-                                                                    (shift ? `وردية ${shift}` : 'قسم الإنتاج'))));
+                    document.getElementById('fabAdd').classList.toggle('hidden', !App.isAdmin || !shift || !!query);
+                    document.getElementById('uiMainTitle').innerText = query ? 'البحث' : (shift === 'office' ? 'طاقم الإدارة' : shift === 'broadcast' ? 'الإعلانات' : shift ? `وردية ${shift}` : 'قسم الإنتاج');
                     
                     this.handleModalUI(modal, uid);
                     lucide.createIcons();
@@ -447,6 +421,7 @@
                     const now = new Date(); let targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                     if (now.getHours() < 8) targetDate.setDate(targetDate.getDate() - 1);
                     const typeMap = { 'morning':'الوردية الأولى', 'noon':'الوردية الثانية', 'evening':'الوردية الثالثة', 'morning-rest':'راحة', 'noon-rest':'راحة', 'evening-rest':'راحة' };
+                    
                     const totalEmp = App.State.employees.length;
                     const activeTotal = App.State.employees.filter(e => e.status !== 'sick').length;
                     const sickTotal = App.State.employees.filter(e => e.status === 'sick').length;
@@ -468,6 +443,7 @@
 
                 renderEmployeeList(view, shift) {
                     const filtered = App.State.employees.filter(e => e.shift === shift && (view==='management'?e.department==='management':view==='prep'?e.department==='prep':view==='announcements'?e.department==='announcements':e.line===view.replace('line','')));
+                    
                     const activeCount = filtered.filter(e => e.status !== 'sick').length;
                     const sickCount = filtered.filter(e => e.status === 'sick').length;
 
@@ -487,70 +463,6 @@
                         const subColor = isSick ? 'text-red-500' : ((view === 'management' || shift !== 'office') ? 'text-blue-600' : 'text-gray-400');
                         return `<div onclick="App.Core.openDetails('${e.uid}')" class="${isSick ? 'bg-red-50 border-red-200' : 'bg-white border-gray-100'} p-4 rounded-[22px] border flex items-center justify-between shadow-sm active:scale-[0.98] transition-all list-item"><div class="flex items-center gap-4 flex-1 min-w-0"><div class="w-11 h-11 ${isSick?'bg-red-100 text-red-600':'bg-gray-50 text-gray-500'} rounded-[16px] flex items-center justify-center shrink-0 border border-black/5">${e.department==='management'?'💼':e.shift}</div><div class="flex-1 min-w-0"><h3 class="font-normal text-sm ${isSick?'text-red-900':'text-gray-900'} truncate">${isSick?'[مرضي] ':''}${e.name}</h3><p class="text-[10px] ${subColor} truncate">${e.jobTitle} ${e.code?'| '+e.code:''}</p></div></div></div>`;
                     }).join('')}</div>`;
-                },
-
-                renderStatsView() {
-                    const emps = App.State.employees;
-                    const total = emps.length;
-                    if(total === 0) return `<div class="py-20 text-center text-gray-400">لا توجد بيانات لتحليلها</div>`;
-                    
-                    const activeTotal = emps.filter(e => e.status !== 'sick').length;
-                    const sickTotal = emps.filter(e => e.status === 'sick').length;
-
-                    const sections = [
-                        { label: 'إدارة الإنتاج', count: emps.filter(e => e.department === 'management').length, code: 'MG' },
-                        { label: 'ورشة التجهيزات', count: emps.filter(e => e.department === 'prep').length, code: 'PR' },
-                        { label: 'وردية A خط 1', count: emps.filter(e => e.shift === 'A' && e.line === '1').length, code: 'A1' },
-                        { label: 'وردية A خط 2', count: emps.filter(e => e.shift === 'A' && e.line === '2').length, code: 'A2' },
-                        { label: 'وردية B خط 1', count: emps.filter(e => e.shift === 'B' && e.line === '1').length, code: 'B1' },
-                        { label: 'وردية B خط 2', count: emps.filter(e => e.shift === 'B' && e.line === '2').length, code: 'B2' },
-                        { label: 'وردية C خط 1', count: emps.filter(e => e.shift === 'C' && e.line === '1').length, code: 'C1' },
-                        { label: 'وردية C خط 2', count: emps.filter(e => e.shift === 'C' && e.line === '2').length, code: 'C2' },
-                        { label: 'وردية D خط 1', count: emps.filter(e => e.shift === 'D' && e.line === '1').length, code: 'D1' },
-                        { label: 'وردية D خط 2', count: emps.filter(e => e.shift === 'D' && e.line === '2').length, code: 'D2' }
-                    ].filter(s => s.count > 0).sort((a,b) => b.count - a.count);
-
-                    return `
-                        <div class="premium-stats-bg">
-                            <div class="header-glow-card">
-                                <span class="text-blue-400 text-[10px] font-black uppercase tracking-[3px] block mb-3">Workforce Matrix</span>
-                                <div class="flex items-baseline gap-3 mb-6">
-                                    <h2 class="text-white text-6xl font-black tracking-tighter">${total}</h2>
-                                    <span class="text-gray-500 text-sm font-bold uppercase">Personnel</span>
-                                </div>
-                                <div class="flex gap-2">
-                                    <div class="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center gap-2">
-                                        <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></div>
-                                        <span class="text-emerald-500 text-xs font-black">${activeTotal} Active</span>
-                                    </div>
-                                    <div class="px-4 py-2 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center gap-2">
-                                        <div class="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_#ef4444]"></div>
-                                        <span class="text-rose-500 text-xs font-black">${sickTotal} Inactive</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="space-y-6">
-                                ${sections.map(s => {
-                                    const pct = ((s.count / total) * 100).toFixed(1);
-                                    return `
-                                        <div class="info-row">
-                                            <div class="info-label-box">
-                                                <span class="info-label-text">Sector</span>
-                                                <span class="info-label-main">${s.label}</span>
-                                            </div>
-                                            <div class="info-icon-circle">${s.code}</div>
-                                            <div class="info-track">
-                                                <div class="info-bar" style="width: ${pct}%"></div>
-                                                <span class="info-value-pop">%${pct}</span>
-                                                <div class="info-count-badge">${s.count}</div>
-                                            </div>
-                                        </div>
-                                    `;
-                                }).join('')}
-                            </div>
-                        </div>
-                    `;
                 },
 
                 renderSearch(q) {
@@ -624,10 +536,12 @@
                 onJobSelect(jobTitle, resetName = true) {
                     const combined = [...App.SourceData, ...App.State.customContacts];
                     const names = [...new Set(combined.filter(i => i.job === jobTitle).map(i => i.name))].sort();
+                    
                     const nameSelect = document.getElementById('inpName');
                     nameSelect.innerHTML = '<option value="">اختر الاسم...</option>' + 
                         names.map(n => `<option value="${n}">${n}</option>`).join('') + 
                         '<option value="__NEW__">➕ إضافة اسم جديد غير مسجل</option>';
+                    
                     if(resetName) { 
                         document.getElementById('newNameContainer').classList.add('hidden'); 
                         document.getElementById('inpCode').value = ''; 
@@ -657,18 +571,35 @@
                     const nameSelectVal = document.getElementById('inpName').value;
                     const isNewName = (nameSelectVal === "__NEW__");
                     const finalName = isNewName ? document.getElementById('inpNewName').value.trim() : nameSelectVal;
+                    
                     if(!finalName) return Toast.show("يرجى إدخال الاسم", "error");
+                    
                     const uid = document.getElementById('inpId').value || "ID-"+Date.now();
                     const job = document.getElementById('inpJob').value;
                     const code = document.getElementById('inpCode').value || '';
                     const phone = document.getElementById('inpPhone').value.trim();
+                    
                     if(isNewName) {
                         const newContact = { job: job, name: finalName, code: code, phone: phone };
                         window.cloudDB.set(window.cloudDB.ref(window.cloudDB.db, 'contacts/' + finalName.replace(/[.#$[\]]/g, "")), newContact);
                     }
+
                     const jobIdx = App.Hierarchy.indexOf(job);
                     const sortOrder = jobIdx !== -1 ? jobIdx * 100 + Date.now() % 100 : 9999;
-                    const emp = { uid, name: finalName, code: code, jobTitle: job, department: document.getElementById('inpDept').value, line: (document.getElementById('inpDept').value==='rolling')?document.getElementById('inpLine').value:'none', shift: document.getElementById('inpShift').value, phone: phone, status: document.getElementById('inpStatus').value, sortOrder: document.getElementById('inpId').value ? (App.State.employees.find(x => x.uid === uid).sortOrder) : sortOrder };
+                    
+                    const emp = { 
+                        uid, 
+                        name: finalName, 
+                        code: code, 
+                        jobTitle: job, 
+                        department: document.getElementById('inpDept').value, 
+                        line: (document.getElementById('inpDept').value==='rolling')?document.getElementById('inpLine').value:'none', 
+                        shift: document.getElementById('inpShift').value, 
+                        phone: phone, 
+                        status: document.getElementById('inpStatus').value, 
+                        sortOrder: document.getElementById('inpId').value ? (App.State.employees.find(x => x.uid === uid).sortOrder) : sortOrder 
+                    };
+
                     window.cloudDB.set(window.cloudDB.ref(window.cloudDB.db, 'employees/' + uid), emp);
                     Toast.show("تم حفظ البيانات بنجاح", "success");
                     window.history.back();
