@@ -17,16 +17,11 @@
     <style>
         :root {
             --primary-gradient: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-            --glass-bg: rgba(255, 255, 255, 0.9);
+            --glass-bg: rgba(255, 255, 255, 0.92);
             --glass-border: rgba(255, 255, 255, 0.4);
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
-            --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.12);
             --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.16);
-            --radius-sm: 12px;
             --radius-md: 20px;
             --radius-lg: 28px;
-            --radius-xl: 36px;
             --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -42,15 +37,15 @@
         .form-input { 
             width: 100%; background: #FFFFFF; border: 1.5px solid #E2E8F0; padding: 12px 16px; 
             border-radius: var(--radius-md); font-size: 14px; color: #1E293B;
-            transition: all var(--transition-base); box-shadow: var(--shadow-sm);
+            transition: all var(--transition-base); box-shadow: 0 2px 4px rgba(0,0,0,0.02);
             appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748B' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
             background-repeat: no-repeat; background-position: left 14px center; background-size: 16px;
         }
-        .form-input:focus { border-color: #3B82F6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12); transform: translateY(-1px); }
+        .form-input:focus { border-color: #3B82F6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
         .no-arrow { background-image: none !important; padding-left: 16px !important; }
 
         .sheet-container { 
-            transform: translateY(100%); transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1); 
+            transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1); 
             position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; 
             background: var(--glass-bg); backdrop-filter: blur(30px) saturate(180%);
             border-top-left-radius: 32px; border-top-right-radius: 32px; 
@@ -60,20 +55,21 @@
         .sheet-container.is-open { transform: translateY(0); }
         .sheet-overlay { 
             position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); opacity: 0; 
-            pointer-events: none; transition: opacity var(--transition-base); z-index: 40; backdrop-filter: blur(8px);
+            pointer-events: none; transition: opacity var(--transition-base); z-index: 40; backdrop-filter: blur(4px);
         }
         .sheet-overlay.is-open { opacity: 1; pointer-events: auto; }
         
         @keyframes fadeInScale { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        .skeleton { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: var(--radius-sm); }
+        .skeleton { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 12px; }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 
         .toast-container { position: fixed; top: 80px; right: 20px; left: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-        .toast { padding: 16px 20px; border-radius: var(--radius-md); background: white; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 12px; animation: fadeInScale 0.4s ease-out; pointer-events: auto; border-right: 4px solid #3B82F6; font-size: 14px; }
+        .toast { padding: 16px 20px; border-radius: var(--radius-md); background: white; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 12px; animation: fadeInScale 0.4s ease-out; pointer-events: auto; border-right: 4px solid #3B82F6; font-size: 14px; }
         .toast.success { border-right-color: #10B981; }
 
-        .list-item { animation: fadeInScale 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; opacity: 0; }
-        .btn-primary { background: var(--primary-gradient); color: white; padding: 14px 24px; border-radius: var(--radius-lg); font-weight: 600; border: none; cursor: pointer; }
+        .list-item { animation: fadeInScale 0.3s forwards; opacity: 0; }
+        .btn-primary { background: var(--primary-gradient); color: white; padding: 14px 24px; border-radius: var(--radius-lg); font-weight: 600; border: none; cursor: pointer; transition: 0.2s; }
+        .btn-primary:active { transform: scale(0.98); }
         .fab-enhanced { position: fixed; bottom: 28px; left: 24px; z-index: 20; width: 60px; height: 60px; border-radius: 50%; background: var(--primary-gradient); color: white; display: flex; align-items: center; justify-content: center; shadow: var(--shadow-xl); border: none; }
         .badge-modern { padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 500; }
     </style>
@@ -84,29 +80,36 @@
     
     <header class="sticky top-0 z-30 bg-white/85 backdrop-blur-xl border-b border-gray-100">
         <div style="height: 68px;" class="px-5 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <h1 id="uiMainTitle" class="text-xl font-normal text-gray-900 tracking-tight">قسم الإنتاج</h1>
-            </div>
+            <h1 id="uiMainTitle" class="text-xl font-normal text-gray-900 tracking-tight">قسم الإنتاج</h1>
             <div class="flex items-center gap-2.5">
                 <button id="btnWipe" onclick="App.Core.wipeAllData()" class="hidden w-11 h-11 rounded-xl bg-red-50 text-red-600 items-center justify-center border border-red-100"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
-                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/30"><i data-lucide="factory" class="w-5 h-5 text-white"></i></div>
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg"><i data-lucide="factory" class="w-5 h-5 text-white"></i></div>
             </div>
         </div>
         <div id="searchContainer" class="px-5 pb-3.5">
             <div class="relative bg-gray-100/80 rounded-2xl">
                 <i data-lucide="search" class="absolute right-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400"></i>
-                <input type="text" id="searchInput" placeholder="بحث بالاسم أو الكود..." class="w-full bg-transparent border-none pr-11 pl-11 py-3 rounded-2xl text-sm outline-none font-normal">
+                <input type="text" id="searchInput" placeholder="بحث بالاسم أو الكود..." class="w-full bg-transparent border-none pr-11 pl-11 py-3 rounded-2xl text-sm outline-none">
                 <button id="clearSearch" onclick="App.Core.clearSearch()" class="hidden absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-gray-200 rounded-full items-center justify-center"><i data-lucide="x" class="w-3.5 h-3.5 text-gray-600"></i></button>
             </div>
         </div>
     </header>
 
-    <main id="mainContent" class="px-5 py-5 pb-36"></main>
+    <main id="mainContent" class="px-5 py-5 pb-36">
+        <div id="skeletonLoader" class="space-y-4">
+            <div class="h-44 skeleton"></div>
+            <div class="bg-white rounded-[32px] p-5 space-y-4 shadow-sm">
+                <div class="h-12 skeleton"></div>
+                <div class="h-12 skeleton"></div>
+            </div>
+        </div>
+    </main>
 
-    <button id="fabAdd" onclick="App.Core.openFormModal()" class="hidden fab-enhanced"><i data-lucide="plus" class="w-7 h-7"></i></button>
+    <button id="fabAdd" onclick="App.UI.openFormModal()" class="hidden fab-enhanced"><i data-lucide="plus" class="w-7 h-7"></i></button>
 
     <div id="modalOverlay" class="sheet-overlay" onclick="window.history.back()"></div>
 
+    <!-- بطاقة الإضافة والتعديل -->
     <div id="sheetForm" class="sheet-container overflow-hidden">
         <div class="p-5 flex justify-between items-center border-b shrink-0">
             <h2 id="uiFormTitle" class="text-lg font-bold text-gray-900">بيانات الموظف</h2>
@@ -161,7 +164,7 @@
       signInAnonymously(auth).then(() => {
           window.cloudDB = { db, ref, set, onValue, remove, update };
           App.UI.syncWithCloud();
-      }).catch(err => console.error("Firebase Error"));
+      }).catch(err => console.error("Firebase Connection Failed"));
     </script>
 
     <script>
@@ -270,14 +273,27 @@
             ],
 
             // الحالة المركزية للتطبيق
-            State: { employees: [], view: 'home', shift: null, query: '', modal: null, uid: null },
+            State: { 
+                employees: [], // البيانات الضخمة تأتي من Firebase فقط
+                view: 'home', 
+                shift: null, 
+                query: '', 
+                modal: null, 
+                uid: null 
+            },
 
-            // محرك التنقل المركزي
-            Navigate: (newState, replace = false) => {
-                const updatedState = { ...App.State, ...newState };
-                if (replace) history.replaceState(updatedState, "");
-                else history.pushState(updatedState, "");
-                App.State = updatedState;
+            // دالة التنقل المركزية (تسجل في الـ History بدون البيانات لضمان السرعة)
+            Navigate: (target, replace = false) => {
+                Object.assign(App.State, target);
+                const navSnapshot = {
+                    view: App.State.view,
+                    shift: App.State.shift,
+                    query: App.State.query,
+                    modal: App.State.modal,
+                    uid: App.State.uid
+                };
+                if (replace) history.replaceState(navSnapshot, "");
+                else history.pushState(navSnapshot, "");
                 App.UI.updateAll();
             },
 
@@ -327,7 +343,7 @@
                 },
 
                 updateAll() {
-                    const { view, shift, query, employees, modal, uid } = App.State;
+                    const { view, shift, query, modal, uid } = App.State;
                     const live = App.ShiftEngine.getLiveNow();
                     
                     document.getElementById('searchContainer').style.display = (view === 'announcements') ? 'none' : 'block';
@@ -338,15 +354,19 @@
                     if (query) html = this.renderSearch(query);
                     else if (shift) html = this.renderEmployeeList(view, shift);
                     else if (view !== 'home') html = this.renderShiftMenu(view, live);
-                    else html = this.renderHome(employees, live);
+                    else html = this.renderHome(live);
 
-                    document.getElementById('mainContent').innerHTML = html;
+                    document.getElementById('mainContent').innerHTML = html || this.getLoadingState();
                     document.getElementById('btnWipe').classList.toggle('flex', App.isAdmin && view === 'home');
                     document.getElementById('fabAdd').classList.toggle('hidden', !App.isAdmin || !shift || !!query);
                     document.getElementById('uiMainTitle').innerText = query ? 'البحث' : (shift === 'office' ? 'طاقم الإدارة' : shift === 'broadcast' ? 'الإعلانات' : shift ? `وردية ${shift}` : 'قسم الإنتاج');
                     
                     this.handleModalUI(modal, uid);
                     lucide.createIcons();
+                },
+
+                getLoadingState() {
+                    return `<div class="py-20 text-center text-gray-400">جاري تحميل البيانات...</div>`;
                 },
 
                 handleModalUI(modal, uid) {
@@ -360,7 +380,8 @@
                     else if (modal === 'details') this.fillDetailsUI(uid);
                 },
 
-                renderHome(employees, live) {
+                renderHome(live) {
+                    const employees = App.State.employees;
                     const c = (d, l) => employees.filter(e => e.department === d && (l ? e.line === l : true)).length;
                     return `
                         <div class="mb-6 relative">
@@ -398,7 +419,8 @@
                 },
 
                 renderEmployeeList(view, shift) {
-                    const filtered = App.State.employees.filter(e => e.shift === shift && (view==='management'?e.department==='management':view==='prep'?e.department==='prep':view==='announcements'?e.department==='announcements':e.line===view.replace('line','')));
+                    const employees = App.State.employees;
+                    const filtered = employees.filter(e => e.shift === shift && (view==='management'?e.department==='management':view==='prep'?e.department==='prep':view==='announcements'?e.department==='announcements':e.line===view.replace('line','')));
                     if(!filtered.length) return `<div class="py-20 text-center text-gray-400 text-xs font-normal">لا توجد بيانات مسجلة</div>`;
                     return `<div class="flex justify-between items-center mb-4 mr-1"><h3 class="text-[10px] text-gray-400 uppercase tracking-widest">${view==='announcements'?'التنبيهات':'قائمة الموظفين'}</h3></div>
                     <div class="space-y-4">${filtered.map(e => {
@@ -412,7 +434,7 @@
 
                 renderSearch(q) {
                     const filtered = App.State.employees.filter(e => e.name.toLowerCase().includes(q.toLowerCase()) || (e.code && e.code.toString().includes(q)));
-                    return `<div class="space-y-3">${filtered.map(e => `<div onclick="App.Core.clearSearchAndOpen('${e.uid}')" class="bg-white p-4 rounded-2xl border flex items-center gap-4 shadow-sm"><div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-normal">${e.shift}</div><div class="text-right"><h3 class="text-sm text-gray-900 font-normal">${e.name}</h3><p class="text-[10px] text-gray-400">${e.jobTitle}</p></div></div>`).join('')}</div>`;
+                    return `<div class="space-y-3">${filtered.map(e => `<div onclick="App.Core.openDetails('${e.uid}')" class="bg-white p-4 rounded-2xl border flex items-center gap-4 shadow-sm"><div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-normal">${e.shift}</div><div class="text-right"><h3 class="text-sm text-gray-900 font-normal">${e.name}</h3><p class="text-[10px] text-gray-400">${e.jobTitle}</p></div></div>`).join('')}</div>`;
                 },
 
                 fillDetailsUI(uid) {
@@ -445,8 +467,7 @@
                     const { view, shift, employees } = App.State;
                     document.getElementById('formEmployee').reset();
                     document.getElementById('newNameContainer').classList.add('hidden');
-                    const uniqueJobs = [...new Set(App.SourceData.map(i => i.job))];
-                    const jobs = uniqueJobs.sort((a, b) => App.Hierarchy.indexOf(a) - App.Hierarchy.indexOf(b));
+                    const jobs = [...new Set(App.SourceData.map(i => i.job))].sort((a, b) => App.Hierarchy.indexOf(a) - App.Hierarchy.indexOf(b));
                     document.getElementById('inpJob').innerHTML = '<option value="">اختر الوظيفة...</option>' + jobs.map(j => `<option value="${j}">${j}</option>`).join('');
                     if(uid) {
                         const e = employees.find(x => x.uid == uid);
@@ -506,11 +527,11 @@
                 navigateShift(s) { App.Navigate({ shift: s, modal: null, query: '' }); },
                 openDetails(uid) { App.Navigate({ modal: 'details', uid: uid }); },
                 openFormModal(uid = null) { App.Navigate({ modal: 'form', uid: uid }); },
-                clearSearchAndOpen(uid) { App.Navigate({ query: '', modal: 'details', uid: uid }); },
                 clearSearch() { App.Navigate({ query: '' }); },
                 handleDeptChange() {
                     const d = document.getElementById('inpDept').value;
-                    document.getElementById('locFields').classList.toggle('hidden', d === 'management');
+                    const loc = document.getElementById('locFields');
+                    if(loc) loc.classList.toggle('hidden', d === 'management');
                 },
                 saveEmployee(ev) {
                     ev.preventDefault();
@@ -539,18 +560,30 @@
             },
 
             init() {
-                history.replaceState({ ...App.State }, "");
+                // ضبط سجل التاريخ المبدئي
+                const initialNav = { view: 'home', shift: null, query: '', modal: null, uid: null };
+                history.replaceState(initialNav, "");
+
                 window.addEventListener('popstate', (e) => {
-                    if (e.state) { App.State = e.state; App.UI.updateAll(); }
+                    if (e.state) {
+                        // استعادة إحداثيات الملاحة فقط دون المساس ببيانات الموظفين
+                        App.State.view = e.state.view;
+                        App.State.shift = e.state.shift;
+                        App.State.query = e.state.query;
+                        App.State.modal = e.state.modal;
+                        App.State.uid = e.state.uid;
+                        App.UI.updateAll();
+                    }
                 });
+
                 document.getElementById('searchInput').addEventListener('input', (e) => {
-                    const q = e.target.value;
-                    // البحث يغير الحالة لكن لا يضيف سجل تاريخ جديد مع كل حرف (استخدام replace)
-                    const updatedState = { ...App.State, query: q, modal: null };
-                    history.replaceState(updatedState, "");
-                    App.State = updatedState;
+                    // البحث يغير الحالة برمجياً ويسجلها في التاريخ لتمكين الرجوع
+                    const updatedNav = { view: App.State.view, shift: App.State.shift, query: e.target.value, modal: null, uid: null };
+                    App.State.query = e.target.value;
+                    history.replaceState(updatedNav, ""); // استخدام replaceState لمنع تراكم آلاف الخطوات أثناء الكتابة
                     App.UI.updateAll();
                 });
+
                 App.UI.updateAll();
             }
         };
