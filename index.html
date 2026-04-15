@@ -1,3 +1,4 @@
+--- START OF FILE index.html ---
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -303,7 +304,7 @@
                 {job:"فني مراقبة سرير التبريد", name:"محمد عبدالعليم", code:"1204", phone:""}
             ],
 
-            State: { employees: [], view: 'home', shift: null, query: '', modal: null, uid: null },
+            State: { employees: [], customContacts: [], view: 'home', shift: null, query: '', modal: null, uid: null },
 
             Navigate: (target, replace = false) => {
                 Object.assign(App.State, target);
@@ -349,12 +350,18 @@
             UI: {
                 syncWithCloud() {
                     if (!window.cloudDB) return;
+                    // مزامنة الموظفين
                     window.cloudDB.onValue(window.cloudDB.ref(window.cloudDB.db, 'employees'), (snapshot) => {
                         const data = snapshot.val();
                         App.State.employees = data ? Object.values(data).sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)) : [];
                         const loader = document.getElementById('skeletonLoader');
                         if(loader) loader.classList.add('hidden');
                         App.UI.updateAll();
+                    });
+                    // مزامنة الأسماء المضافة حديثاً
+                    window.cloudDB.onValue(window.cloudDB.ref(window.cloudDB.db, 'contacts'), (snapshot) => {
+                        const data = snapshot.val();
+                        App.State.customContacts = data ? Object.values(data) : [];
                     });
                 },
 
@@ -496,15 +503,32 @@
 
             Core: {
                 onJobSelect(jobTitle, resetName = true) {
-                    const names = App.SourceData.filter(i => i.job === jobTitle).map(i => i.name).sort();
+                    // دمج البيانات الثابتة مع البيانات المضافة سحابياً
+                    const combined = [...App.SourceData, ...App.State.customContacts];
+                    const names = [...new Set(combined.filter(i => i.job === jobTitle).map(i => i.name))].sort();
+                    
                     const nameSelect = document.getElementById('inpName');
-                    nameSelect.innerHTML = '<option value="">اختر الاسم...</option>' + names.map(n => `<option value="${n}">${n}</option>`).join('') + '<option value="__NEW__">➕ إضافة اسم جديد غير مسجل</option>';
-                    if(resetName) { document.getElementById('newNameContainer').classList.add('hidden'); document.getElementById('inpCode').value = ''; document.getElementById('inpPhone').value = ''; }
+                    nameSelect.innerHTML = '<option value="">اختر الاسم...</option>' + 
+                        names.map(n => `<option value="${n}">${n}</option>`).join('') + 
+                        '<option value="__NEW__">➕ إضافة اسم جديد غير مسجل</option>';
+                    
+                    if(resetName) { 
+                        document.getElementById('newNameContainer').classList.add('hidden'); 
+                        document.getElementById('inpCode').value = ''; 
+                        document.getElementById('inpPhone').value = ''; 
+                    }
                 },
                 onNameSelect(val) {
                     const isNew = (val === "__NEW__");
                     document.getElementById('newNameContainer').classList.toggle('hidden', !isNew);
-                    if (!isNew) { const p = App.SourceData.find(i => i.name === val); if (p) { document.getElementById('inpCode').value = p.code; document.getElementById('inpPhone').value = p.phone; } }
+                    if (!isNew) { 
+                        const combined = [...App.SourceData, ...App.State.customContacts];
+                        const p = combined.find(i => i.name === val); 
+                        if (p) { 
+                            document.getElementById('inpCode').value = p.code || ''; 
+                            document.getElementById('inpPhone').value = p.phone || ''; 
+                        } 
+                    }
                 },
                 navigate: (v) => App.Navigate({ view: v, shift: (v === 'management' ? 'office' : v === 'announcements' ? 'broadcast' : null), modal: null, query: '' }),
                 navigateShift: (s) => App.Navigate({ shift: s, modal: null, query: '' }),
@@ -514,14 +538,40 @@
                 handleDeptChange: () => { const d = document.getElementById('inpDept').value; const loc = document.getElementById('locFields'); if(loc) loc.classList.toggle('hidden', d === 'management'); },
                 saveEmployee(ev) {
                     ev.preventDefault();
-                    const nameVal = document.getElementById('inpName').value;
-                    const finalName = (nameVal === "__NEW__") ? document.getElementById('inpNewName').value.trim() : nameVal;
+                    const nameSelectVal = document.getElementById('inpName').value;
+                    const isNewName = (nameSelectVal === "__NEW__");
+                    const finalName = isNewName ? document.getElementById('inpNewName').value.trim() : nameSelectVal;
+                    
                     if(!finalName) return Toast.show("يرجى إدخال الاسم", "error");
+                    
                     const uid = document.getElementById('inpId').value || "ID-"+Date.now();
                     const job = document.getElementById('inpJob').value;
+                    const code = document.getElementById('inpCode').value || '';
+                    const phone = document.getElementById('inpPhone').value.trim();
+                    
+                    // إذا كان الاسم جديداً، نحفظه في عقدة Contacts السحابية ليكون متاحاً مستقبلاً
+                    if(isNewName) {
+                        const newContact = { job: job, name: finalName, code: code, phone: phone };
+                        // نستخدم الاسم كمفتاح لتجنب التكرار
+                        window.cloudDB.set(window.cloudDB.ref(window.cloudDB.db, 'contacts/' + finalName.replace(/[.#$[\]]/g, "")), newContact);
+                    }
+
                     const jobIdx = App.Hierarchy.indexOf(job);
                     const sortOrder = jobIdx !== -1 ? jobIdx * 100 + Date.now() % 100 : 9999;
-                    const emp = { uid, name: finalName, code: document.getElementById('inpCode').value || '', jobTitle: job, department: document.getElementById('inpDept').value, line: (document.getElementById('inpDept').value==='rolling')?document.getElementById('inpLine').value:'none', shift: document.getElementById('inpShift').value, phone: document.getElementById('inpPhone').value.trim(), status: document.getElementById('inpStatus').value, sortOrder: document.getElementById('inpId').value ? (App.State.employees.find(x => x.uid === uid).sortOrder) : sortOrder };
+                    
+                    const emp = { 
+                        uid, 
+                        name: finalName, 
+                        code: code, 
+                        jobTitle: job, 
+                        department: document.getElementById('inpDept').value, 
+                        line: (document.getElementById('inpDept').value==='rolling')?document.getElementById('inpLine').value:'none', 
+                        shift: document.getElementById('inpShift').value, 
+                        phone: phone, 
+                        status: document.getElementById('inpStatus').value, 
+                        sortOrder: document.getElementById('inpId').value ? (App.State.employees.find(x => x.uid === uid).sortOrder) : sortOrder 
+                    };
+
                     window.cloudDB.set(window.cloudDB.ref(window.cloudDB.db, 'employees/' + uid), emp);
                     Toast.show("تم حفظ البيانات بنجاح", "success");
                     window.history.back();
