@@ -33,10 +33,14 @@
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; font-family: 'Tajawal', sans-serif; }
         body { background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%); color: #1F2937; overflow-x: hidden; min-height: 100vh; position: relative; }
 
+        /* إخفاء أسهم القائمة المنسدلة من حقول الأرقام */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
         .form-group { width: 100%; display: block; margin-bottom: 20px; }
         .form-label { display: block; font-size: 11px; font-weight: 800; color: #64748B; margin-bottom: 8px; text-align: right; text-transform: uppercase; letter-spacing: 0.5px; }
         
-        /* Modern Select Styling */
         .form-input { 
             width: 100%; background: #FFFFFF; border: 1.5px solid #E2E8F0; padding: 16px 18px; 
             border-radius: var(--radius-md); font-size: 15px; color: #1E293B;
@@ -46,6 +50,9 @@
         }
         .form-input:focus { border-color: #3B82F6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12); transform: translateY(-1px); }
         
+        /* حقول لا تحتاج لسهم القائمة */
+        .no-arrow { background-image: none !important; padding-left: 18px !important; }
+
         .sheet-container { 
             transform: translateY(100%); transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1); 
             position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; 
@@ -63,8 +70,7 @@
         
         @keyframes fadeInScale { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         .skeleton { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: var(--radius-sm); }
-        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-
+        
         .toast-container { position: fixed; top: 80px; right: 20px; left: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
         .toast { padding: 16px 20px; border-radius: var(--radius-md); background: white; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 12px; animation: fadeInScale 0.4s ease-out; pointer-events: auto; border-right: 4px solid #3B82F6; font-size: 14px; }
         .toast.success { border-right-color: #10B981; }
@@ -73,7 +79,6 @@
         .btn-primary { background: var(--primary-gradient); color: white; padding: 18px 24px; border-radius: var(--radius-lg); font-weight: 600; font-size: 16px; border: none; cursor: pointer; transition: all 0.3s; }
         .btn-primary:active { transform: scale(0.96); opacity: 0.9; }
         .fab-enhanced { position: fixed; bottom: 28px; left: 24px; z-index: 20; width: 60px; height: 60px; border-radius: 50%; background: var(--primary-gradient); color: white; display: flex; align-items: center; justify-content: center; shadow: var(--shadow-xl); border: none; }
-        .badge-modern { padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 500; }
     </style>
 </head>
 <body class="pb-safe pt-safe">
@@ -88,7 +93,7 @@
             </div>
             <div class="flex items-center gap-2.5">
                 <button id="btnWipe" onclick="App.Core.wipeAllData()" class="hidden w-11 h-11 rounded-xl bg-red-50 text-red-600 items-center justify-center border border-red-100"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
-                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/30"><i data-lucide="factory" class="w-5 h-5 text-white"></i></div>
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg"><i data-lucide="factory" class="w-5 h-5 text-white"></i></div>
             </div>
         </div>
         <div id="searchContainer" class="px-5 pb-3.5">
@@ -124,14 +129,14 @@
                 <input type="hidden" id="inpId"><input type="hidden" id="inpDept">
                 
                 <div class="form-group">
-                    <label id="labelJob" class="form-label">الوظيفة</label>
+                    <label class="form-label">الوظيفة</label>
                     <select id="inpJob" required class="form-input" onchange="App.Core.onJobSelect(this.value)">
                         <option value="">اختر الوظيفة...</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label id="labelName" class="form-label">الاسم</label>
+                    <label class="form-label">الاسم</label>
                     <select id="inpName" required class="form-input" onchange="App.Core.onNameSelect(this.value)">
                         <option value="">اختر الاسم...</option>
                     </select>
@@ -139,9 +144,24 @@
                 
                 <div id="extraFieldsGroup">
                     <div class="grid grid-cols-5 gap-3">
-                        <div id="codeGroup" class="form-group col-span-2"><label class="form-label">الكود</label><input type="number" id="inpCode" class="form-input text-center"></div>
-                        <div id="phoneGroup" class="form-group col-span-3"><label class="form-label">الموبايل</label><input type="tel" id="inpPhone" class="form-input text-left" dir="ltr"></div>
+                        <div id="codeGroup" class="form-group col-span-2">
+                            <label class="form-label">الكود</label>
+                            <input type="number" id="inpCode" class="form-input no-arrow text-center">
+                        </div>
+                        <div id="phoneGroup" class="form-group col-span-3">
+                            <label class="form-label">الموبايل</label>
+                            <input type="tel" id="inpPhone" class="form-input no-arrow text-left" dir="ltr">
+                        </div>
                     </div>
+                </div>
+
+                <!-- بند الحالة الجديد -->
+                <div class="form-group">
+                    <label class="form-label">الحالة</label>
+                    <select id="inpStatus" class="form-input">
+                        <option value="active">متواجد</option>
+                        <option value="sick">مرضي</option>
+                    </select>
                 </div>
 
                 <div id="locFields" class="mt-4 p-5 bg-blue-50/50 rounded-[28px] border border-blue-100/50 space-y-4">
@@ -200,7 +220,6 @@
         const App = {
             isAdmin: new URLSearchParams(window.location.search).get('mode') === 'admin',
             isReorderMode: false,
-            // البيانات المرجعية
             SourceData: [
                 {job:"مهندس الوردية", name:"محمد ناصر", code:"3206", phone:"01094078874"},
                 {job:"مشغل غرفة التحكم الرئيسية", name:"أحمد أمين السيد", code:"653", phone:"01008036236"},
@@ -452,17 +471,18 @@
                     
                     return `<div class="flex justify-between items-center mb-4 mr-1"><h3 class="text-[10px] text-gray-400 uppercase tracking-widest">${view==='announcements'?'التنبيهات':'قائمة الموظفين'}</h3>${sortBtn}</div>
                     <div class="space-y-4">${filtered.map(e => {
+                        const isSick = e.status === 'sick';
                         if (view === 'announcements') {
                             return `<div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 list-item" onclick="if(!App.isReorderMode) App.UI.openDetails('${e.uid}')">
                                 <div class="flex items-center justify-between mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white shadow-lg shrink-0"><i data-lucide="megaphone" class="w-5 h-5"></i></div><div><h3 class="font-normal text-sm text-gray-900">${e.name}</h3><p class="text-[9px] text-orange-500 font-normal">إعلان داخلي</p></div></div></div>
                                 <div class="text-sm text-gray-700 leading-relaxed font-normal bg-orange-50/30 p-4 rounded-2xl border border-orange-50">${e.jobTitle}</div>
                             </div>`;
                         }
-                        const subColor = (view === 'management' || shift !== 'office') ? 'text-blue-600' : 'text-gray-400';
-                        return `<div onclick="if(!App.isReorderMode) App.UI.openDetails('${e.uid}')" class="bg-white p-4 rounded-[22px] border border-gray-100 flex items-center justify-between shadow-sm active:scale-[0.98] transition-all list-item">
+                        const subColor = isSick ? 'text-red-500' : ((view === 'management' || shift !== 'office') ? 'text-blue-600' : 'text-gray-400');
+                        return `<div onclick="if(!App.isReorderMode) App.UI.openDetails('${e.uid}')" class="${isSick ? 'bg-red-50 border-red-200' : 'bg-white border-gray-100'} p-4 rounded-[22px] border flex items-center justify-between shadow-sm active:scale-[0.98] transition-all list-item">
                             <div class="flex items-center gap-4 flex-1 min-w-0">
-                                <div class="w-11 h-11 bg-gray-50 rounded-[16px] flex items-center justify-center text-gray-500 shrink-0 border border-gray-100">${e.department==='management'?'💼':e.shift}</div>
-                                <div class="flex-1 min-w-0"><h3 class="font-normal text-sm text-gray-900 truncate">${e.name}</h3><p class="text-[10px] ${subColor} truncate">${e.jobTitle} ${e.code?'| '+e.code:''}</p></div>
+                                <div class="w-11 h-11 ${isSick?'bg-red-100 text-red-600':'bg-gray-50 text-gray-500'} rounded-[16px] flex items-center justify-center shrink-0 border border-black/5">${e.department==='management'?'💼':e.shift}</div>
+                                <div class="flex-1 min-w-0"><h3 class="font-normal text-sm ${isSick?'text-red-900':'text-gray-900'} truncate">${isSick?'[مرضي] ':''}${e.name}</h3><p class="text-[10px] ${subColor} truncate">${e.jobTitle} ${e.code?'| '+e.code:''}</p></div>
                             </div>
                             ${App.isReorderMode ? `<div class="flex flex-col gap-1"><button onclick="event.stopPropagation(); App.Core.moveEmployee('${e.uid}', -1)"><i data-lucide="chevron-up" class="w-4 h-4"></i></button><button onclick="event.stopPropagation(); App.Core.moveEmployee('${e.uid}', 1)"><i data-lucide="chevron-down" class="w-4 h-4"></i></button></div>` : ''}
                         </div>`;
@@ -482,22 +502,23 @@
                 openDetails(uid) {
                     const e = App.State.employees.find(x => x.uid == uid);
                     if(!e) return;
-                    const isA = e.department === 'announcements', isM = e.department === 'management', isR = e.department === 'rolling';
+                    const isA = e.department === 'announcements', isM = e.department === 'management', isR = e.department === 'rolling', isSick = e.status === 'sick';
                     const avatar = isM ? '💼' : (isA ? '📢' : e.shift);
                     const cleanP = e.phone ? e.phone.replace(/\D/g, '') : '';
                     const waP = cleanP.startsWith('0') ? '20' + cleanP.substring(1) : (cleanP.startsWith('1') ? '20' + cleanP : cleanP);
 
                     document.getElementById('uiDetailsContent').innerHTML = `
                         <div class="flex flex-col items-center mb-6 pt-2">
-                            <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-[28px] flex items-center justify-center text-3xl mb-4 border-2 border-white shadow-lg">${avatar}</div>
-                            <h3 class="text-lg font-normal text-gray-900 text-center mb-1">${e.name}</h3>
-                            <span class="px-4 py-1 bg-blue-600 text-white text-[10px] font-normal rounded-full">${isA?'إشعار هام':e.jobTitle}</span>
+                            <div class="w-20 h-20 ${isSick?'bg-red-50 text-red-600':'bg-blue-50 text-blue-600'} rounded-[28px] flex items-center justify-center text-3xl mb-4 border-2 border-white shadow-lg">${avatar}</div>
+                            <h3 class="text-lg font-normal ${isSick?'text-red-900':'text-gray-900'} text-center mb-1">${isSick?'[مرضي] ':''}${e.name}</h3>
+                            <span class="px-4 py-1 ${isSick?'bg-red-600':'bg-blue-600'} text-white text-[10px] font-normal rounded-full">${isA?'إشعار هام':e.jobTitle}</span>
                         </div>
                         ${!isA ? `<div class="grid grid-cols-2 gap-3 mb-6">
                             <a href="tel:${e.phone}" class="p-4 bg-blue-50 rounded-2xl text-center border border-blue-100 flex flex-col items-center"><i data-lucide="phone" class="w-5 h-5 mb-1 text-blue-600"></i><span class="text-[10px] text-blue-700">اتصال هاتف</span></a>
                             <a href="https://wa.me/${waP}" target="_blank" class="p-4 bg-emerald-50 rounded-2xl text-center border border-emerald-100 flex flex-col items-center"><i data-lucide="message-circle" class="w-5 h-5 mb-1 text-emerald-600"></i><span class="text-[10px] text-emerald-700">واتساب</span></a>
                         </div>` : `<div class="p-6 bg-orange-50/50 rounded-3xl border border-orange-100 text-gray-800 text-sm font-normal mb-8 leading-relaxed text-center">${e.jobTitle}</div>`}
                         <div class="space-y-3 mb-8">
+                            <div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">الحالة</span><span class="${isSick?'text-red-600 font-bold':'text-emerald-600'}">${isSick?'مرضي':'متواجد بالعمل'}</span></div>
                             ${e.code?`<div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">كود الموظف</span><span class="text-gray-900 font-normal">${e.code}</span></div>`:''}
                             ${e.phone?`<div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">رقم الهاتف</span><span class="text-gray-900 font-normal" dir="ltr">${e.phone}</span></div>`:''}
                             ${isR?`<div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">المسمى الوظيفي</span><span class="text-gray-900 font-normal">${e.jobTitle}</span></div>`:''}
@@ -512,10 +533,8 @@
                     const { view, shift, employees } = App.State;
                     document.getElementById('formEmployee').reset();
                     
-                    // ترتيب الوظائف لتبدأ بـ "مهندس الوردية"
                     const hierarchy = ["مهندس الوردية", "ملاحظ الوردية", "مشغل غرفة التحكم الرئيسية", "مشغل غرفة تحكم الفرن", "مشغل غرفة التحكم النهائية"];
-                    const uniqueJobs = [...new Set(App.SourceData.map(i => i.job))];
-                    const jobs = uniqueJobs.sort((a, b) => {
+                    const jobs = [...new Set(App.SourceData.map(i => i.job))].sort((a, b) => {
                         let idxA = hierarchy.indexOf(a), idxB = hierarchy.indexOf(b);
                         if (idxA === -1) idxA = 99; if (idxB === -1) idxB = 99;
                         return idxA - idxB;
@@ -535,12 +554,13 @@
                         document.getElementById('inpDept').value = e.department;
                         document.getElementById('inpLine').value = e.line;
                         document.getElementById('inpShift').value = e.shift;
+                        document.getElementById('inpStatus').value = e.status || 'active';
                         document.getElementById('uiFormTitle').innerText = "تعديل بيانات الموظف";
                     } else {
-                        // وضع الإضافة الجديد: تحديد الخط والوردية تلقائياً بناءً على الصفحة الحالية
                         document.getElementById('inpId').value = '';
                         const dept = (view==='management'?'management':(view==='prep'?'prep':(view==='announcements'?'announcements':'rolling')));
                         document.getElementById('inpDept').value = dept;
+                        document.getElementById('inpStatus').value = 'active';
                         
                         if(view.startsWith('line')) document.getElementById('inpLine').value = view.replace('line','');
                         if(shift && shift !== 'office' && shift !== 'broadcast') document.getElementById('inpShift').value = shift;
@@ -604,7 +624,6 @@
                 handleDeptChange() {
                     const d = document.getElementById('inpDept').value; const isA = (d === 'announcements');
                     document.getElementById('labelName').innerText = isA ? 'عنوان الإعلان' : 'الاسم';
-                    document.getElementById('labelJob').innerText = isA ? 'نص الإعلان' : 'المسمى الوظيفي';
                     document.getElementById('locFields').classList.toggle('hidden', d === 'management' || isA);
                 },
                 saveEmployee(ev) {
@@ -620,11 +639,11 @@
                         line: (dept==='rolling')?document.getElementById('inpLine').value:'none',
                         shift: (dept==='management')?'office':(dept==='announcements')?'broadcast':document.getElementById('inpShift').value,
                         phone: document.getElementById('inpPhone').value.trim(),
+                        status: document.getElementById('inpStatus').value,
                         sortOrder: document.getElementById('inpId').value ? (App.State.employees.find(x => x.uid === uid).sortOrder || 0) : Date.now()
                     };
                     window.cloudDB.set(window.cloudDB.ref(window.cloudDB.db, 'employees/' + uid), emp);
                     Toast.show("تم الحفظ بنجاح", "success");
-                    // الرجوع خطوة واحدة للخلف يغلق نافذة التعديل فقط ويبقينا في نفس الصفحة
                     window.history.back();
                 },
                 moveEmployee(uid, direction) {
