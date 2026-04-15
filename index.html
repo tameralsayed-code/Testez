@@ -12,7 +12,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <link rel="manifest" href="data:application/json,{%22name%22:%22Production App%22,%22short_name%22:%22Production%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%23F3F4F6,%22theme_color%22:%233B82F6}">
+    <link rel="manifest" href="data:application/json,{%22name%22:%22Production%20App%22,%22short_name%22:%22Production%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%23F3F4F6,%22theme_color%22:%233B82F6}">
 
     <style>
         :root {
@@ -33,9 +33,7 @@
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; font-family: 'Tajawal', sans-serif; }
         body { background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%); color: #1F2937; overflow-x: hidden; min-height: 100vh; position: relative; }
 
-        /* إخفاء أسهم القائمة المنسدلة من حقول الأرقام */
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
 
         .form-group { width: 100%; display: block; margin-bottom: 20px; }
@@ -49,8 +47,6 @@
             background-repeat: no-repeat; background-position: left 16px center; background-size: 18px;
         }
         .form-input:focus { border-color: #3B82F6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12); transform: translateY(-1px); }
-        
-        /* حقول لا تحتاج لسهم القائمة */
         .no-arrow { background-image: none !important; padding-left: 18px !important; }
 
         .sheet-container { 
@@ -78,7 +74,7 @@
         .list-item { animation: fadeInScale 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; opacity: 0; }
         .btn-primary { background: var(--primary-gradient); color: white; padding: 18px 24px; border-radius: var(--radius-lg); font-weight: 600; font-size: 16px; border: none; cursor: pointer; transition: all 0.3s; }
         .btn-primary:active { transform: scale(0.96); opacity: 0.9; }
-        .fab-enhanced { position: fixed; bottom: 28px; left: 24px; z-index: 20; width: 60px; height: 60px; border-radius: 50%; background: var(--primary-gradient); color: white; display: flex; align-items: center; justify-content: center; shadow: var(--shadow-xl); border: none; }
+        .fab-enhanced { position: fixed; bottom: 28px; left: 24px; z-index: 20; width: 60px; height: 60px; border-radius: 50%; background: var(--primary-gradient); color: white; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-xl); border: none; }
     </style>
 </head>
 <body class="pb-safe pt-safe">
@@ -115,10 +111,12 @@
         </div>
     </main>
 
+    <!-- زر الإضافة -->
     <button id="fabAdd" onclick="App.UI.openFormModal()" class="hidden fab-enhanced"><i data-lucide="plus" class="w-7 h-7"></i></button>
 
     <div id="modalOverlay" class="sheet-overlay" onclick="window.history.back()"></div>
 
+    <!-- نافذة الإضافة والتعديل -->
     <div id="sheetForm" class="sheet-container overflow-hidden">
         <div class="p-6 flex justify-between items-center border-b shrink-0">
             <h2 id="uiFormTitle" class="text-xl font-normal text-gray-900">إضافة جديد</h2>
@@ -155,11 +153,10 @@
                     </div>
                 </div>
 
-                <!-- بند الحالة الجديد -->
                 <div class="form-group">
                     <label class="form-label">الحالة</label>
                     <select id="inpStatus" class="form-input">
-                        <option value="active">متواجد</option>
+                        <option value="active">متواجد بالعمل</option>
                         <option value="sick">مرضي</option>
                     </select>
                 </div>
@@ -209,6 +206,7 @@
         const Toast = {
             show(message, type = 'info') {
                 const container = document.getElementById('toastContainer');
+                if(!container) return;
                 const toast = document.createElement('div');
                 toast.className = `toast ${type}`;
                 toast.innerHTML = `<span>${message}</span>`;
@@ -359,8 +357,11 @@
                     const { view, shift, query, employees } = App.State;
                     const live = App.ShiftEngine.getLiveNow();
                     
-                    document.getElementById('searchContainer').style.display = (view === 'announcements') ? 'none' : 'block';
-                    document.getElementById('clearSearch').classList.toggle('hidden', !query);
+                    const searchBox = document.getElementById('searchContainer');
+                    if(searchBox) searchBox.style.display = (view === 'announcements') ? 'none' : 'block';
+                    
+                    const clearBtn = document.getElementById('clearSearch');
+                    if(clearBtn) clearBtn.classList.toggle('hidden', !query);
 
                     let html = '';
                     if (query) html = this.renderSearch(query);
@@ -368,11 +369,20 @@
                     else if (view !== 'home') html = this.renderShiftMenu(view, live);
                     else html = this.renderHome(employees, live);
 
-                    document.getElementById('mainContent').innerHTML = html;
-                    document.getElementById('btnBack').classList.toggle('hidden', view === 'home' && !query);
-                    document.getElementById('fabAdd').classList.toggle('hidden', !App.isAdmin || !shift || !!query);
-                    document.getElementById('btnWipe').classList.toggle('flex', App.isAdmin && view === 'home');
-                    document.getElementById('uiMainTitle').innerText = query ? 'البحث' : (shift === 'office' ? 'طاقم الإدارة' : shift === 'broadcast' ? 'الإعلانات' : shift ? `وردية ${shift}` : 'قسم الإنتاج');
+                    const content = document.getElementById('mainContent');
+                    if(content) content.innerHTML = html;
+
+                    const backBtn = document.getElementById('btnBack');
+                    if(backBtn) backBtn.classList.toggle('hidden', view === 'home' && !query);
+                    
+                    const fab = document.getElementById('fabAdd');
+                    if(fab) fab.classList.toggle('hidden', !App.isAdmin || !shift || !!query);
+                    
+                    const wipeBtn = document.getElementById('btnWipe');
+                    if(wipeBtn) wipeBtn.classList.toggle('flex', App.isAdmin && view === 'home');
+                    
+                    const title = document.getElementById('uiMainTitle');
+                    if(title) title.innerText = query ? 'البحث' : (shift === 'office' ? 'طاقم الإدارة' : shift === 'broadcast' ? 'الإعلانات' : shift ? `وردية ${shift}` : 'قسم الإنتاج');
                     
                     lucide.createIcons();
                 },
@@ -530,54 +540,74 @@
 
                 openFormModal(uid = null) {
                     if(!App.isAdmin) return;
-                    const { view, shift, employees } = App.State;
-                    document.getElementById('formEmployee').reset();
-                    
-                    const hierarchy = ["مهندس الوردية", "ملاحظ الوردية", "مشغل غرفة التحكم الرئيسية", "مشغل غرفة تحكم الفرن", "مشغل غرفة التحكم النهائية"];
-                    const jobs = [...new Set(App.SourceData.map(i => i.job))].sort((a, b) => {
-                        let idxA = hierarchy.indexOf(a), idxB = hierarchy.indexOf(b);
-                        if (idxA === -1) idxA = 99; if (idxB === -1) idxB = 99;
-                        return idxA - idxB;
-                    });
-
-                    const jobSelect = document.getElementById('inpJob');
-                    jobSelect.innerHTML = '<option value="">اختر الوظيفة...</option>' + jobs.map(j => `<option value="${j}">${j}</option>`).join('');
-
-                    if(uid) {
-                        const e = employees.find(x => x.uid == uid);
-                        document.getElementById('inpId').value = e.uid;
-                        document.getElementById('inpJob').value = e.jobTitle;
-                        App.Core.onJobSelect(e.jobTitle);
-                        document.getElementById('inpName').value = e.name;
-                        document.getElementById('inpCode').value = e.code || '';
-                        document.getElementById('inpPhone').value = e.phone;
-                        document.getElementById('inpDept').value = e.department;
-                        document.getElementById('inpLine').value = e.line;
-                        document.getElementById('inpShift').value = e.shift;
-                        document.getElementById('inpStatus').value = e.status || 'active';
-                        document.getElementById('uiFormTitle').innerText = "تعديل بيانات الموظف";
-                    } else {
-                        document.getElementById('inpId').value = '';
-                        const dept = (view==='management'?'management':(view==='prep'?'prep':(view==='announcements'?'announcements':'rolling')));
-                        document.getElementById('inpDept').value = dept;
-                        document.getElementById('inpStatus').value = 'active';
+                    try {
+                        const { view, shift, employees } = App.State;
+                        document.getElementById('formEmployee').reset();
                         
-                        if(view.startsWith('line')) document.getElementById('inpLine').value = view.replace('line','');
-                        if(shift && shift !== 'office' && shift !== 'broadcast') document.getElementById('inpShift').value = shift;
-                        else document.getElementById('inpShift').value = 'A';
+                        // ترتيب الوظائف
+                        const hierarchy = ["مهندس الوردية", "ملاحظ الوردية", "مشغل غرفة التحكم الرئيسية", "مشغل غرفة تحكم الفرن", "مشغل غرفة التحكم النهائية"];
+                        const uniqueJobs = [...new Set(App.SourceData.map(i => i.job))];
+                        const jobs = uniqueJobs.sort((a, b) => {
+                            let idxA = hierarchy.indexOf(a), idxB = hierarchy.indexOf(b);
+                            if (idxA === -1) idxA = 99; if (idxB === -1) idxB = 99;
+                            return idxA - idxB;
+                        });
 
-                        document.getElementById('uiFormTitle').innerText = "إضافة موظف جديد";
-                        document.getElementById('inpName').innerHTML = '<option value="">اختر الاسم...</option>';
+                        const jobSelect = document.getElementById('inpJob');
+                        if(jobSelect) {
+                            jobSelect.innerHTML = '<option value="">اختر الوظيفة...</option>' + jobs.map(j => `<option value="${j}">${j}</option>`).join('');
+                        }
+
+                        if(uid) {
+                            const e = employees.find(x => x.uid == uid);
+                            if(e) {
+                                document.getElementById('inpId').value = e.uid;
+                                document.getElementById('inpJob').value = e.jobTitle;
+                                App.Core.onJobSelect(e.jobTitle);
+                                document.getElementById('inpName').value = e.name;
+                                document.getElementById('inpCode').value = e.code || '';
+                                document.getElementById('inpPhone').value = e.phone;
+                                document.getElementById('inpDept').value = e.department;
+                                document.getElementById('inpLine').value = e.line;
+                                document.getElementById('inpShift').value = e.shift;
+                                document.getElementById('inpStatus').value = e.status || 'active';
+                                document.getElementById('uiFormTitle').innerText = "تعديل بيانات الموظف";
+                            }
+                        } else {
+                            document.getElementById('inpId').value = '';
+                            const dept = (view==='management'?'management':(view==='prep'?'prep':(view==='announcements'?'announcements':'rolling')));
+                            document.getElementById('inpDept').value = dept;
+                            document.getElementById('inpStatus').value = 'active';
+                            
+                            // Context Awareness: تعبئة الخط والوردية تلقائياً
+                            if(view.startsWith('line')) {
+                                document.getElementById('inpLine').value = view.replace('line','');
+                            }
+                            if(shift && shift !== 'office' && shift !== 'broadcast') {
+                                document.getElementById('inpShift').value = shift;
+                            } else {
+                                document.getElementById('inpShift').value = 'A';
+                            }
+
+                            document.getElementById('uiFormTitle').innerText = "إضافة موظف جديد";
+                            document.getElementById('inpName').innerHTML = '<option value="">اختر الاسم...</option>';
+                        }
+                        
+                        App.Core.handleDeptChange();
+                        history.pushState({ modal: 'form', uid }, "");
+                        this.showModal('sheetForm');
+                    } catch (e) {
+                        console.error("Error opening modal:", e);
+                        Toast.show("حدث خطأ أثناء فتح النافذة", "error");
                     }
-                    App.Core.handleDeptChange();
-                    history.pushState({ modal: 'form', uid }, "");
-                    this.showModal('sheetForm');
                 },
 
                 showModal(id) {
                     App.State.isModalOpen = true;
-                    document.getElementById('modalOverlay').classList.add('is-open');
-                    document.getElementById(id).classList.add('is-open');
+                    const overlay = document.getElementById('modalOverlay');
+                    const target = document.getElementById(id);
+                    if(overlay) overlay.classList.add('is-open');
+                    if(target) target.classList.add('is-open');
                 },
 
                 closeAllModals() {
@@ -586,9 +616,10 @@
                 },
 
                 toggleAccordion(id) {
-                    const el = document.getElementById(id); el.classList.toggle('hidden');
+                    const el = document.getElementById(id); 
+                    if(el) el.classList.toggle('hidden');
                     const icon = document.getElementById('iconRolling');
-                    if(icon) icon.style.transform = el.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+                    if(icon && el) icon.style.transform = el.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
                 },
                 toggleReorderMode() { App.isReorderMode = !App.isReorderMode; App.UI.updateAll(); }
             },
@@ -597,13 +628,17 @@
                 onJobSelect(jobTitle) {
                     const names = App.SourceData.filter(i => i.job === jobTitle).map(i => i.name).sort();
                     const nameSelect = document.getElementById('inpName');
-                    nameSelect.innerHTML = '<option value="">اختر الاسم...</option>' + names.map(n => `<option value="${n}">${n}</option>`).join('');
+                    if(nameSelect) {
+                        nameSelect.innerHTML = '<option value="">اختر الاسم...</option>' + names.map(n => `<option value="${n}">${n}</option>`).join('');
+                    }
                 },
                 onNameSelect(name) {
                     const person = App.SourceData.find(i => i.name === name);
                     if (person) {
-                        document.getElementById('inpCode').value = person.code;
-                        document.getElementById('inpPhone').value = person.phone;
+                        const codeInp = document.getElementById('inpCode');
+                        const phoneInp = document.getElementById('inpPhone');
+                        if(codeInp) codeInp.value = person.code;
+                        if(phoneInp) phoneInp.value = person.phone;
                     }
                 },
                 navigate(v) {
@@ -618,13 +653,19 @@
                     App.UI.updateAll();
                 },
                 clearSearchAndOpen(uid) {
-                    App.State.query = ''; document.getElementById('searchInput').value = '';
+                    App.State.query = ''; 
+                    const searchInput = document.getElementById('searchInput');
+                    if(searchInput) searchInput.value = '';
                     App.UI.updateAll(); setTimeout(() => App.UI.openDetails(uid), 100);
                 },
                 handleDeptChange() {
-                    const d = document.getElementById('inpDept').value; const isA = (d === 'announcements');
-                    document.getElementById('labelName').innerText = isA ? 'عنوان الإعلان' : 'الاسم';
-                    document.getElementById('locFields').classList.toggle('hidden', d === 'management' || isA);
+                    const deptInp = document.getElementById('inpDept');
+                    if(!deptInp) return;
+                    const d = deptInp.value; const isA = (d === 'announcements');
+                    const nameLbl = document.getElementById('labelName');
+                    const locFld = document.getElementById('locFields');
+                    if(nameLbl) nameLbl.innerText = isA ? 'عنوان الإعلان' : 'الاسم';
+                    if(locFld) locFld.classList.toggle('hidden', d === 'management' || isA);
                 },
                 saveEmployee(ev) {
                     ev.preventDefault();
@@ -657,7 +698,12 @@
                 },
                 deleteEmployee(uid) { if(confirm('حذف نهائي؟')) { window.cloudDB.remove(window.cloudDB.ref(window.cloudDB.db, 'employees/' + uid)); window.history.back(); } },
                 wipeAllData() { if(confirm("مسح كافة البيانات؟")) window.cloudDB.remove(window.cloudDB.ref(window.cloudDB.db, 'employees')); },
-                clearSearch() { App.State.query = ''; document.getElementById('searchInput').value = ''; App.UI.updateAll(); }
+                clearSearch() { 
+                    App.State.query = ''; 
+                    const searchInput = document.getElementById('searchInput');
+                    if(searchInput) searchInput.value = ''; 
+                    App.UI.updateAll(); 
+                }
             },
 
             init() {
@@ -668,12 +714,16 @@
                     App.State.view = state.view || 'home';
                     App.State.shift = state.shift || null;
                     App.State.query = ''; 
-                    document.getElementById('searchInput').value = '';
+                    const searchInput = document.getElementById('searchInput');
+                    if(searchInput) searchInput.value = '';
                     App.UI.updateAll();
                 });
-                document.getElementById('searchInput').addEventListener('input', (e) => {
-                    App.State.query = e.target.value; App.UI.updateAll();
-                });
+                const searchInput = document.getElementById('searchInput');
+                if(searchInput) {
+                    searchInput.addEventListener('input', (e) => {
+                        App.State.query = e.target.value; App.UI.updateAll();
+                    });
+                }
                 App.UI.updateAll();
             }
         };
