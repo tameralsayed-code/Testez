@@ -46,7 +46,7 @@
             appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748B' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
             background-repeat: no-repeat; background-position: left 14px center; background-size: 16px;
         }
-        .form-input:focus { border-color: #3B82F6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+        .form-input:focus { border-color: #3B82F6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12); transform: translateY(-1px); }
         .no-arrow { background-image: none !important; padding-left: 16px !important; }
 
         .sheet-container { 
@@ -66,7 +66,8 @@
         
         @keyframes fadeInScale { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         .skeleton { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: var(--radius-sm); }
-        
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
         .toast-container { position: fixed; top: 80px; right: 20px; left: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
         .toast { padding: 16px 20px; border-radius: var(--radius-md); background: white; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 12px; animation: fadeInScale 0.4s ease-out; pointer-events: auto; border-right: 4px solid #3B82F6; font-size: 14px; }
         .toast.success { border-right-color: #10B981; }
@@ -100,17 +101,9 @@
         </div>
     </header>
 
-    <main id="mainContent" class="px-5 py-5 pb-36">
-        <div id="skeletonLoader" class="space-y-4">
-            <div class="h-44 skeleton rounded-[32px]"></div>
-            <div class="bg-white rounded-[32px] p-5 space-y-4 shadow-sm">
-                <div class="h-12 skeleton rounded-xl"></div>
-                <div class="h-12 skeleton rounded-xl"></div>
-            </div>
-        </div>
-    </main>
+    <main id="mainContent" class="px-5 py-5 pb-36"></main>
 
-    <button id="fabAdd" onclick="App.UI.openFormModal()" class="hidden fab-enhanced"><i data-lucide="plus" class="w-7 h-7"></i></button>
+    <button id="fabAdd" onclick="App.Core.openFormModal()" class="hidden fab-enhanced"><i data-lucide="plus" class="w-7 h-7"></i></button>
 
     <div id="modalOverlay" class="sheet-overlay" onclick="window.history.back()"></div>
 
@@ -122,45 +115,14 @@
         <div class="p-5 overflow-y-auto no-scrollbar pb-20 flex-1">
             <form id="formEmployee" onsubmit="App.Core.saveEmployee(event)">
                 <input type="hidden" id="inpId"><input type="hidden" id="inpDept">
-                
-                <div class="form-group">
-                    <label class="form-label">الوظيفة</label>
-                    <select id="inpJob" required class="form-input" onchange="App.Core.onJobSelect(this.value)">
-                        <option value="">اختر الوظيفة...</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">الاسم</label>
-                    <select id="inpName" required class="form-input" onchange="App.Core.onNameSelect(this.value)">
-                        <option value="">اختر الاسم...</option>
-                    </select>
-                </div>
-
-                <div id="newNameContainer" class="form-group hidden">
-                    <label class="form-label text-blue-600">اكتب الاسم الجديد هنا</label>
-                    <input type="text" id="inpNewName" class="form-input no-arrow" placeholder="أدخل الاسم بالكامل...">
-                </div>
-                
+                <div class="form-group"><label class="form-label">الوظيفة</label><select id="inpJob" required class="form-input" onchange="App.Core.onJobSelect(this.value)"><option value="">اختر الوظيفة...</option></select></div>
+                <div class="form-group"><label class="form-label">الاسم</label><select id="inpName" required class="form-input" onchange="App.Core.onNameSelect(this.value)"><option value="">اختر الاسم...</option></select></div>
+                <div id="newNameContainer" class="form-group hidden"><label class="form-label text-blue-600">اكتب الاسم الجديد هنا</label><input type="text" id="inpNewName" class="form-input no-arrow" placeholder="أدخل الاسم بالكامل..."></div>
                 <div class="grid grid-cols-5 gap-3">
-                    <div class="form-group col-span-2">
-                        <label class="form-label">الكود</label>
-                        <input type="number" id="inpCode" class="form-input no-arrow text-center">
-                    </div>
-                    <div class="form-group col-span-3">
-                        <label class="form-label">الموبايل</label>
-                        <input type="tel" id="inpPhone" class="form-input no-arrow text-left" dir="ltr">
-                    </div>
+                    <div class="form-group col-span-2"><label class="form-label">الكود</label><input type="number" id="inpCode" class="form-input no-arrow text-center"></div>
+                    <div class="form-group col-span-3"><label class="form-label">الموبايل</label><input type="tel" id="inpPhone" class="form-input no-arrow text-left" dir="ltr"></div>
                 </div>
-
-                <div class="form-group">
-                    <label class="form-label">الحالة</label>
-                    <select id="inpStatus" class="form-input">
-                        <option value="active">متواجد بالعمل</option>
-                        <option value="sick">مرضي</option>
-                    </select>
-                </div>
-
+                <div class="form-group"><label class="form-label">الحالة</label><select id="inpStatus" class="form-input"><option value="active">متواجد بالعمل</option><option value="sick">مرضي</option></select></div>
                 <div id="locFields" class="mt-2 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50 space-y-3">
                     <div class="grid grid-cols-2 gap-3">
                         <div class="form-group mb-0"><label class="form-label">الخط</label><select id="inpLine" class="form-input"><option value="1">خط 1</option><option value="2">خط 2</option></select></div>
@@ -307,7 +269,17 @@
                 {job:"فني مراقبة سرير التبريد", name:"محمد عبدالعليم", code:"1204", phone:""}
             ],
 
+            // الحالة المركزية للتطبيق
             State: { employees: [], view: 'home', shift: null, query: '', modal: null, uid: null },
+
+            // محرك التنقل المركزي
+            Navigate: (newState, replace = false) => {
+                const updatedState = { ...App.State, ...newState };
+                if (replace) history.replaceState(updatedState, "");
+                else history.pushState(updatedState, "");
+                App.State = updatedState;
+                App.UI.updateAll();
+            },
 
             ShiftEngine: {
                 getGroupStatus(group, date) {
@@ -348,7 +320,8 @@
                     window.cloudDB.onValue(window.cloudDB.ref(window.cloudDB.db, 'employees'), (snapshot) => {
                         const data = snapshot.val();
                         App.State.employees = data ? Object.values(data).sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)) : [];
-                        document.getElementById('skeletonLoader').classList.add('hidden');
+                        const loader = document.getElementById('skeletonLoader');
+                        if(loader) loader.classList.add('hidden');
                         App.UI.updateAll();
                     });
                 },
@@ -357,10 +330,9 @@
                     const { view, shift, query, employees, modal, uid } = App.State;
                     const live = App.ShiftEngine.getLiveNow();
                     
-                    const searchBox = document.getElementById('searchContainer');
-                    if(searchBox) searchBox.style.display = (view === 'announcements') ? 'none' : 'block';
-                    const clearBtn = document.getElementById('clearSearch');
-                    if(clearBtn) clearBtn.classList.toggle('hidden', !query);
+                    document.getElementById('searchContainer').style.display = (view === 'announcements') ? 'none' : 'block';
+                    document.getElementById('clearSearch').classList.toggle('hidden', !query);
+                    document.getElementById('searchInput').value = query;
 
                     let html = '';
                     if (query) html = this.renderSearch(query);
@@ -373,7 +345,6 @@
                     document.getElementById('fabAdd').classList.toggle('hidden', !App.isAdmin || !shift || !!query);
                     document.getElementById('uiMainTitle').innerText = query ? 'البحث' : (shift === 'office' ? 'طاقم الإدارة' : shift === 'broadcast' ? 'الإعلانات' : shift ? `وردية ${shift}` : 'قسم الإنتاج');
                     
-                    // إدارة المودالات بناءً على الـ State
                     this.handleModalUI(modal, uid);
                     lucide.createIcons();
                 },
@@ -382,21 +353,11 @@
                     const overlay = document.getElementById('modalOverlay');
                     const sheetForm = document.getElementById('sheetForm');
                     const sheetDetails = document.getElementById('sheetDetails');
-
-                    // إغلاق كل شيء أولاً
-                    overlay.classList.remove('is-open');
-                    sheetForm.classList.remove('is-open');
-                    sheetDetails.classList.remove('is-open');
-
-                    if (modal === 'form') {
-                        overlay.classList.add('is-open');
-                        sheetForm.classList.add('is-open');
-                        this.fillFormUI(uid);
-                    } else if (modal === 'details') {
-                        overlay.classList.add('is-open');
-                        sheetDetails.classList.add('is-open');
-                        this.fillDetailsUI(uid);
-                    }
+                    overlay.classList.toggle('is-open', !!modal);
+                    sheetForm.classList.toggle('is-open', modal === 'form');
+                    sheetDetails.classList.toggle('is-open', modal === 'details');
+                    if (modal === 'form') this.fillFormUI(uid);
+                    else if (modal === 'details') this.fillDetailsUI(uid);
                 },
 
                 renderHome(employees, live) {
@@ -438,15 +399,13 @@
 
                 renderEmployeeList(view, shift) {
                     const filtered = App.State.employees.filter(e => e.shift === shift && (view==='management'?e.department==='management':view==='prep'?e.department==='prep':view==='announcements'?e.department==='announcements':e.line===view.replace('line','')));
-                    const sortBtn = App.isAdmin ? `<button onclick="App.UI.toggleReorderMode()" class="p-2 ${App.isReorderMode?'text-blue-600':'text-gray-400'}"><i data-lucide="arrow-up-down" class="w-4 h-4"></i></button>` : '';
                     if(!filtered.length) return `<div class="py-20 text-center text-gray-400 text-xs font-normal">لا توجد بيانات مسجلة</div>`;
-                    return `<div class="flex justify-between items-center mb-4 mr-1"><h3 class="text-[10px] text-gray-400 uppercase tracking-widest">${view==='announcements'?'التنبيهات':'قائمة الموظفين'}</h3>${sortBtn}</div>
+                    return `<div class="flex justify-between items-center mb-4 mr-1"><h3 class="text-[10px] text-gray-400 uppercase tracking-widest">${view==='announcements'?'التنبيهات':'قائمة الموظفين'}</h3></div>
                     <div class="space-y-4">${filtered.map(e => {
                         const isSick = e.status === 'sick';
                         const subColor = isSick ? 'text-red-500' : ((view === 'management' || shift !== 'office') ? 'text-blue-600' : 'text-gray-400');
-                        return `<div onclick="if(!App.isReorderMode) App.UI.openDetails('${e.uid}')" class="${isSick ? 'bg-red-50 border-red-200' : 'bg-white border-gray-100'} p-4 rounded-[22px] border flex items-center justify-between shadow-sm active:scale-[0.98] transition-all list-item">
+                        return `<div onclick="App.Core.openDetails('${e.uid}')" class="${isSick ? 'bg-red-50 border-red-200' : 'bg-white border-gray-100'} p-4 rounded-[22px] border flex items-center justify-between shadow-sm active:scale-[0.98] transition-all list-item">
                             <div class="flex items-center gap-4 flex-1 min-w-0"><div class="w-11 h-11 ${isSick?'bg-red-100 text-red-600':'bg-gray-50 text-gray-500'} rounded-[16px] flex items-center justify-center shrink-0 border border-black/5">${e.department==='management'?'💼':e.shift}</div><div class="flex-1 min-w-0"><h3 class="font-normal text-sm ${isSick?'text-red-900':'text-gray-900'} truncate">${isSick?'[مرضي] ':''}${e.name}</h3><p class="text-[10px] ${subColor} truncate">${e.jobTitle} ${e.code?'| '+e.code:''}</p></div></div>
-                            ${App.isReorderMode ? `<div class="flex flex-col gap-1"><button onclick="event.stopPropagation(); App.Core.moveEmployee('${e.uid}', -1)"><i data-lucide="chevron-up" class="w-4 h-4"></i></button><button onclick="event.stopPropagation(); App.Core.moveEmployee('${e.uid}', 1)"><i data-lucide="chevron-down" class="w-4 h-4"></i></button></div>` : ''}
                         </div>`;
                     }).join('')}</div>`;
                 },
@@ -456,14 +415,6 @@
                     return `<div class="space-y-3">${filtered.map(e => `<div onclick="App.Core.clearSearchAndOpen('${e.uid}')" class="bg-white p-4 rounded-2xl border flex items-center gap-4 shadow-sm"><div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-normal">${e.shift}</div><div class="text-right"><h3 class="text-sm text-gray-900 font-normal">${e.name}</h3><p class="text-[10px] text-gray-400">${e.jobTitle}</p></div></div>`).join('')}</div>`;
                 },
 
-                openDetails(uid) {
-                    // بدلاً من فتح المودال مباشرة، نقوم بتحديث الـ State وعمل pushState شاملة
-                    App.State.modal = 'details';
-                    App.State.uid = uid;
-                    history.pushState({...App.State}, "");
-                    App.UI.updateAll();
-                },
-
                 fillDetailsUI(uid) {
                     const e = App.State.employees.find(x => x.uid == uid);
                     if(!e) return;
@@ -471,7 +422,6 @@
                     const cleanP = e.phone ? e.phone.replace(/\D/g, '') : '';
                     const waP = cleanP.startsWith('0') ? '20' + cleanP.substring(1) : (cleanP.startsWith('1') ? '20' + cleanP : cleanP);
                     const avatar = e.department === 'management' ? '💼' : e.shift;
-
                     document.getElementById('uiDetailsContent').innerHTML = `
                         <div class="flex flex-col items-center mb-6 pt-2">
                             <div class="w-20 h-20 ${isSick?'bg-red-50 text-red-600':'bg-blue-50 text-blue-600'} rounded-[28px] flex items-center justify-center text-3xl mb-4 border-2 border-white shadow-lg">${avatar}</div>
@@ -487,33 +437,23 @@
                             ${e.code?`<div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">كود الموظف</span><span class="text-gray-900 font-normal">${e.code}</span></div>`:''}
                             ${e.phone?`<div class="p-3 bg-gray-50 rounded-xl flex justify-between items-center"><span class="text-gray-400 text-xs">رقم الهاتف</span><span class="text-gray-900 font-normal" dir="ltr">${e.phone}</span></div>`:''}
                         </div>
-                        ${App.isAdmin ? `<div class="grid grid-cols-2 gap-3 pt-4 border-t"><button onclick="App.Core.deleteEmployee('${e.uid}')" class="py-3 bg-red-50 text-red-600 rounded-xl text-xs font-normal">حذف</button><button onclick="App.UI.openFormModal('${e.uid}')" class="py-3 bg-gray-900 text-white rounded-xl text-xs font-normal">تعديل</button></div>` : `<button onclick="window.history.back()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-[12px] font-bold shadow-lg active:scale-95 transition-all">إغلاق البطاقة</button>`}`;
+                        ${App.isAdmin ? `<div class="grid grid-cols-2 gap-3 pt-4 border-t"><button onclick="App.Core.deleteEmployee('${e.uid}')" class="py-3 bg-red-50 text-red-600 rounded-xl text-xs font-normal">حذف</button><button onclick="App.Core.openFormModal('${e.uid}')" class="py-3 bg-gray-900 text-white rounded-xl text-xs font-normal">تعديل</button></div>` : `<button onclick="window.history.back()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-[12px] font-bold shadow-lg active:scale-95 transition-all">إغلاق البطاقة</button>`}`;
                     lucide.createIcons();
-                },
-
-                openFormModal(uid = null) {
-                    App.State.modal = 'form';
-                    App.State.uid = uid;
-                    history.pushState({...App.State}, "");
-                    App.UI.updateAll();
                 },
 
                 fillFormUI(uid) {
                     const { view, shift, employees } = App.State;
                     document.getElementById('formEmployee').reset();
                     document.getElementById('newNameContainer').classList.add('hidden');
-                    
                     const uniqueJobs = [...new Set(App.SourceData.map(i => i.job))];
                     const jobs = uniqueJobs.sort((a, b) => App.Hierarchy.indexOf(a) - App.Hierarchy.indexOf(b));
-                    const jobSelect = document.getElementById('inpJob');
-                    jobSelect.innerHTML = '<option value="">اختر الوظيفة...</option>' + jobs.map(j => `<option value="${j}">${j}</option>`).join('');
-
+                    document.getElementById('inpJob').innerHTML = '<option value="">اختر الوظيفة...</option>' + jobs.map(j => `<option value="${j}">${j}</option>`).join('');
                     if(uid) {
                         const e = employees.find(x => x.uid == uid);
                         if(e) {
                             document.getElementById('inpId').value = e.uid;
                             document.getElementById('inpJob').value = e.jobTitle;
-                            App.Core.onJobSelect(e.jobTitle);
+                            App.Core.onJobSelect(e.jobTitle, false);
                             document.getElementById('inpName').value = e.name;
                             document.getElementById('inpCode').value = e.code || '';
                             document.getElementById('inpPhone').value = e.phone;
@@ -534,62 +474,46 @@
                     App.Core.handleDeptChange();
                 },
 
-                closeAllModals() {
-                    // المودال يُغلق الآن طبيعياً عن طريق popstate
-                    document.querySelectorAll('.sheet-container, .sheet-overlay').forEach(el => el.classList.remove('is-open'));
-                },
-
                 toggleAccordion(id) {
-                    const el = document.getElementById(id); if(el) el.classList.toggle('hidden');
+                    const el = document.getElementById(id);
+                    if(el) el.classList.toggle('hidden');
                     const icon = document.getElementById('iconRolling');
                     if(icon && el) icon.style.transform = el.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
-                },
-                toggleReorderMode() { App.isReorderMode = !App.isReorderMode; App.UI.updateAll(); }
+                }
             },
 
             Core: {
-                onJobSelect(jobTitle) {
+                onJobSelect(jobTitle, resetName = true) {
                     const names = App.SourceData.filter(i => i.job === jobTitle).map(i => i.name).sort();
                     const nameSelect = document.getElementById('inpName');
-                    nameSelect.innerHTML = '<option value="">اختر الاسم...</option>' + 
-                                         names.map(n => `<option value="${n}">${n}</option>`).join('') +
-                                         '<option value="__NEW__">➕ إضافة اسم جديد غير مسجل</option>';
-                    document.getElementById('newNameContainer').classList.add('hidden');
-                },
-                onNameSelect(val) {
-                    if (val === "__NEW__") {
-                        document.getElementById('newNameContainer').classList.remove('hidden');
-                        document.getElementById('inpCode').value = ''; document.getElementById('inpPhone').value = '';
-                    } else {
+                    nameSelect.innerHTML = '<option value="">اختر الاسم...</option>' + names.map(n => `<option value="${n}">${n}</option>`).join('') + '<option value="__NEW__">➕ إضافة اسم جديد غير مسجل</option>';
+                    if(resetName) {
                         document.getElementById('newNameContainer').classList.add('hidden');
-                        const person = App.SourceData.find(i => i.name === val);
-                        if (person) {
-                            document.getElementById('inpCode').value = person.code;
-                            document.getElementById('inpPhone').value = person.phone;
-                        }
+                        document.getElementById('inpCode').value = '';
+                        document.getElementById('inpPhone').value = '';
                     }
                 },
-                navigate(v) { 
-                    App.State.view = v; 
-                    App.State.shift = (v === 'management' ? 'office' : v === 'announcements' ? 'broadcast' : null); 
-                    App.State.modal = null;
-                    history.pushState({...App.State}, ""); 
-                    App.UI.updateAll(); 
+                onNameSelect(val) {
+                    const isNew = (val === "__NEW__");
+                    document.getElementById('newNameContainer').classList.toggle('hidden', !isNew);
+                    if (isNew) { document.getElementById('inpCode').value = ''; document.getElementById('inpPhone').value = ''; }
+                    else {
+                        const p = App.SourceData.find(i => i.name === val);
+                        if (p) { document.getElementById('inpCode').value = p.code; document.getElementById('inpPhone').value = p.phone; }
+                    }
                 },
-                navigateShift(s) { 
-                    App.State.shift = s; 
-                    App.State.modal = null;
-                    history.pushState({...App.State}, ""); 
-                    App.UI.updateAll(); 
-                },
-                clearSearchAndOpen(uid) { 
-                    App.State.query = ''; 
-                    App.UI.updateAll(); 
-                    setTimeout(() => App.UI.openDetails(uid), 100); 
+                navigate(v) { App.Navigate({ view: v, shift: (v === 'management' ? 'office' : v === 'announcements' ? 'broadcast' : null), modal: null, query: '' }); },
+                navigateShift(s) { App.Navigate({ shift: s, modal: null, query: '' }); },
+                openDetails(uid) { App.Navigate({ modal: 'details', uid: uid }); },
+                openFormModal(uid = null) { App.Navigate({ modal: 'form', uid: uid }); },
+                clearSearchAndOpen(uid) { App.Navigate({ query: '', modal: 'details', uid: uid }); },
+                clearSearch() { App.Navigate({ query: '' }); },
+                handleDeptChange() {
+                    const d = document.getElementById('inpDept').value;
+                    document.getElementById('locFields').classList.toggle('hidden', d === 'management');
                 },
                 saveEmployee(ev) {
                     ev.preventDefault();
-                    if(!window.cloudDB) return Toast.show("خطأ سحابي", "error");
                     const nameVal = document.getElementById('inpName').value;
                     const finalName = (nameVal === "__NEW__") ? document.getElementById('inpNewName').value.trim() : nameVal;
                     if(!finalName) return Toast.show("يرجى إدخال الاسم", "error");
@@ -611,35 +535,22 @@
                     window.history.back();
                 },
                 deleteEmployee(uid) { if(confirm('حذف نهائي؟')) { window.cloudDB.remove(window.cloudDB.ref(window.cloudDB.db, 'employees/' + uid)); window.history.back(); } },
-                wipeAllData() { if(confirm("مسح كافة البيانات؟")) window.cloudDB.remove(window.cloudDB.ref(window.cloudDB.db, 'employees')); },
-                clearSearch() { App.State.query = ''; document.getElementById('searchInput').value = ''; App.UI.updateAll(); },
-                handleDeptChange() {
-                    const d = document.getElementById('inpDept').value;
-                    document.getElementById('locFields').classList.toggle('hidden', d === 'management');
-                }
+                wipeAllData() { if(confirm("مسح كافة البيانات؟")) window.cloudDB.remove(window.cloudDB.ref(window.cloudDB.db, 'employees')); }
             },
 
             init() {
-                // ضبط الحالة الأولية
-                history.replaceState({...App.State}, "");
-
+                history.replaceState({ ...App.State }, "");
                 window.addEventListener('popstate', (e) => {
-                    if (e.state) {
-                        App.State = e.state;
-                        // لا نقوم بعمل pushState هنا لأننا بالفعل نستجيب لحدث popstate
-                        App.UI.updateAll();
-                    } else {
-                        // حالة افتراضية إذا لم يوجد ستايت
-                        App.State = { view: 'home', shift: null, query: '', modal: null, uid: null };
-                        App.UI.updateAll();
-                    }
+                    if (e.state) { App.State = e.state; App.UI.updateAll(); }
                 });
-
-                document.getElementById('searchInput').addEventListener('input', (e) => { 
-                    App.State.query = e.target.value; 
-                    App.UI.updateAll(); 
+                document.getElementById('searchInput').addEventListener('input', (e) => {
+                    const q = e.target.value;
+                    // البحث يغير الحالة لكن لا يضيف سجل تاريخ جديد مع كل حرف (استخدام replace)
+                    const updatedState = { ...App.State, query: q, modal: null };
+                    history.replaceState(updatedState, "");
+                    App.State = updatedState;
+                    App.UI.updateAll();
                 });
-
                 App.UI.updateAll();
             }
         };
