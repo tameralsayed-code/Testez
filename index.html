@@ -561,81 +561,81 @@
                         </div>
 
                         <div class="text-center px-4 mb-4">
-                            <h3 class="text-base font-black text-gray-900 mb-1 flex items-center justify-center gap-1.5">
-                                ${isSick?'<span class="bg-rose-100 text-rose-600 text-[9px] px-2 py-0.5 rounded-md border border-rose-200">إجازة مرضية</span>':''}
-                                ${e.name}
+                            <h3 class="text-lg font-black text-gray-900 mb-1 flex items-center justify-center gap-1.5 whitespace-nowrap overflow-hidden">
+                                ${isSick?'<span class="bg-rose-100 text-rose-600 text-[10px] px-2 py-0.5 rounded-md border border-rose-200 shrink-0">مرضي</span>':''}
+                                <span class="truncate">${e.name}</span>
                             </h3>
-                            <span class="inline-block px-3 py-1 bg-${themeColor}-50 text-${themeColor}-700 border border-${themeColor}-100 text-[10px] font-bold rounded-full shadow-sm">${e.jobTitle}</span>
+                            <span class="inline-block px-3 py-1 bg-${themeColor}-50 text-${themeColor}-700 border border-${themeColor}-100 text-[11px] font-bold rounded-full shadow-sm truncate max-w-[90%]">${e.jobTitle}</span>
                         </div>
 
                         ${(e.phone || App.isAdmin) ? `
                         <div class="grid grid-cols-2 gap-2 mb-4 px-4">
                             <a href="tel:${e.phone}" class="group p-2.5 bg-white rounded-[14px] border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all flex flex-col items-center gap-1 active:scale-95">
                                 <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-500 transition-colors text-blue-600 group-hover:text-white shadow-sm">
-                                    <i data-lucide="phone" class="w-3 h-3"></i>
+                                    <i data-lucide="phone" class="w-3.5 h-3.5"></i>
                                 </div>
-                                <span class="text-[10px] font-bold text-gray-600 group-hover:text-blue-700">اتصال</span>
+                                <span class="text-[11px] font-bold text-gray-600 group-hover:text-blue-700 whitespace-nowrap">اتصال</span>
                             </a>
                             <a href="https://wa.me/${waP}" target="_blank" class="group p-2.5 bg-white rounded-[14px] border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all flex flex-col items-center gap-1 active:scale-95">
                                 <div class="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-500 transition-colors text-emerald-600 group-hover:text-white shadow-sm">
-                                    <i data-lucide="message-circle" class="w-3 h-3"></i>
+                                    <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
                                 </div>
-                                <span class="text-[10px] font-bold text-gray-600 group-hover:text-emerald-700">واتساب</span>
+                                <span class="text-[11px] font-bold text-gray-600 group-hover:text-emerald-700 whitespace-nowrap">واتساب</span>
                             </a>
                         </div>` : ''}
 
                         <div class="px-4">
                             <div class="bg-white rounded-[16px] border border-gray-100 shadow-sm p-1.5 mb-4">
                                 ${isSick ? `
-                                <div class="flex items-center justify-between p-2.5 rounded-[12px] bg-rose-50 mb-1 border border-rose-100">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-6 h-6 rounded-[8px] bg-white flex items-center justify-center text-rose-500 shadow-sm"><i data-lucide="activity" class="w-3 h-3"></i></div>
-                                        <span class="text-[10px] font-bold text-rose-700">حالة التواجد</span>
+                                <div class="flex items-center justify-between p-2.5 rounded-[12px] bg-rose-50 mb-1 border border-rose-100 gap-2 overflow-hidden">
+                                    <div class="flex items-center gap-2 shrink-0">
+                                        <div class="w-7 h-7 rounded-[8px] bg-white flex items-center justify-center text-rose-500 shadow-sm"><i data-lucide="activity" class="w-3.5 h-3.5"></i></div>
+                                        <span class="text-[11px] font-bold text-rose-700 whitespace-nowrap">التواجد</span>
                                     </div>
-                                    <span class="text-[11px] font-black text-rose-600">غير متواجد (مرضي)</span>
+                                    <span class="text-[12px] font-black text-rose-600 whitespace-nowrap truncate">إجازة مرضية</span>
                                 </div>` : ''}
                                 
                                 ${e.code ? `
-                                <div class="flex items-center justify-between p-2.5 rounded-[12px] hover:bg-gray-50 transition-colors mb-1">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-6 h-6 rounded-[8px] bg-gray-50 flex items-center justify-center text-gray-500 border border-gray-100"><i data-lucide="hash" class="w-3 h-3"></i></div>
-                                        <span class="text-[10px] font-bold text-gray-600">الكود</span>
+                                <div class="flex items-center justify-between p-2.5 rounded-[12px] hover:bg-gray-50 transition-colors mb-1 gap-2 overflow-hidden">
+                                    <div class="flex items-center gap-2 shrink-0">
+                                        <div class="w-7 h-7 rounded-[8px] bg-gray-50 flex items-center justify-center text-gray-500 border border-gray-100"><i data-lucide="hash" class="w-3.5 h-3.5"></i></div>
+                                        <span class="text-[11px] font-bold text-gray-600 whitespace-nowrap">الكود</span>
                                     </div>
-                                    <span class="text-[11px] font-black text-blue-700">${e.code}</span>
+                                    <span class="text-[13px] font-black text-blue-700 whitespace-nowrap truncate">${e.code}</span>
                                 </div>` : ''}
 
                                 ${e.phone ? `
-                                <div class="flex items-center justify-between p-2.5 rounded-[12px] hover:bg-gray-50 transition-colors mb-1">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-6 h-6 rounded-[8px] bg-gray-50 flex items-center justify-center text-gray-500 border border-gray-100"><i data-lucide="smartphone" class="w-3 h-3"></i></div>
-                                        <span class="text-[10px] font-bold text-gray-600">الهاتف</span>
+                                <div class="flex items-center justify-between p-2.5 rounded-[12px] hover:bg-gray-50 transition-colors mb-1 gap-2 overflow-hidden">
+                                    <div class="flex items-center gap-2 shrink-0">
+                                        <div class="w-7 h-7 rounded-[8px] bg-gray-50 flex items-center justify-center text-gray-500 border border-gray-100"><i data-lucide="smartphone" class="w-3.5 h-3.5"></i></div>
+                                        <span class="text-[11px] font-bold text-gray-600 whitespace-nowrap">الهاتف</span>
                                     </div>
-                                    <span class="text-[11px] font-black text-gray-900 tracking-wide" dir="ltr">${e.phone}</span>
+                                    <span class="text-[13px] font-black text-gray-900 tracking-wide whitespace-nowrap truncate" dir="ltr">${e.phone}</span>
                                 </div>` : ''}
 
-                                <div class="flex items-center justify-between p-2.5 rounded-[12px] hover:bg-gray-50 transition-colors">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-6 h-6 rounded-[8px] bg-gray-50 flex items-center justify-center text-gray-500 border border-gray-100"><i data-lucide="briefcase" class="w-3 h-3"></i></div>
-                                        <span class="text-[10px] font-bold text-gray-600">القسم / الوظيفة</span>
+                                <div class="flex items-center justify-between p-2.5 rounded-[12px] hover:bg-gray-50 transition-colors gap-2 overflow-hidden">
+                                    <div class="flex items-center gap-2 shrink-0">
+                                        <div class="w-7 h-7 rounded-[8px] bg-gray-50 flex items-center justify-center text-gray-500 border border-gray-100"><i data-lucide="briefcase" class="w-3.5 h-3.5"></i></div>
+                                        <span class="text-[11px] font-bold text-gray-600 whitespace-nowrap">الوظيفة</span>
                                     </div>
-                                    <span class="text-[10px] font-bold text-gray-900">${e.jobTitle}</span>
+                                    <span class="text-[12px] font-bold text-gray-900 whitespace-nowrap truncate">${e.jobTitle}</span>
                                 </div>
                             </div>
                         </div>
 
                         ${App.isAdmin ? `
                         <div class="grid grid-cols-2 gap-2 mt-1 px-4 pt-1">
-                            <button onclick="App.Core.deleteEmployee('${e.uid}')" class="py-2.5 bg-white border border-rose-100 text-rose-600 rounded-[12px] text-[10px] font-bold hover:bg-rose-50 active:scale-95 transition-all flex items-center justify-center gap-1.5">
-                                <i data-lucide="trash-2" class="w-3 h-3"></i> مسح
+                            <button onclick="App.Core.deleteEmployee('${e.uid}')" class="py-2.5 bg-white border border-rose-100 text-rose-600 rounded-[12px] text-[11px] font-bold hover:bg-rose-50 active:scale-95 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> مسح
                             </button>
-                            <button onclick="App.Core.openFormModal('${e.uid}')" class="py-2.5 bg-gray-900 text-white rounded-[12px] text-[10px] font-bold shadow-md shadow-gray-900/20 active:scale-95 transition-all flex items-center justify-center gap-1.5">
-                                <i data-lucide="edit-3" class="w-3 h-3"></i> تعديل
+                            <button onclick="App.Core.openFormModal('${e.uid}')" class="py-2.5 bg-gray-900 text-white rounded-[12px] text-[11px] font-bold shadow-md shadow-gray-900/20 active:scale-95 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap">
+                                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> تعديل
                             </button>
                         </div>` : ''}
                         
-                        <div class="px-4 mt-3">
-                            <button onclick="window.history.back()" class="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-[12px] text-[11px] font-bold active:scale-95 transition-all flex items-center justify-center gap-1.5">
-                                إغلاق
+                        <div class="px-4 mt-3 mb-2">
+                            <button onclick="window.history.back()" class="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-[14px] text-[13px] font-bold shadow-md shadow-slate-800/30 active:scale-95 transition-all flex items-center justify-center gap-2">
+                                <i data-lucide="x-circle" class="w-4 h-4"></i> إغلاق
                             </button>
                         </div>
                     `;
