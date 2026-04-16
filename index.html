@@ -195,7 +195,7 @@
         </div>
     </div>
 
-    <!-- بطاقة عرض تفاصيل الموظف (المعاد تصميمها) -->
+    <!-- بطاقة عرض تفاصيل الموظف / بدلاء الوظيفة -->
     <div id="sheetDetails" class="sheet-container overflow-hidden bg-[#f8fafc]">
         <!-- زر الإغلاق العائم بلمسة زجاجية -->
         <div class="absolute top-5 right-5 z-50">
@@ -454,9 +454,11 @@
                     const sheetDetails = document.getElementById('sheetDetails');
                     overlay.classList.toggle('is-open', !!modal);
                     sheetForm.classList.toggle('is-open', modal === 'form');
-                    sheetDetails.classList.toggle('is-open', modal === 'details');
+                    sheetDetails.classList.toggle('is-open', modal === 'details' || modal === 'substitutes');
+                    
                     if (modal === 'form') this.fillFormUI(uid);
                     else if (modal === 'details') this.fillDetailsUI(uid);
+                    else if (modal === 'substitutes') this.fillSubstitutesUI(uid);
                 },
 
                 renderHome(live) {
@@ -552,6 +554,9 @@
                             </div>`;
                         }
 
+                        // زر عرض البدلاء (تراكمي بدون المساس بالباقي)
+                        let substituteBtn = `<button onclick="event.stopPropagation(); App.Core.showSubstitutes('${e.uid}')" class="w-8 h-8 shrink-0 bg-indigo-50/70 border border-indigo-100 rounded-xl flex items-center justify-center text-indigo-500 hover:bg-indigo-100 active:scale-90 transition-all shadow-sm ${arrowsHtml ? 'ml-0' : 'ml-1'}" title="عرض البدلاء"><i data-lucide="users" class="w-4 h-4"></i></button>`;
+
                         return `<div onclick="App.Core.openDetails('${e.uid}')" class="${isSick ? 'bg-rose-50 border-rose-200' : 'bg-white border-gray-100'} p-4 rounded-[22px] border flex items-center justify-between shadow-sm active:scale-[0.98] transition-all list-item">
                             <div class="flex items-center gap-4 flex-1 min-w-0">
                                 <div class="w-11 h-11 ${isSick?'bg-rose-100 text-rose-600':'bg-gray-50 text-gray-500'} rounded-[16px] flex items-center justify-center shrink-0 border border-black/5">${e.department==='management'?'💼':e.shift}</div>
@@ -560,7 +565,10 @@
                                     <p class="text-[10px] ${subColor} truncate mt-0.5">${e.jobTitle} ${e.code?'| '+e.code:''}</p>
                                 </div>
                             </div>
-                            ${arrowsHtml}
+                            <div class="flex items-center" onclick="event.stopPropagation()">
+                                ${substituteBtn}
+                                ${arrowsHtml}
+                            </div>
                         </div>`;
                     }).join('')}</div>`;
                 },
@@ -680,6 +688,79 @@
                     `;
                     lucide.createIcons();
                 },
+                
+                // الوظيفة الإضافية الجديدة (نافذة البدلاء)
+                fillSubstitutesUI(uid) {
+                    const e = App.State.employees.find(x => x.uid == uid);
+                    if(!e) return;
+
+                    const substitutes = App.State.employees.filter(x => x.jobTitle === e.jobTitle && x.uid !== e.uid);
+
+                    let subsHtml = '';
+                    if (substitutes.length === 0) {
+                        subsHtml = `<div class="py-12 flex flex-col items-center justify-center text-center px-6">
+                            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-3">
+                                <i data-lucide="user-x" class="w-8 h-8 text-gray-300"></i>
+                            </div>
+                            <h4 class="text-sm font-bold text-gray-700 mb-1">لا يوجد بدلاء</h4>
+                            <p class="text-xs text-gray-400">لا يوجد موظفين آخرين مسجلين بنفس المسمى الوظيفي حالياً.</p>
+                        </div>`;
+                    } else {
+                        subsHtml = `<div class="space-y-3 px-5 mb-6">` + substitutes.map(sub => {
+                            const isSick = sub.status === 'sick';
+                            const waPhone = sub.phone ? (sub.phone.replace(/\D/g, '').startsWith('0') ? '20' + sub.phone.replace(/\D/g, '').substring(1) : sub.phone.replace(/\D/g, '')) : '';
+
+                            return `
+                            <div class="bg-white p-3.5 rounded-[16px] border ${isSick ? 'border-rose-100' : 'border-gray-100'} shadow-sm flex flex-col gap-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 ${isSick ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-600'} rounded-[12px] flex items-center justify-center font-bold text-sm border ${isSick ? 'border-rose-100' : 'border-emerald-100'} shadow-sm">${sub.shift === 'office' ? '💼' : sub.shift === 'broadcast' ? '📢' : sub.shift}</div>
+                                        <div>
+                                            <h4 class="text-[13px] font-bold ${isSick ? 'text-rose-700' : 'text-gray-900'}">${sub.name}</h4>
+                                            <p class="text-[10px] text-gray-500 mt-0.5 flex items-center gap-1">
+                                                <i data-lucide="map-pin" class="w-3 h-3"></i> 
+                                                ${sub.department === 'management' ? 'إدارة الإنتاج' : (sub.department === 'prep' ? 'ورشة التجهيزات' : (sub.department === 'announcements' ? 'الإعلانات' : `خط درفلة ${sub.line}`))}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="badge-status ${isSick ? 'badge-inactive' : 'badge-active'}">
+                                        <span class="w-1.5 h-1.5 rounded-full ${isSick ? 'bg-rose-500' : 'bg-emerald-500'}"></span>
+                                        <span class="text-[9px] font-bold ${isSick ? 'text-rose-700' : 'text-emerald-700'}">${isSick ? 'مرضي' : 'متاح'}</span>
+                                    </div>
+                                </div>
+                                ${sub.phone ? `
+                                <div class="flex gap-2 pt-2 border-t border-gray-50">
+                                    <a href="tel:${sub.phone}" class="flex-1 bg-gray-50 hover:bg-blue-50 text-gray-600 hover:text-blue-600 py-2 rounded-[10px] flex items-center justify-center gap-2 text-[11px] font-bold transition-colors">
+                                        <i data-lucide="phone" class="w-3.5 h-3.5"></i> اتصال
+                                    </a>
+                                    <a href="https://wa.me/${waPhone}" target="_blank" class="flex-1 bg-gray-50 hover:bg-emerald-50 text-gray-600 hover:text-emerald-600 py-2 rounded-[10px] flex items-center justify-center gap-2 text-[11px] font-bold transition-colors">
+                                        <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> واتساب
+                                    </a>
+                                </div>` : ''}
+                            </div>`;
+                        }).join('') + `</div>`;
+                    }
+
+                    document.getElementById('uiDetailsContent').innerHTML = `
+                        <div class="relative pt-10 pb-6 flex flex-col items-center mb-2">
+                            <div class="absolute inset-0 bg-gradient-to-b from-indigo-50 to-transparent opacity-80 pointer-events-none"></div>
+                            
+                            <div class="relative z-10 w-16 h-16 bg-white rounded-[1.2rem] shadow-lg flex items-center justify-center text-indigo-500 border-2 border-indigo-50 mb-3 mx-auto transform transition-transform hover:scale-105">
+                                <i data-lucide="users" class="w-7 h-7"></i>
+                            </div>
+                            
+                            <h3 class="relative z-10 text-[16px] font-black text-gray-900 mb-1 px-4 text-center leading-tight">
+                                البدلاء المتاحين
+                            </h3>
+                            
+                            <div class="relative z-10 inline-flex items-center gap-1.5 px-3 py-1 mt-1 bg-indigo-50 text-indigo-700 border border-indigo-200/60 text-[11px] font-bold rounded-xl shadow-sm">
+                                <span class="truncate max-w-[240px]">${e.jobTitle}</span>
+                            </div>
+                        </div>
+                        ${subsHtml}
+                    `;
+                    lucide.createIcons();
+                },
 
                 fillFormUI(uid) {
                     const { view, shift, employees } = App.State;
@@ -779,6 +860,7 @@
                 navigateShift: (s) => App.Navigate({ shift: s, modal: null, query: '' }),
                 openDetails: (uid) => App.Navigate({ modal: 'details', uid: uid }),
                 openFormModal: (uid = null) => App.Navigate({ modal: 'form', uid: uid }),
+                showSubstitutes: (uid) => App.Navigate({ modal: 'substitutes', uid: uid }), // دالة عرض البدلاء الجديدة
                 clearSearch: () => App.Navigate({ query: '' }),
                 handleDeptChange: () => { const d = document.getElementById('inpDept').value; const loc = document.getElementById('locFields'); if(loc) loc.classList.toggle('hidden', d === 'management' || d === 'announcements'); },
                 saveEmployee(ev) {
