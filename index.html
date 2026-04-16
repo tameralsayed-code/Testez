@@ -31,12 +31,12 @@
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
 
-        .form-group { width: 100%; display: block; margin-bottom: 12px; }
-        .form-label { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; color: #64748B; margin-bottom: 6px; text-align: right; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-group { width: 100%; display: block; margin-bottom: 10px; }
+        .form-label { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; color: #64748B; margin-bottom: 4px; text-align: right; text-transform: uppercase; letter-spacing: 0.5px; }
         
         .form-input { 
-            width: 100%; background: #F8FAFC; border: 1.5px solid #E2E8F0; padding: 12px 14px; 
-            border-radius: 14px; font-size: 13px; font-weight: 500; color: #0F172A;
+            width: 100%; background: #F8FAFC; border: 1.5px solid #E2E8F0; padding: 10px 14px; 
+            border-radius: 12px; font-size: 13px; font-weight: 500; color: #0F172A;
             transition: all var(--transition-base); box-shadow: inset 0 2px 4px rgba(0,0,0,0.01);
             appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748B' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
             background-repeat: no-repeat; background-position: left 12px center; background-size: 16px;
@@ -48,8 +48,8 @@
             transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1); 
             position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; 
             background: var(--glass-bg); backdrop-filter: blur(40px) saturate(200%);
-            border-top-left-radius: 36px; border-top-right-radius: 36px; 
-            box-shadow: var(--shadow-xl), 0 -10px 40px rgba(0,0,0,0.05); max-height: 88vh; display: flex; flex-direction: column;
+            border-top-left-radius: 32px; border-top-right-radius: 32px; 
+            box-shadow: var(--shadow-xl), 0 -10px 40px rgba(0,0,0,0.05); max-height: 82vh; height: auto; display: flex; flex-direction: column;
             border: 1px solid var(--glass-border); border-bottom: none;
         }
         .sheet-container.is-open { transform: translateY(0); }
@@ -121,89 +121,88 @@
 
     <div id="modalOverlay" class="sheet-overlay" onclick="window.history.back()"></div>
 
-    <!-- بطاقة نموذج الإضافة / التعديل المُحسّنة المُصغّرة -->
+    <!-- بطاقة نموذج الإضافة / التعديل المصغرة -->
     <div id="sheetForm" class="sheet-container overflow-hidden">
-        <div class="px-5 py-4 flex justify-between items-center border-b border-gray-100 bg-white/50 shrink-0">
-            <h2 id="uiFormTitle" class="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-600">بيانات الموظف</h2>
-            <button onclick="window.history.back()" class="w-8 h-8 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full flex items-center justify-center transition-colors text-gray-500"><i data-lucide="x" class="w-4 h-4"></i></button>
+        <div class="px-5 py-3 flex justify-between items-center border-b border-gray-100 bg-white/50 shrink-0">
+            <h2 id="uiFormTitle" class="text-[15px] font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-600">بيانات الموظف</h2>
+            <button onclick="window.history.back()" class="w-7 h-7 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full flex items-center justify-center transition-colors text-gray-500"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
         </div>
-        <div class="px-5 py-4 overflow-y-auto no-scrollbar pb-20 flex-1">
+        <div class="px-5 py-3 overflow-y-auto no-scrollbar pb-8 flex-1">
             <form id="formEmployee" onsubmit="App.Core.saveEmployee(event)">
                 <input type="hidden" id="inpId"><input type="hidden" id="inpDept">
                 
                 <div class="form-group">
-                    <label class="form-label"><i data-lucide="briefcase" class="w-3.5 h-3.5"></i> المسمى الوظيفي</label>
+                    <label class="form-label"><i data-lucide="briefcase" class="w-3 h-3"></i> المسمى الوظيفي</label>
                     <select id="inpJob" required class="form-input" onchange="App.Core.onJobSelect(this.value)">
                         <option value="">اختر الوظيفة...</option>
                     </select>
                 </div>
 
                 <div id="newJobContainer" class="form-group hidden" style="animation: slideDown 0.3s ease-out;">
-                    <div class="p-3 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-[14px] border border-indigo-100 shadow-sm relative overflow-hidden">
+                    <div class="p-2.5 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-[12px] border border-indigo-100 shadow-sm relative overflow-hidden">
                         <div class="absolute right-0 top-0 bottom-0 w-1.5 bg-indigo-500 rounded-r-md"></div>
-                        <label class="form-label text-indigo-800"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i> ادخال وظيفة جديدة</label>
-                        <input type="text" id="inpNewJob" class="form-input no-arrow bg-white border-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100/50" placeholder="أدخل المسمى الوظيفي بدقة...">
+                        <label class="form-label text-indigo-800"><i data-lucide="sparkles" class="w-3 h-3"></i> ادخال وظيفة جديدة</label>
+                        <input type="text" id="inpNewJob" class="form-input no-arrow bg-white border-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100/50 py-2" placeholder="أدخل المسمى الوظيفي بدقة...">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label"><i data-lucide="user" class="w-3.5 h-3.5"></i> اسم الموظف</label>
+                    <label class="form-label"><i data-lucide="user" class="w-3 h-3"></i> اسم الموظف</label>
                     <select id="inpName" required class="form-input" onchange="App.Core.onNameSelect(this.value)">
                         <option value="">اختر الاسم...</option>
                     </select>
                 </div>
 
                 <div id="newNameContainer" class="form-group hidden" style="animation: slideDown 0.3s ease-out;">
-                    <div class="p-3 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-[14px] border border-emerald-100 shadow-sm relative overflow-hidden">
+                    <div class="p-2.5 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-[12px] border border-emerald-100 shadow-sm relative overflow-hidden">
                         <div class="absolute right-0 top-0 bottom-0 w-1.5 bg-emerald-500 rounded-r-md"></div>
-                        <label class="form-label text-emerald-800"><i data-lucide="user-plus" class="w-3.5 h-3.5"></i> تسجيل اسم جديد</label>
-                        <input type="text" id="inpNewName" class="form-input no-arrow bg-white border-white focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100/50" placeholder="أدخل الاسم بالكامل رباعياً...">
+                        <label class="form-label text-emerald-800"><i data-lucide="user-plus" class="w-3 h-3"></i> تسجيل اسم جديد</label>
+                        <input type="text" id="inpNewName" class="form-input no-arrow bg-white border-white focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100/50 py-2" placeholder="أدخل الاسم بالكامل رباعياً...">
                     </div>
                 </div>
                 
                 <div class="grid grid-cols-5 gap-3">
                     <div class="form-group col-span-2">
-                        <label class="form-label"><i data-lucide="hash" class="w-3.5 h-3.5"></i> الكود</label>
+                        <label class="form-label"><i data-lucide="hash" class="w-3 h-3"></i> الكود</label>
                         <input type="number" id="inpCode" class="form-input no-arrow text-center font-bold text-blue-700" placeholder="---">
                     </div>
                     <div class="form-group col-span-3">
-                        <label class="form-label"><i data-lucide="smartphone" class="w-3.5 h-3.5"></i> الموبايل</label>
+                        <label class="form-label"><i data-lucide="smartphone" class="w-3 h-3"></i> الموبايل</label>
                         <input type="tel" id="inpPhone" class="form-input no-arrow text-left tracking-wider" dir="ltr" placeholder="01X XXXX XXXX">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label"><i data-lucide="activity" class="w-3.5 h-3.5"></i> الحالة الجسدية / الوظيفية</label>
+                    <label class="form-label"><i data-lucide="activity" class="w-3 h-3"></i> الحالة الجسدية / الوظيفية</label>
                     <select id="inpStatus" class="form-input font-bold">
                         <option value="active">🟢 متواجد على قوة العمل</option>
                         <option value="sick">🔴 إجازة مرضية</option>
                     </select>
                 </div>
 
-                <div id="locFields" class="mt-5 p-4 bg-slate-50/80 rounded-[16px] border border-slate-200/60 shadow-sm">
-                    <h4 class="text-[11px] font-black text-slate-500 uppercase flex items-center gap-1.5 mb-3"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> موقع العمل الفعلي</h4>
+                <div id="locFields" class="mt-3 p-3 bg-slate-50/80 rounded-[14px] border border-slate-200/60 shadow-sm">
+                    <h4 class="text-[10px] font-black text-slate-500 uppercase flex items-center gap-1.5 mb-2"><i data-lucide="map-pin" class="w-3 h-3"></i> موقع العمل الفعلي</h4>
                     <div class="grid grid-cols-2 gap-3">
-                        <div class="form-group mb-0"><label class="form-label text-slate-400">الخط</label><select id="inpLine" class="form-input bg-white"><option value="1">خط درفلة 1</option><option value="2">خط درفلة 2</option></select></div>
-                        <div class="form-group mb-0"><label class="form-label text-slate-400">الوردية</label><select id="inpShift" class="form-input bg-white"><option value="A">وردية A</option><option value="B">وردية B</option><option value="C">وردية C</option><option value="D">وردية D</option></select></div>
+                        <div class="form-group mb-0"><label class="form-label text-slate-400">الخط</label><select id="inpLine" class="form-input bg-white py-2"><option value="1">خط درفلة 1</option><option value="2">خط درفلة 2</option></select></div>
+                        <div class="form-group mb-0"><label class="form-label text-slate-400">الوردية</label><select id="inpShift" class="form-input bg-white py-2"><option value="A">وردية A</option><option value="B">وردية B</option><option value="C">وردية C</option><option value="D">وردية D</option></select></div>
                     </div>
                 </div>
                 
-                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3.5 rounded-[16px] font-bold text-[13px] shadow-xl shadow-blue-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-6">
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-[14px] font-bold text-[13px] shadow-lg shadow-blue-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-4">
                     <i data-lucide="save" class="w-4 h-4"></i> حفظ ومزامنة البيانات السحابية
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- بطاقة عرض تفاصيل الموظف المُحسّنة المُصغّرة -->
+    <!-- بطاقة عرض تفاصيل الموظف المصغرة -->
     <div id="sheetDetails" class="sheet-container overflow-hidden bg-[#f8fafc]">
-        <!-- زر الإغلاق العائم -->
-        <div class="absolute top-5 right-5 z-50">
-            <button onclick="window.history.back()" class="w-8 h-8 bg-black/15 hover:bg-black/25 backdrop-blur-md rounded-full flex items-center justify-center transition-colors shadow-sm border border-white/20">
+        <div class="absolute top-4 right-4 z-50">
+            <button onclick="window.history.back()" class="w-7 h-7 bg-black/15 hover:bg-black/25 backdrop-blur-md rounded-full flex items-center justify-center transition-colors shadow-sm border border-white/20">
                 <i data-lucide="x" class="w-3.5 h-3.5 text-white"></i>
             </button>
         </div>
-        <div id="uiDetailsContent" class="overflow-y-auto no-scrollbar flex-1 text-right w-full h-full pb-8"></div>
+        <div id="uiDetailsContent" class="overflow-y-auto no-scrollbar flex-1 text-right w-full h-full pb-6"></div>
     </div>
 
     <script type="module">
@@ -553,84 +552,84 @@
                     const themeGradient = isSick ? 'from-rose-500 to-red-600' : 'from-blue-600 to-indigo-700';
 
                     document.getElementById('uiDetailsContent').innerHTML = `
-                        <div class="relative bg-gradient-to-br ${themeGradient} -mx-0 -mt-0 px-5 pt-6 pb-10 text-center rounded-b-[36px] shadow-lg mb-12">
-                            <div class="w-20 h-20 mx-auto bg-white/20 backdrop-blur-md rounded-[1.8rem] p-1.5 shadow-2xl absolute -bottom-10 left-1/2 transform -translate-x-1/2 border border-white/30">
-                                <div class="w-full h-full bg-white rounded-[1.5rem] flex items-center justify-center text-3xl shadow-inner ${isSick?'text-rose-500':'text-blue-600'} font-black">
+                        <div class="relative bg-gradient-to-br ${themeGradient} px-5 pt-5 pb-8 text-center rounded-b-[32px] shadow-lg mb-10">
+                            <div class="w-16 h-16 mx-auto bg-white/20 backdrop-blur-md rounded-2xl p-1 shadow-2xl absolute -bottom-8 left-1/2 transform -translate-x-1/2 border border-white/30">
+                                <div class="w-full h-full bg-white rounded-xl flex items-center justify-center text-2xl shadow-inner ${isSick?'text-rose-500':'text-blue-600'} font-black">
                                     ${avatar}
                                 </div>
                             </div>
                         </div>
 
-                        <div class="text-center px-4 mb-5">
-                            <h3 class="text-lg font-black text-gray-900 mb-1.5 flex items-center justify-center gap-2">
+                        <div class="text-center px-4 mb-4">
+                            <h3 class="text-base font-black text-gray-900 mb-1 flex items-center justify-center gap-1.5">
                                 ${isSick?'<span class="bg-rose-100 text-rose-600 text-[9px] px-2 py-0.5 rounded-md border border-rose-200">إجازة مرضية</span>':''}
                                 ${e.name}
                             </h3>
-                            <span class="inline-block px-4 py-1 bg-${themeColor}-50 text-${themeColor}-700 border border-${themeColor}-100 text-[11px] font-bold rounded-full shadow-sm">${e.jobTitle}</span>
+                            <span class="inline-block px-3 py-1 bg-${themeColor}-50 text-${themeColor}-700 border border-${themeColor}-100 text-[10px] font-bold rounded-full shadow-sm">${e.jobTitle}</span>
                         </div>
 
                         ${(e.phone || App.isAdmin) ? `
-                        <div class="grid grid-cols-2 gap-2.5 mb-5 px-5">
-                            <a href="tel:${e.phone}" class="group p-3 bg-white rounded-[16px] border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all flex flex-col items-center gap-1.5 active:scale-95">
-                                <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-500 transition-colors text-blue-600 group-hover:text-white shadow-sm">
-                                    <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+                        <div class="grid grid-cols-2 gap-2 mb-4 px-4">
+                            <a href="tel:${e.phone}" class="group p-2.5 bg-white rounded-[14px] border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all flex flex-col items-center gap-1 active:scale-95">
+                                <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-500 transition-colors text-blue-600 group-hover:text-white shadow-sm">
+                                    <i data-lucide="phone" class="w-3 h-3"></i>
                                 </div>
-                                <span class="text-[10px] font-bold text-gray-600 group-hover:text-blue-700">اتصال هاتفي</span>
+                                <span class="text-[10px] font-bold text-gray-600 group-hover:text-blue-700">اتصال</span>
                             </a>
-                            <a href="https://wa.me/${waP}" target="_blank" class="group p-3 bg-white rounded-[16px] border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all flex flex-col items-center gap-1.5 active:scale-95">
-                                <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-500 transition-colors text-emerald-600 group-hover:text-white shadow-sm">
-                                    <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                            <a href="https://wa.me/${waP}" target="_blank" class="group p-2.5 bg-white rounded-[14px] border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all flex flex-col items-center gap-1 active:scale-95">
+                                <div class="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-500 transition-colors text-emerald-600 group-hover:text-white shadow-sm">
+                                    <i data-lucide="message-circle" class="w-3 h-3"></i>
                                 </div>
-                                <span class="text-[10px] font-bold text-gray-600 group-hover:text-emerald-700">رسالة واتساب</span>
+                                <span class="text-[10px] font-bold text-gray-600 group-hover:text-emerald-700">واتساب</span>
                             </a>
                         </div>` : ''}
 
-                        <div class="px-5">
-                            <div class="bg-white rounded-[20px] border border-gray-100 shadow-sm p-1.5 mb-5">
+                        <div class="px-4">
+                            <div class="bg-white rounded-[16px] border border-gray-100 shadow-sm p-1.5 mb-4">
                                 ${isSick ? `
-                                <div class="flex items-center justify-between p-3 rounded-[14px] bg-rose-50 mb-1 border border-rose-100">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-7 h-7 rounded-[10px] bg-white flex items-center justify-center text-rose-500 shadow-sm"><i data-lucide="activity" class="w-3.5 h-3.5"></i></div>
-                                        <span class="text-[11px] font-bold text-rose-700">حالة التواجد</span>
+                                <div class="flex items-center justify-between p-2.5 rounded-[12px] bg-rose-50 mb-1 border border-rose-100">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-6 h-6 rounded-[8px] bg-white flex items-center justify-center text-rose-500 shadow-sm"><i data-lucide="activity" class="w-3 h-3"></i></div>
+                                        <span class="text-[10px] font-bold text-rose-700">حالة التواجد</span>
                                     </div>
-                                    <span class="text-[13px] font-black text-rose-600">غير متواجد (مرضي)</span>
+                                    <span class="text-[11px] font-black text-rose-600">غير متواجد (مرضي)</span>
                                 </div>` : ''}
                                 
                                 ${e.code ? `
-                                <div class="flex items-center justify-between p-3 rounded-[14px] hover:bg-gray-50 transition-colors mb-1">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-7 h-7 rounded-[10px] bg-gray-50 flex items-center justify-center text-gray-500 border border-gray-100"><i data-lucide="hash" class="w-3.5 h-3.5"></i></div>
-                                        <span class="text-[11px] font-bold text-gray-600">كود الموظف</span>
+                                <div class="flex items-center justify-between p-2.5 rounded-[12px] hover:bg-gray-50 transition-colors mb-1">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-6 h-6 rounded-[8px] bg-gray-50 flex items-center justify-center text-gray-500 border border-gray-100"><i data-lucide="hash" class="w-3 h-3"></i></div>
+                                        <span class="text-[10px] font-bold text-gray-600">الكود</span>
                                     </div>
-                                    <span class="text-[13px] font-black text-blue-700">${e.code}</span>
+                                    <span class="text-[11px] font-black text-blue-700">${e.code}</span>
                                 </div>` : ''}
 
                                 ${e.phone ? `
-                                <div class="flex items-center justify-between p-3 rounded-[14px] hover:bg-gray-50 transition-colors mb-1">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-7 h-7 rounded-[10px] bg-gray-50 flex items-center justify-center text-gray-500 border border-gray-100"><i data-lucide="smartphone" class="w-3.5 h-3.5"></i></div>
-                                        <span class="text-[11px] font-bold text-gray-600">رقم الهاتف</span>
+                                <div class="flex items-center justify-between p-2.5 rounded-[12px] hover:bg-gray-50 transition-colors mb-1">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-6 h-6 rounded-[8px] bg-gray-50 flex items-center justify-center text-gray-500 border border-gray-100"><i data-lucide="smartphone" class="w-3 h-3"></i></div>
+                                        <span class="text-[10px] font-bold text-gray-600">الهاتف</span>
                                     </div>
-                                    <span class="text-[12px] font-black text-gray-900 tracking-wide" dir="ltr">${e.phone}</span>
+                                    <span class="text-[11px] font-black text-gray-900 tracking-wide" dir="ltr">${e.phone}</span>
                                 </div>` : ''}
 
-                                <div class="flex items-center justify-between p-3 rounded-[14px] hover:bg-gray-50 transition-colors">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-7 h-7 rounded-[10px] bg-gray-50 flex items-center justify-center text-gray-500 border border-gray-100"><i data-lucide="briefcase" class="w-3.5 h-3.5"></i></div>
-                                        <span class="text-[11px] font-bold text-gray-600">القسم / الوظيفة</span>
+                                <div class="flex items-center justify-between p-2.5 rounded-[12px] hover:bg-gray-50 transition-colors">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-6 h-6 rounded-[8px] bg-gray-50 flex items-center justify-center text-gray-500 border border-gray-100"><i data-lucide="briefcase" class="w-3 h-3"></i></div>
+                                        <span class="text-[10px] font-bold text-gray-600">القسم / الوظيفة</span>
                                     </div>
-                                    <span class="text-[11px] font-bold text-gray-900">${e.jobTitle}</span>
+                                    <span class="text-[10px] font-bold text-gray-900">${e.jobTitle}</span>
                                 </div>
                             </div>
                         </div>
 
                         ${App.isAdmin ? `
-                        <div class="grid grid-cols-2 gap-2.5 mt-1 px-5 pt-1">
-                            <button onclick="App.Core.deleteEmployee('${e.uid}')" class="py-3 bg-white border-2 border-rose-100 text-rose-600 rounded-[14px] text-[11px] font-bold hover:bg-rose-50 active:scale-95 transition-all flex items-center justify-center gap-1.5">
-                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> مسح البيانات
+                        <div class="grid grid-cols-2 gap-2 mt-1 px-4 pt-1">
+                            <button onclick="App.Core.deleteEmployee('${e.uid}')" class="py-2.5 bg-white border border-rose-100 text-rose-600 rounded-[12px] text-[10px] font-bold hover:bg-rose-50 active:scale-95 transition-all flex items-center justify-center gap-1.5">
+                                <i data-lucide="trash-2" class="w-3 h-3"></i> مسح
                             </button>
-                            <button onclick="App.Core.openFormModal('${e.uid}')" class="py-3 bg-gray-900 text-white rounded-[14px] text-[11px] font-bold shadow-xl shadow-gray-900/20 active:scale-95 transition-all flex items-center justify-center gap-1.5">
-                                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> تعديل السجل
+                            <button onclick="App.Core.openFormModal('${e.uid}')" class="py-2.5 bg-gray-900 text-white rounded-[12px] text-[10px] font-bold shadow-md shadow-gray-900/20 active:scale-95 transition-all flex items-center justify-center gap-1.5">
+                                <i data-lucide="edit-3" class="w-3 h-3"></i> تعديل
                             </button>
                         </div>` : ''}
                     `;
