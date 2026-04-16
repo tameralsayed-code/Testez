@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#3B82F6">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>قسم الإنتاج | V42 Professional UI</title>
+    <title>قسم الإنتاج | V44 Ultra Secure UI</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -72,7 +72,14 @@
         .list-item { animation: fadeInScale 0.3s forwards; opacity: 0; }
         .btn-primary { background: var(--primary-gradient); color: white; padding: 14px 24px; border-radius: var(--radius-lg); font-weight: 600; border: none; cursor: pointer; transition: 0.2s; }
         .btn-primary:active { transform: scale(0.98); }
-        .fab-enhanced { position: fixed; bottom: 28px; left: 24px; z-index: 20; width: 60px; height: 60px; border-radius: 50%; background: var(--primary-gradient); color: white; display: flex; align-items: center; justify-content: center; shadow: var(--shadow-xl); border: none; }
+        
+        /* ضبط الـ FAB ليكون مخفياً برمجياً بشكل كامل إلا عند استدعائه */
+        .fab-enhanced { 
+            position: fixed; bottom: 28px; left: 24px; z-index: 20; width: 60px; height: 60px; 
+            border-radius: 50%; background: var(--primary-gradient); color: white; 
+            display: none; align-items: center; justify-content: center; 
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4); border: none; 
+        }
 
         .badge-status { display: flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 99px; border: 1px solid transparent; }
         .badge-active { background-color: #ecfdf5; border-color: #d1fae5; }
@@ -111,7 +118,8 @@
         </div>
     </main>
 
-    <button id="fabAdd" onclick="App.Core.openFormModal()" class="hidden fab-enhanced"><i data-lucide="plus" class="w-7 h-7"></i></button>
+    <!-- الزر لا يحتوي على كلاسات الظهور في Tailwind، والتحكم يتم عبر الـ ID حصراً -->
+    <button id="fabAdd" onclick="App.Core.openFormModal()" class="fab-enhanced"><i data-lucide="plus" class="w-7 h-7"></i></button>
 
     <div id="modalOverlay" class="sheet-overlay" onclick="window.history.back()"></div>
 
@@ -399,8 +407,18 @@
                     else html = this.renderHome(live);
 
                     document.getElementById('mainContent').innerHTML = html || this.getLoadingState();
+                    
+                    // تحكم مطلق في أزرار المسؤول
                     document.getElementById('btnWipe').classList.toggle('flex', App.isAdmin && view === 'home');
-                    document.getElementById('fabAdd').classList.toggle('hidden', !App.isAdmin || !shift || !!query);
+                    
+                    // ضبط صارم لزر الإضافة: لا يظهر إلا في وضع Admin && داخل وردية && لا يوجد بحث
+                    const fab = document.getElementById('fabAdd');
+                    if (App.isAdmin && shift && !query) {
+                        fab.style.display = 'flex';
+                    } else {
+                        fab.style.display = 'none';
+                    }
+
                     document.getElementById('uiMainTitle').innerText = query ? 'البحث' : (shift === 'office' ? 'طاقم الإدارة' : shift === 'broadcast' ? 'الإعلانات' : shift ? `وردية ${shift}` : 'قسم الإنتاج');
                     
                     this.handleModalUI(modal, uid);
@@ -440,7 +458,6 @@
                     if (now.getHours() < 8) targetDate.setDate(targetDate.getDate() - 1);
                     const typeMap = { 'morning':'الوردية الأولى', 'noon':'الوردية الثانية', 'evening':'الوردية الثالثة', 'morning-rest':'راحة', 'noon-rest':'راحة', 'evening-rest':'راحة' };
                     
-                    // حساب الإحصائيات مجمعة من كافة الورادي الأربع للقسم الحالي
                     const deptEmployees = App.State.employees.filter(e => 
                         (view === 'prep' && e.department === 'prep') || 
                         (view.startsWith('line') && e.line === view.replace('line',''))
@@ -479,7 +496,6 @@
 
                 renderEmployeeList(view, shift) {
                     const filtered = App.State.employees.filter(e => e.shift === shift && (view==='management'?e.department==='management':view==='prep'?e.department==='prep':view==='announcements'?e.department==='announcements':e.line===view.replace('line','')));
-                    
                     const activeCount = filtered.filter(e => e.status !== 'sick').length;
                     const sickCount = filtered.filter(e => e.status === 'sick').length;
 
@@ -530,10 +546,7 @@
                     const { view, shift, employees } = App.State;
                     document.getElementById('formEmployee').reset();
                     document.getElementById('newNameContainer').classList.add('hidden');
-                    
-                    const jobsInHierarchy = App.Hierarchy;
-                    const jobsInSource = [...new Set(App.SourceData.map(i => i.job))];
-                    const allJobs = [...new Set([...jobsInHierarchy, ...jobsInSource])].sort((a, b) => {
+                    const allJobs = [...new Set([...App.Hierarchy, ...App.SourceData.map(i => i.job)])].sort((a, b) => {
                         const indexA = App.Hierarchy.indexOf(a);
                         const indexB = App.Hierarchy.indexOf(b);
                         if (indexA === -1 && indexB === -1) return a.localeCompare(b, 'ar');
@@ -541,9 +554,7 @@
                         if (indexB === -1) return -1;
                         return indexA - indexB;
                     });
-
                     document.getElementById('inpJob').innerHTML = '<option value="">اختر الوظيفة...</option>' + allJobs.map(j => `<option value="${j}">${j}</option>`).join('');
-                    
                     if(uid) {
                         const e = employees.find(x => x.uid == uid);
                         if(e) {
@@ -583,12 +594,10 @@
                 onJobSelect(jobTitle, resetName = true) {
                     const combined = [...App.SourceData, ...App.State.customContacts];
                     const names = [...new Set(combined.filter(i => i.job === jobTitle).map(i => i.name))].sort();
-                    
                     const nameSelect = document.getElementById('inpName');
                     nameSelect.innerHTML = '<option value="">اختر الاسم...</option>' + 
                         names.map(n => `<option value="${n}">${n}</option>`).join('') + 
                         '<option value="__NEW__">➕ إضافة اسم جديد غير مسجل</option>';
-                    
                     if(resetName) { 
                         document.getElementById('newNameContainer').classList.add('hidden'); 
                         document.getElementById('inpCode').value = ''; 
@@ -616,37 +625,23 @@
                 saveEmployee(ev) {
                     ev.preventDefault();
                     const nameSelectVal = document.getElementById('inpName').value;
-                    const isNewName = (nameSelectVal === "__NEW__");
-                    const finalName = isNewName ? document.getElementById('inpNewName').value.trim() : nameSelectVal;
-                    
+                    const finalName = (nameSelectVal === "__NEW__") ? document.getElementById('inpNewName').value.trim() : nameSelectVal;
                     if(!finalName) return Toast.show("يرجى إدخال الاسم", "error");
-                    
                     const uid = document.getElementById('inpId').value || "ID-"+Date.now();
                     const job = document.getElementById('inpJob').value;
-                    const code = document.getElementById('inpCode').value || '';
-                    const phone = document.getElementById('inpPhone').value.trim();
-                    
-                    if(isNewName) {
-                        const newContact = { job: job, name: finalName, code: code, phone: phone };
+                    if(nameSelectVal === "__NEW__") {
+                        const newContact = { job: job, name: finalName, code: document.getElementById('inpCode').value || '', phone: document.getElementById('inpPhone').value.trim() };
                         window.cloudDB.set(window.cloudDB.ref(window.cloudDB.db, 'contacts/' + finalName.replace(/[.#$[\]]/g, "")), newContact);
                     }
-
                     const jobIdx = App.Hierarchy.indexOf(job);
-                    const sortOrder = jobIdx !== -1 ? jobIdx * 100 : 99999;
-                    
                     const emp = { 
-                        uid, 
-                        name: finalName, 
-                        code: code, 
-                        jobTitle: job, 
+                        uid, name: finalName, code: document.getElementById('inpCode').value || '', jobTitle: job, 
                         department: document.getElementById('inpDept').value, 
                         line: (document.getElementById('inpDept').value==='rolling')?document.getElementById('inpLine').value:'none', 
                         shift: document.getElementById('inpShift').value, 
-                        phone: phone, 
-                        status: document.getElementById('inpStatus').value, 
-                        sortOrder: sortOrder 
+                        phone: document.getElementById('inpPhone').value.trim(), status: document.getElementById('inpStatus').value, 
+                        sortOrder: jobIdx !== -1 ? jobIdx * 100 : 99999 
                     };
-
                     window.cloudDB.set(window.cloudDB.ref(window.cloudDB.db, 'employees/' + uid), emp);
                     Toast.show("تم حفظ البيانات بنجاح", "success");
                     window.history.back();
