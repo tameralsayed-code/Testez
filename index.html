@@ -456,6 +456,12 @@
                     sheetForm.classList.toggle('is-open', modal === 'form');
                     sheetDetails.classList.toggle('is-open', modal === 'details' || modal === 'substitutes');
                     
+                    // إعادة السكرول إلى أعلى الشاشة عند فتح أي تفاصيل لمنع بقاء السكرول السابق
+                    if (modal === 'details' || modal === 'substitutes') {
+                        const contentDiv = document.getElementById('uiDetailsContent');
+                        if (contentDiv) contentDiv.scrollTop = 0;
+                    }
+
                     if (modal === 'form') this.fillFormUI(uid);
                     else if (modal === 'details') this.fillDetailsUI(uid);
                     else if (modal === 'substitutes') this.fillSubstitutesUI(uid);
@@ -554,10 +560,14 @@
                             </div>`;
                         }
 
-                        // تم دمج وظيفة استدعاء البدلاء في أيقونة الوردية نفسها بدلاً من زر منفصل
+                        const isManagement = e.department === 'management';
+                        const avatarAction = isManagement ? '' : `onclick="event.stopPropagation(); App.Core.showSubstitutes('${e.uid}')"`;
+                        const avatarHoverClasses = isManagement ? '' : 'hover:ring-2 hover:ring-indigo-200 active:scale-90 cursor-pointer';
+                        const avatarTitle = isManagement ? '' : `title="اضغط لعرض البدلاء المتاحين"`;
+
                         return `<div onclick="App.Core.openDetails('${e.uid}')" class="${isSick ? 'bg-rose-50 border-rose-200' : 'bg-white border-gray-100'} p-4 rounded-[22px] border flex items-center justify-between shadow-sm active:scale-[0.98] transition-all list-item">
                             <div class="flex items-center gap-4 flex-1 min-w-0">
-                                <div onclick="event.stopPropagation(); App.Core.showSubstitutes('${e.uid}')" class="w-11 h-11 ${isSick?'bg-rose-100 text-rose-600':'bg-gray-50 text-gray-500'} rounded-[16px] flex items-center justify-center shrink-0 border border-black/5 hover:ring-2 hover:ring-indigo-200 active:scale-90 transition-all cursor-pointer shadow-sm" title="اضغط لعرض البدلاء المتاحين">${e.department==='management'?'💼':e.shift}</div>
+                                <div ${avatarAction} class="w-11 h-11 ${isSick?'bg-rose-100 text-rose-600':'bg-gray-50 text-gray-500'} rounded-[16px] flex items-center justify-center shrink-0 border border-black/5 transition-all shadow-sm ${avatarHoverClasses}" ${avatarTitle}>${isManagement?'💼':e.shift}</div>
                                 <div class="flex-1 min-w-0">
                                     <h3 class="font-normal text-sm ${isSick?'text-rose-900':'text-gray-900'} truncate">${isSick?'<span class="text-[10px] bg-rose-200 text-rose-700 px-1.5 rounded-sm mr-1">مرضي</span>':''}${e.name}</h3>
                                     <p class="text-[10px] ${subColor} truncate mt-0.5">${e.jobTitle} ${e.code?'| '+e.code:''}</p>
@@ -570,7 +580,13 @@
 
                 renderSearch(q) {
                     const filtered = App.State.employees.filter(e => e.name.toLowerCase().includes(q.toLowerCase()) || (e.code && e.code.toString().includes(q)));
-                    return `<div class="space-y-3">${filtered.map(e => `<div onclick="App.Core.openDetails('${e.uid}')" class="bg-white p-4 rounded-2xl border flex items-center gap-4 shadow-sm"><div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-normal">${e.shift}</div><div class="text-right"><h3 class="text-sm text-gray-900 font-normal">${e.name}</h3><p class="text-[10px] text-gray-400">${e.jobTitle}</p></div></div>`).join('')}</div>`;
+                    return `<div class="space-y-3">${filtered.map(e => {
+                        const isManagement = e.department === 'management';
+                        const avatarAction = isManagement ? '' : `onclick="event.stopPropagation(); App.Core.showSubstitutes('${e.uid}')"`;
+                        const avatarHoverClasses = isManagement ? '' : 'hover:ring-2 hover:ring-indigo-200 active:scale-90 cursor-pointer';
+                        const avatarTitle = isManagement ? '' : `title="اضغط لعرض البدلاء المتاحين"`;
+                        return `<div onclick="App.Core.openDetails('${e.uid}')" class="bg-white p-4 rounded-2xl border flex items-center gap-4 shadow-sm"><div ${avatarAction} class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-normal transition-all ${avatarHoverClasses}" ${avatarTitle}>${isManagement?'💼':e.shift}</div><div class="text-right"><h3 class="text-sm text-gray-900 font-normal">${e.name}</h3><p class="text-[10px] text-gray-400">${e.jobTitle}</p></div></div>`
+                    }).join('')}</div>`;
                 },
 
                 fillDetailsUI(uid) {
@@ -684,14 +700,21 @@
                     lucide.createIcons();
                 },
                 
-                // الوظيفة الإضافية الجديدة (نافذة البدلاء) - تم إضافة فلتر لمنع تكرار نفس الاسم
+                // الوظيفة الإضافية (نافذة البدلاء) - محدثة بالترتيب الذكي والفلترة
                 fillSubstitutesUI(uid) {
                     const e = App.State.employees.find(x => x.uid == uid);
                     if(!e) return;
 
                     let rawSubstitutes = App.State.employees.filter(x => x.jobTitle === e.jobTitle && x.uid !== e.uid);
                     
-                    // منع تكرار نفس البديل (مثل المهندسين)
+                    // فرز الذكي: البدلاء من نفس الخط يأتون أولاً
+                    rawSubstitutes.sort((a, b) => {
+                        const aSameLine = (a.line === e.line) ? 1 : 0;
+                        const bSameLine = (b.line === e.line) ? 1 : 0;
+                        return bSameLine - aSameLine;
+                    });
+                    
+                    // منع تكرار نفس البديل
                     const uniqueSubstitutes =[];
                     const seenNames = new Set();
                     for (const sub of rawSubstitutes) {
