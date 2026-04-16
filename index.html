@@ -512,7 +512,11 @@
                 },
 
                 renderEmployeeList(view, shift) {
-                    const filtered = App.State.employees.filter(e => e.shift === shift && (view==='management'?e.department==='management':view==='prep'?e.department==='prep':view==='announcements'?e.department==='announcements':e.line===view.replace('line','')));
+                    const filtered = App.State.employees.filter(e => {
+                        if (view === 'management') return e.department === 'management';
+                        if (view === 'announcements') return e.department === 'announcements';
+                        return e.shift === shift && (view === 'prep' ? e.department === 'prep' : e.line === view.replace('line', ''));
+                    });
                     const activeCount = filtered.filter(e => e.status !== 'sick').length;
                     const sickCount = filtered.filter(e => e.status === 'sick').length;
 
@@ -677,7 +681,7 @@
                             document.getElementById('inpPhone').value = e.phone;
                             document.getElementById('inpDept').value = e.department;
                             document.getElementById('inpLine').value = e.line;
-                            document.getElementById('inpShift').value = e.shift;
+                            document.getElementById('inpShift').value =['A','B','C','D'].includes(e.shift) ? e.shift : 'A';
                             document.getElementById('inpStatus').value = e.status || 'active';
                             document.getElementById('uiFormTitle').innerText = "تحديث بيانات الموظف";
                         }
@@ -741,7 +745,7 @@
                 openDetails: (uid) => App.Navigate({ modal: 'details', uid: uid }),
                 openFormModal: (uid = null) => App.Navigate({ modal: 'form', uid: uid }),
                 clearSearch: () => App.Navigate({ query: '' }),
-                handleDeptChange: () => { const d = document.getElementById('inpDept').value; const loc = document.getElementById('locFields'); if(loc) loc.classList.toggle('hidden', d === 'management'); },
+                handleDeptChange: () => { const d = document.getElementById('inpDept').value; const loc = document.getElementById('locFields'); if(loc) loc.classList.toggle('hidden', d === 'management' || d === 'announcements'); },
                 saveEmployee(ev) {
                     ev.preventDefault();
                     
@@ -760,12 +764,13 @@
                         window.cloudDB.set(window.cloudDB.ref(window.cloudDB.db, 'contacts/' + finalName.replace(/[.#$[\]]/g, "")), newContact);
                     }
                     
+                    const dpt = document.getElementById('inpDept').value;
                     const jobIdx = App.Hierarchy.indexOf(finalJob);
                     const emp = { 
                         uid, name: finalName, code: document.getElementById('inpCode').value || '', jobTitle: finalJob, 
-                        department: document.getElementById('inpDept').value, 
-                        line: (document.getElementById('inpDept').value==='rolling')?document.getElementById('inpLine').value:'none', 
-                        shift: document.getElementById('inpShift').value, 
+                        department: dpt, 
+                        line: (dpt === 'rolling') ? document.getElementById('inpLine').value : 'none', 
+                        shift: (dpt === 'management') ? 'office' : (dpt === 'announcements') ? 'broadcast' : document.getElementById('inpShift').value, 
                         phone: document.getElementById('inpPhone').value.trim(), status: document.getElementById('inpStatus').value, 
                         sortOrder: jobIdx !== -1 ? jobIdx * 100 : 99999 
                     };
