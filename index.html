@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#3B82F6">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>قسم الإنتاج | V40 Updated UI</title>
+    <title>قسم الإنتاج | V42 Professional UI</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -218,7 +218,6 @@
 
         const App = {
             isAdmin: new URLSearchParams(window.location.search).get('mode') === 'admin',
-            // الترتيب الجديد المطلوب
             Hierarchy: [
                 "مهندس الوردية", 
                 "ملاحظ الوردية", 
@@ -368,7 +367,6 @@
                     if (!window.cloudDB) return;
                     window.cloudDB.onValue(window.cloudDB.ref(window.cloudDB.db, 'employees'), (snapshot) => {
                         const data = snapshot.val();
-                        // تحديث منطق الفرز هنا ليعتمد دائماً على Hierarchy حتى للبيانات القديمة
                         App.State.employees = data ? Object.values(data).sort((a, b) => {
                             const idxA = App.Hierarchy.indexOf(a.jobTitle);
                             const idxB = App.Hierarchy.indexOf(b.jobTitle);
@@ -442,7 +440,32 @@
                     if (now.getHours() < 8) targetDate.setDate(targetDate.getDate() - 1);
                     const typeMap = { 'morning':'الوردية الأولى', 'noon':'الوردية الثانية', 'evening':'الوردية الثالثة', 'morning-rest':'راحة', 'noon-rest':'راحة', 'evening-rest':'راحة' };
                     
-                    return `<div class="mb-5 flex justify-between items-center">
+                    // حساب الإحصائيات مجمعة من كافة الورادي الأربع للقسم الحالي
+                    const deptEmployees = App.State.employees.filter(e => 
+                        (view === 'prep' && e.department === 'prep') || 
+                        (view.startsWith('line') && e.line === view.replace('line',''))
+                    );
+                    const totalCount = deptEmployees.length;
+                    const activeTotal = deptEmployees.filter(e => e.status !== 'sick').length;
+                    const sickTotal = deptEmployees.filter(e => e.status === 'sick').length;
+
+                    let statsHtml = '';
+                    if (['line1', 'line2', 'prep'].includes(view)) {
+                        statsHtml = `
+                        <div class="mt-8 flex justify-between items-center px-1">
+                            <h3 class="text-[10px] text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                                <span>القوة الإجمالية</span>
+                                <span class="text-gray-900 font-bold">${totalCount}</span>
+                            </h3>
+                            <div class="flex items-center gap-2">
+                               <div class="badge-status badge-active"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span class="text-[9px] font-bold text-emerald-700">نشط: ${activeTotal}</span></div>
+                               <div class="badge-status badge-inactive"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span><span class="text-[9px] font-bold text-rose-700">مرضي: ${sickTotal}</span></div>
+                            </div>
+                        </div>`;
+                    }
+
+                    return `
+                    <div class="mb-5 flex justify-between items-center">
                         <h3 class="text-base font-normal text-gray-700">اختر الوردية</h3>
                     </div>
                     <div class="space-y-4">${['A','B','C','D'].map(s => {
@@ -450,7 +473,8 @@
                             const isWorking = (s === live.group);
                             const isRest = status.type.includes('rest');
                             return `<div onclick="App.Core.navigateShift('${s}')" class="bg-gradient-to-br ${isWorking?'from-emerald-50 to-teal-50 border-emerald-200':isRest?'from-rose-50 to-red-50 border-rose-200':'from-gray-50 to-slate-50 border-gray-200'} p-4 rounded-2xl border flex items-center justify-between shadow-sm hover:shadow-md transition-all"><div class="flex items-center gap-4"><div class="w-12 h-12 rounded-xl bg-gradient-to-br ${isWorking?'from-emerald-500 to-teal-500':isRest?'from-rose-500 to-red-500':'from-gray-400 to-slate-500'} text-white flex items-center justify-center text-lg shadow-md">${s}</div><div><h3 class="text-gray-900 font-normal">وردية ${s}</h3><p class="text-xs ${isWorking?'text-emerald-600':isRest?'text-rose-600':'text-gray-500'} font-normal">${typeMap[status.type] || 'خارج الدوام'}</p></div></div><i data-lucide="chevron-left" class="w-5 h-5 text-gray-300"></i></div>`;
-                        }).join('')}</div>`;
+                        }).join('')}</div>
+                    ${statsHtml}`;
                 },
 
                 renderEmployeeList(view, shift) {
@@ -467,7 +491,7 @@
                         </h3>
                         <div class="flex items-center gap-2">
                            <div class="badge-status badge-active"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span class="text-[9px] font-bold text-emerald-700">نشط: ${activeCount}</span></div>
-                           <div class="badge-status badge-inactive"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span><span class="text-[9px] font-bold text-rose-700">غير نشط: ${sickCount}</span></div>
+                           <div class="badge-status badge-inactive"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span><span class="text-[9px] font-bold text-rose-700">مرضي: ${sickCount}</span></div>
                         </div>
                     </div>
                     <div class="space-y-4">${filtered.map(e => {
@@ -507,7 +531,6 @@
                     document.getElementById('formEmployee').reset();
                     document.getElementById('newNameContainer').classList.add('hidden');
                     
-                    // تحضير قائمة الوظائف بناءً على الترتيب الهرمي (Hierarchy)
                     const jobsInHierarchy = App.Hierarchy;
                     const jobsInSource = [...new Set(App.SourceData.map(i => i.job))];
                     const allJobs = [...new Set([...jobsInHierarchy, ...jobsInSource])].sort((a, b) => {
