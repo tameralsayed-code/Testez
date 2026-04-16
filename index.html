@@ -1,5 +1,3 @@
---- START OF FILE index.html ---
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -139,6 +137,11 @@
                     </select>
                 </div>
 
+                <div id="newJobContainer" class="form-group hidden">
+                    <label class="form-label text-blue-600">اكتب الوظيفة الجديدة هنا</label>
+                    <input type="text" id="inpNewJob" class="form-input no-arrow" placeholder="أدخل المسمى الوظيفي...">
+                </div>
+
                 <div class="form-group">
                     <label class="form-label">الاسم</label>
                     <select id="inpName" required class="form-input" onchange="App.Core.onNameSelect(this.value)">
@@ -226,7 +229,7 @@
 
         const App = {
             isAdmin: new URLSearchParams(window.location.search).get('mode') === 'admin',
-            Hierarchy: [
+            Hierarchy:[
                 "مهندس الوردية", 
                 "ملاحظ الوردية", 
                 "قائم بأعمال الملاحظ",
@@ -238,7 +241,7 @@
                 "فني درفلة المرحلة النهائية", 
                 "فني مراقبة سرير التبريد"
             ],
-            SourceData: [
+            SourceData:[
                 {job:"مهندس الوردية", name:"م/ محمد ناصر", code:"3206", phone:"01094078874"},
                 {job:"مشغل غرفة التحكم الرئيسية", name:"أحمد أمين السيد", code:"653", phone:"01008036236"},
                 {job:"مشغل غرفة تحكم الفرن", name:"علي رضا", code:"1508", phone:""},
@@ -327,7 +330,7 @@
                 {job:"فني مراقبة سرير التبريد", name:"محمد عبدالعليم", code:"1204", phone:""}
             ],
 
-            State: { employees: [], customContacts: [], view: 'home', shift: null, query: '', modal: null, uid: null },
+            State: { employees: [], customContacts:[], view: 'home', shift: null, query: '', modal: null, uid: null },
 
             Navigate: (target, replace = false) => {
                 Object.assign(App.State, target);
@@ -380,14 +383,14 @@
                             const idxB = App.Hierarchy.indexOf(b.jobTitle);
                             if (idxA !== idxB) return idxA - idxB;
                             return (a.sortOrder || 0) - (b.sortOrder || 0);
-                        }) : [];
+                        }) :[];
                         const loader = document.getElementById('skeletonLoader');
                         if(loader) loader.classList.add('hidden');
                         App.UI.updateAll();
                     });
                     window.cloudDB.onValue(window.cloudDB.ref(window.cloudDB.db, 'contacts'), (snapshot) => {
                         const data = snapshot.val();
-                        App.State.customContacts = data ? Object.values(data) : [];
+                        App.State.customContacts = data ? Object.values(data) :[];
                     });
                 },
 
@@ -546,7 +549,16 @@
                     const { view, shift, employees } = App.State;
                     document.getElementById('formEmployee').reset();
                     document.getElementById('newNameContainer').classList.add('hidden');
-                    const allJobs = [...new Set([...App.Hierarchy, ...App.SourceData.map(i => i.job)])].sort((a, b) => {
+                    
+                    const newJobContainer = document.getElementById('newJobContainer');
+                    if (newJobContainer) newJobContainer.classList.add('hidden');
+                    
+                    const allJobs = [...new Set([
+                        ...App.Hierarchy, 
+                        ...App.SourceData.map(i => i.job),
+                        ...App.State.customContacts.map(i => i.job),
+                        ...App.State.employees.map(i => i.jobTitle)
+                    ])].filter(Boolean).sort((a, b) => {
                         const indexA = App.Hierarchy.indexOf(a);
                         const indexB = App.Hierarchy.indexOf(b);
                         if (indexA === -1 && indexB === -1) return a.localeCompare(b, 'ar');
@@ -554,7 +566,9 @@
                         if (indexB === -1) return -1;
                         return indexA - indexB;
                     });
-                    document.getElementById('inpJob').innerHTML = '<option value="">اختر الوظيفة...</option>' + allJobs.map(j => `<option value="${j}">${j}</option>`).join('');
+                    
+                    document.getElementById('inpJob').innerHTML = '<option value="">اختر الوظيفة...</option>' + allJobs.map(j => `<option value="${j}">${j}</option>`).join('') + '<option value="__NEW_JOB__" class="font-bold text-blue-600">➕ إضافة وظيفة جديدة</option>';
+                    
                     if(uid) {
                         const e = employees.find(x => x.uid == uid);
                         if(e) {
@@ -592,13 +606,22 @@
 
             Core: {
                 onJobSelect(jobTitle, resetName = true) {
+                    const isNewJob = (jobTitle === "__NEW_JOB__");
+                    const newJobContainer = document.getElementById('newJobContainer');
+                    if (newJobContainer) newJobContainer.classList.toggle('hidden', !isNewJob);
+
                     const combined = [...App.SourceData, ...App.State.customContacts];
-                    const names = [...new Set(combined.filter(i => i.job === jobTitle).map(i => i.name))].sort();
+                    const names = isNewJob ? [] :[...new Set(combined.filter(i => i.job === jobTitle).map(i => i.name))].sort();
+                    
                     const nameSelect = document.getElementById('inpName');
-                    nameSelect.innerHTML = '<option value="">اختر الاسم...</option>' + 
+                    nameSelect.innerHTML = (isNewJob ? '' : '<option value="">اختر الاسم...</option>') + 
                         names.map(n => `<option value="${n}">${n}</option>`).join('') + 
                         '<option value="__NEW__">➕ إضافة اسم جديد غير مسجل</option>';
-                    if(resetName) { 
+                    
+                    if (isNewJob) {
+                        nameSelect.value = "__NEW__";
+                        App.Core.onNameSelect("__NEW__");
+                    } else if (resetName) { 
                         document.getElementById('newNameContainer').classList.add('hidden'); 
                         document.getElementById('inpCode').value = ''; 
                         document.getElementById('inpPhone').value = ''; 
@@ -624,18 +647,25 @@
                 handleDeptChange: () => { const d = document.getElementById('inpDept').value; const loc = document.getElementById('locFields'); if(loc) loc.classList.toggle('hidden', d === 'management'); },
                 saveEmployee(ev) {
                     ev.preventDefault();
+                    
                     const nameSelectVal = document.getElementById('inpName').value;
                     const finalName = (nameSelectVal === "__NEW__") ? document.getElementById('inpNewName').value.trim() : nameSelectVal;
                     if(!finalName) return Toast.show("يرجى إدخال الاسم", "error");
+                    
                     const uid = document.getElementById('inpId').value || "ID-"+Date.now();
-                    const job = document.getElementById('inpJob').value;
+                    
+                    const jobSelectVal = document.getElementById('inpJob').value;
+                    const finalJob = (jobSelectVal === "__NEW_JOB__") ? document.getElementById('inpNewJob').value.trim() : jobSelectVal;
+                    if(!finalJob) return Toast.show("يرجى إدخال الوظيفة", "error");
+
                     if(nameSelectVal === "__NEW__") {
-                        const newContact = { job: job, name: finalName, code: document.getElementById('inpCode').value || '', phone: document.getElementById('inpPhone').value.trim() };
+                        const newContact = { job: finalJob, name: finalName, code: document.getElementById('inpCode').value || '', phone: document.getElementById('inpPhone').value.trim() };
                         window.cloudDB.set(window.cloudDB.ref(window.cloudDB.db, 'contacts/' + finalName.replace(/[.#$[\]]/g, "")), newContact);
                     }
-                    const jobIdx = App.Hierarchy.indexOf(job);
+                    
+                    const jobIdx = App.Hierarchy.indexOf(finalJob);
                     const emp = { 
-                        uid, name: finalName, code: document.getElementById('inpCode').value || '', jobTitle: job, 
+                        uid, name: finalName, code: document.getElementById('inpCode').value || '', jobTitle: finalJob, 
                         department: document.getElementById('inpDept').value, 
                         line: (document.getElementById('inpDept').value==='rolling')?document.getElementById('inpLine').value:'none', 
                         shift: document.getElementById('inpShift').value, 
