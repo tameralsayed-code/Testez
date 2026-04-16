@@ -395,6 +395,9 @@
                     window.cloudDB.onValue(window.cloudDB.ref(window.cloudDB.db, 'employees'), (snapshot) => {
                         const data = snapshot.val();
                         App.State.employees = data ? Object.values(data).sort((a, b) => {
+                            if (a.department === 'management' && b.department === 'management') {
+                                return (a.sortOrder || 0) - (b.sortOrder || 0);
+                            }
                             const idxA = App.Hierarchy.indexOf(a.jobTitle);
                             const idxB = App.Hierarchy.indexOf(b.jobTitle);
                             if (idxA !== idxB) return idxA - idxB;
@@ -517,6 +520,11 @@
                         if (view === 'announcements') return e.department === 'announcements';
                         return e.shift === shift && (view === 'prep' ? e.department === 'prep' : e.line === view.replace('line', ''));
                     });
+
+                    if (view === 'management') {
+                        filtered.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+                    }
+
                     const activeCount = filtered.filter(e => e.status !== 'sick').length;
                     const sickCount = filtered.filter(e => e.status === 'sick').length;
 
@@ -531,10 +539,28 @@
                            <div class="badge-status badge-inactive"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span><span class="text-[9px] font-bold text-rose-700">مرضي: ${sickCount}</span></div>
                         </div>
                     </div>
-                    <div class="space-y-4">${filtered.map(e => {
+                    <div class="space-y-4">${filtered.map((e, index) => {
                         const isSick = e.status === 'sick';
                         const subColor = isSick ? 'text-rose-500' : ((view === 'management' || shift !== 'office') ? 'text-blue-600' : 'text-gray-400');
-                        return `<div onclick="App.Core.openDetails('${e.uid}')" class="${isSick ? 'bg-rose-50 border-rose-200' : 'bg-white border-gray-100'} p-4 rounded-[22px] border flex items-center justify-between shadow-sm active:scale-[0.98] transition-all list-item"><div class="flex items-center gap-4 flex-1 min-w-0"><div class="w-11 h-11 ${isSick?'bg-rose-100 text-rose-600':'bg-gray-50 text-gray-500'} rounded-[16px] flex items-center justify-center shrink-0 border border-black/5">${e.department==='management'?'💼':e.shift}</div><div class="flex-1 min-w-0"><h3 class="font-normal text-sm ${isSick?'text-rose-900':'text-gray-900'} truncate">${isSick?'<span class="text-[10px] bg-rose-200 text-rose-700 px-1.5 rounded-sm mr-1">مرضي</span>':''}${e.name}</h3><p class="text-[10px] ${subColor} truncate mt-0.5">${e.jobTitle} ${e.code?'| '+e.code:''}</p></div></div></div>`;
+                        
+                        let arrowsHtml = '';
+                        if (App.isAdmin && view === 'management') {
+                            arrowsHtml = `<div class="flex flex-col gap-1.5 mr-3 shrink-0 border-r border-gray-100 pr-3" onclick="event.stopPropagation()">
+                                <button onclick="event.stopPropagation(); App.Core.moveEmployee('${e.uid}', 'up')" class="w-8 h-7 bg-white border border-gray-200 rounded-[8px] flex items-center justify-center text-gray-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 active:scale-90 transition-all ${index === 0 ? 'opacity-30 pointer-events-none' : 'shadow-sm'}"><i data-lucide="chevron-up" class="w-4 h-4"></i></button>
+                                <button onclick="event.stopPropagation(); App.Core.moveEmployee('${e.uid}', 'down')" class="w-8 h-7 bg-white border border-gray-200 rounded-[8px] flex items-center justify-center text-gray-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 active:scale-90 transition-all ${index === filtered.length - 1 ? 'opacity-30 pointer-events-none' : 'shadow-sm'}"><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
+                            </div>`;
+                        }
+
+                        return `<div onclick="App.Core.openDetails('${e.uid}')" class="${isSick ? 'bg-rose-50 border-rose-200' : 'bg-white border-gray-100'} p-4 rounded-[22px] border flex items-center justify-between shadow-sm active:scale-[0.98] transition-all list-item">
+                            <div class="flex items-center gap-4 flex-1 min-w-0">
+                                <div class="w-11 h-11 ${isSick?'bg-rose-100 text-rose-600':'bg-gray-50 text-gray-500'} rounded-[16px] flex items-center justify-center shrink-0 border border-black/5">${e.department==='management'?'💼':e.shift}</div>
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="font-normal text-sm ${isSick?'text-rose-900':'text-gray-900'} truncate">${isSick?'<span class="text-[10px] bg-rose-200 text-rose-700 px-1.5 rounded-sm mr-1">مرضي</span>':''}${e.name}</h3>
+                                    <p class="text-[10px] ${subColor} truncate mt-0.5">${e.jobTitle} ${e.code?'| '+e.code:''}</p>
+                                </div>
+                            </div>
+                            ${arrowsHtml}
+                        </div>`;
                     }).join('')}</div>`;
                 },
 
@@ -777,6 +803,31 @@
                     window.cloudDB.set(window.cloudDB.ref(window.cloudDB.db, 'employees/' + uid), emp);
                     Toast.show("تم حفظ البيانات بنجاح", "success");
                     window.history.back();
+                },
+                moveEmployee(uid, direction) {
+                    const { view } = App.State;
+                    if (view !== 'management') return;
+                    
+                    let filtered = App.State.employees.filter(e => e.department === 'management');
+                    filtered.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+                    
+                    const idx = filtered.findIndex(e => e.uid === uid);
+                    if (idx < 0) return;
+                    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+                    if (targetIdx < 0 || targetIdx >= filtered.length) return;
+                    
+                    filtered.forEach((e, i) => e.sortOrder = i * 10);
+                    
+                    const temp = filtered[idx].sortOrder;
+                    filtered[idx].sortOrder = filtered[targetIdx].sortOrder;
+                    filtered[targetIdx].sortOrder = temp;
+                    
+                    filtered.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+                    App.UI.updateAll();
+                    
+                    filtered.forEach(e => {
+                        window.cloudDB.update(window.cloudDB.ref(window.cloudDB.db, `employees/${e.uid}`), { sortOrder: e.sortOrder });
+                    });
                 },
                 deleteEmployee(uid) { if(confirm('هل أنت متأكد من مسح هذه البيانات نهائياً؟')) { window.cloudDB.remove(window.cloudDB.ref(window.cloudDB.db, 'employees/' + uid)); window.history.back(); } },
                 wipeAllData() { if(confirm("مسح كافة البيانات؟")) window.cloudDB.remove(window.cloudDB.ref(window.cloudDB.db, 'employees')); }
