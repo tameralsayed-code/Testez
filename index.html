@@ -554,17 +554,12 @@
                             </div>`;
                         }
 
-                        // زر عرض البدلاء (صغير وأمام الموظف على سطر واحد)
-                        let substituteBtn = `<button onclick="event.stopPropagation(); App.Core.showSubstitutes('${e.uid}')" class="w-7 h-7 shrink-0 bg-indigo-50/80 border border-indigo-100 rounded-[8px] flex items-center justify-center text-indigo-500 hover:bg-indigo-100 active:scale-95 transition-all shadow-sm mr-2" title="عرض البدلاء"><i data-lucide="users" class="w-3.5 h-3.5"></i></button>`;
-
+                        // تم دمج وظيفة استدعاء البدلاء في أيقونة الوردية نفسها بدلاً من زر منفصل
                         return `<div onclick="App.Core.openDetails('${e.uid}')" class="${isSick ? 'bg-rose-50 border-rose-200' : 'bg-white border-gray-100'} p-4 rounded-[22px] border flex items-center justify-between shadow-sm active:scale-[0.98] transition-all list-item">
                             <div class="flex items-center gap-4 flex-1 min-w-0">
-                                <div class="w-11 h-11 ${isSick?'bg-rose-100 text-rose-600':'bg-gray-50 text-gray-500'} rounded-[16px] flex items-center justify-center shrink-0 border border-black/5">${e.department==='management'?'💼':e.shift}</div>
+                                <div onclick="event.stopPropagation(); App.Core.showSubstitutes('${e.uid}')" class="w-11 h-11 ${isSick?'bg-rose-100 text-rose-600':'bg-gray-50 text-gray-500'} rounded-[16px] flex items-center justify-center shrink-0 border border-black/5 hover:ring-2 hover:ring-indigo-200 active:scale-90 transition-all cursor-pointer shadow-sm" title="اضغط لعرض البدلاء المتاحين">${e.department==='management'?'💼':e.shift}</div>
                                 <div class="flex-1 min-w-0">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <h3 class="font-normal text-sm ${isSick?'text-rose-900':'text-gray-900'} truncate flex-1 min-w-0">${isSick?'<span class="text-[10px] bg-rose-200 text-rose-700 px-1.5 rounded-sm mr-1">مرضي</span>':''}${e.name}</h3>
-                                        ${substituteBtn}
-                                    </div>
+                                    <h3 class="font-normal text-sm ${isSick?'text-rose-900':'text-gray-900'} truncate">${isSick?'<span class="text-[10px] bg-rose-200 text-rose-700 px-1.5 rounded-sm mr-1">مرضي</span>':''}${e.name}</h3>
                                     <p class="text-[10px] ${subColor} truncate mt-0.5">${e.jobTitle} ${e.code?'| '+e.code:''}</p>
                                 </div>
                             </div>
@@ -689,15 +684,25 @@
                     lucide.createIcons();
                 },
                 
-                // الوظيفة الإضافية الجديدة (نافذة البدلاء)
+                // الوظيفة الإضافية الجديدة (نافذة البدلاء) - تم إضافة فلتر لمنع تكرار نفس الاسم
                 fillSubstitutesUI(uid) {
                     const e = App.State.employees.find(x => x.uid == uid);
                     if(!e) return;
 
-                    const substitutes = App.State.employees.filter(x => x.jobTitle === e.jobTitle && x.uid !== e.uid);
+                    let rawSubstitutes = App.State.employees.filter(x => x.jobTitle === e.jobTitle && x.uid !== e.uid);
+                    
+                    // منع تكرار نفس البديل (مثل المهندسين)
+                    const uniqueSubstitutes =[];
+                    const seenNames = new Set();
+                    for (const sub of rawSubstitutes) {
+                        if (!seenNames.has(sub.name)) {
+                            seenNames.add(sub.name);
+                            uniqueSubstitutes.push(sub);
+                        }
+                    }
 
                     let subsHtml = '';
-                    if (substitutes.length === 0) {
+                    if (uniqueSubstitutes.length === 0) {
                         subsHtml = `<div class="py-12 flex flex-col items-center justify-center text-center px-6">
                             <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-3">
                                 <i data-lucide="user-x" class="w-8 h-8 text-gray-300"></i>
@@ -706,7 +711,7 @@
                             <p class="text-xs text-gray-400">لا يوجد موظفين آخرين مسجلين بنفس المسمى الوظيفي حالياً.</p>
                         </div>`;
                     } else {
-                        subsHtml = `<div class="space-y-3 px-5 mb-6">` + substitutes.map(sub => {
+                        subsHtml = `<div class="space-y-3 px-5 mb-6">` + uniqueSubstitutes.map(sub => {
                             const isSick = sub.status === 'sick';
                             const waPhone = sub.phone ? (sub.phone.replace(/\D/g, '').startsWith('0') ? '20' + sub.phone.replace(/\D/g, '').substring(1) : sub.phone.replace(/\D/g, '')) : '';
 
@@ -860,7 +865,7 @@
                 navigateShift: (s) => App.Navigate({ shift: s, modal: null, query: '' }),
                 openDetails: (uid) => App.Navigate({ modal: 'details', uid: uid }),
                 openFormModal: (uid = null) => App.Navigate({ modal: 'form', uid: uid }),
-                showSubstitutes: (uid) => App.Navigate({ modal: 'substitutes', uid: uid }), // دالة عرض البدلاء الجديدة
+                showSubstitutes: (uid) => App.Navigate({ modal: 'substitutes', uid: uid }), 
                 clearSearch: () => App.Navigate({ query: '' }),
                 handleDeptChange: () => { const d = document.getElementById('inpDept').value; const loc = document.getElementById('locFields'); if(loc) loc.classList.toggle('hidden', d === 'management' || d === 'announcements'); },
                 saveEmployee(ev) {
