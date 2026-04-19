@@ -5,15 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#3B82F6">
     <title>قسم الإنتاج | Enterprise Edition</title>
+    
+    <!-- Fonts & CSS Framework -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Tajawal','sans-serif']}}}}</script>
+    
+    <!-- Libraries -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         :root{--primary-gradient:linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);--glass-bg:rgba(255, 255, 255, 0.95);--glass-border:rgba(255, 255, 255, 0.6);--shadow-xl:0 24px 64px rgba(0, 0, 0, 0.16);--radius-md:20px;--transition-base:0.3s cubic-bezier(0.4, 0, 0.2, 1);}
         .dark{--glass-bg:rgba(15, 23, 42, 0.95);--glass-border:rgba(51, 65, 85, 0.6);}
@@ -29,19 +35,26 @@
         .dark .form-input{background:#1e293b;border-color:#334155;color:#f1f5f9;}
         .form-input:focus{background:#FFFFFF;border-color:#3B82F6;box-shadow:0 0 0 4px rgba(59, 130, 246, 0.15);}
         .dark .form-input:focus{background:#0f172a;border-color:#3B82F6;}
+        
+        /* Modal Transitions */
         .sheet-container{transform:translateY(100%);transition:transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);position:fixed;bottom:0;left:0;right:0;z-index:50;background:var(--glass-bg);backdrop-filter:blur(40px) saturate(200%);border-top-left-radius:32px;border-top-right-radius:32px;box-shadow:var(--shadow-xl);max-height:85vh;display:flex;flex-direction:column;border:1px solid var(--glass-border);border-bottom:none;}
         .sheet-container.is-open{transform:translateY(0);}
         .sheet-overlay{position:fixed;inset:0;background:rgba(15, 23, 42, 0.7);opacity:0;pointer-events:none;transition:opacity var(--transition-base);z-index:40;backdrop-filter:blur(5px);}
         .sheet-overlay.is-open{opacity:1;pointer-events:auto;}
-        @keyframes fadeInScale{from{opacity:0;transform:scale(0.95);}to{opacity:1;transform:scale(1);}}
-        @keyframes slideDown{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}}
-        @keyframes blob{0%{transform:translate(0px, 0px) scale(1);}33%{transform:translate(30px, -50px) scale(1.1);}66%{transform:translate(-20px, 20px) scale(0.9);}100%{transform:translate(0px, 0px) scale(1);}}
-        @keyframes marquee{0%{transform:translateX(-100%);}100%{transform:translateX(100vw);}}
-        .marquee-content{display:inline-block;white-space:nowrap;animation:marquee 15s linear infinite;}
+        
+        /* Toast Transitions */
         .toast-container{position:fixed;top:80px;right:20px;left:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none;}
-        .toast{padding:16px 20px;border-radius:var(--radius-md);background:white;box-shadow:0 10px 25px rgba(0,0,0,0.1);display:flex;align-items:center;gap:12px;animation:fadeInScale 0.4s ease-out;pointer-events:auto;border-right:4px solid #3B82F6;font-size:14px;}
+        .toast{padding:16px 20px;border-radius:var(--radius-md);background:white;box-shadow:0 10px 25px rgba(0,0,0,0.1);display:flex;align-items:center;gap:12px;pointer-events:auto;border-right:4px solid #3B82F6;font-size:14px; transition: all 0.4s ease;}
         .dark .toast{background:#1e293b;color:white;box-shadow:0 10px 25px rgba(0,0,0,0.5);}
         .toast.success{border-right-color:#10B981;}
+        .toast.error{border-right-color:#F43F5E;}
+        .toast-list-enter-from, .toast-list-leave-to { opacity: 0; transform: translateY(-20px) scale(0.95); }
+        .toast-list-leave-active { position: absolute; width: 100%; }
+
+        /* Animations */
+        @keyframes slideDown{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}}
+        @keyframes marquee{0%{transform:translateX(-100%);}100%{transform:translateX(100vw);}}
+        .marquee-content{display:inline-block;white-space:nowrap;animation:marquee 15s linear infinite;}
         .fab-enhanced{position:fixed;bottom:28px;left:24px;z-index:20;width:60px;height:60px;border-radius:50%;background:var(--primary-gradient);color:white;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 28px rgba(59, 130, 246, 0.4);border:none;transition:all 0.3s;}
         .fab-enhanced:active{transform:scale(0.92);}
         .badge-status{display:flex;align-items:center;gap:6px;padding:2px 10px;border-radius:99px;border:1px solid transparent;}
@@ -52,37 +65,70 @@
         .emp-header-bg{background:linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);}
         .emp-sick-bg{background:linear-gradient(135deg, #881337 0%, #e11d48 100%);}
         .substitutes-header-bg{background:linear-gradient(135deg, #4f46e5 0%, #7e22ce 100%);}
-        .login-wrapper{background:#e0e7ff;position:relative;overflow:hidden;}
-        .dark .login-wrapper{background:#0f172a;}
-        .blob{position:absolute;filter:blur(60px);opacity:0.6;animation:blob 7s infinite alternate;}
-        .blob-1{top:-10%;left:-10%;width:300px;height:300px;background:#3b82f6;animation-delay:0s;}
-        .blob-2{bottom:-10%;right:-10%;width:350px;height:350px;background:#8b5cf6;animation-delay:2s;}
-        .dark .blob-1{background:#1e3a8a;} .dark .blob-2{background:#4c1d95;}
-        .login-card{background:rgba(255, 255, 255, 0.7);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.5);}
-        .dark .login-card{background:rgba(30, 41, 59, 0.7);border:1px solid rgba(255,255,255,0.1);}
-        .pin-input{letter-spacing:0.5em;text-security:disc;-webkit-text-security:disc;}
+
+        /* LOGIN SCREEN STYLES */
+        .login-wrapper-new { background: linear-gradient(45deg, #0f0c29, #302b63, #24243e); font-family: 'Cairo', sans-serif; position: fixed; inset: 0; z-index: 100; overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 20px;}
+        .bg-circles { position: absolute; width: 100%; height: 100%; overflow: hidden; z-index: 0; pointer-events: none; }
+        .circle { position: absolute; background: linear-gradient(to right, #8e2de2, #4a00e0); border-radius: 50%; filter: blur(60px); opacity: 0.5; }
+        .c1 { width: 250px; height: 250px; top: -50px; left: -30px; }
+        .c2 { width: 300px; height: 300px; bottom: -80px; right: -50px; }
+        .login-box-new { background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 25px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5); animation: slideUpLogin 0.8s ease-out; }
+        @keyframes slideUpLogin { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .input-field-new input { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); color: #ffffff; transition: 0.3s; }
+        .input-field-new input::placeholder { color: #bbb; }
+        .input-field-new input:focus { border-color: #8e2de2; background: rgba(255, 255, 255, 0.15); box-shadow: 0 0 12px rgba(142, 45, 226, 0.3); }
+        .btn-gradient { background: linear-gradient(to left, #8e2de2, #4a00e0); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); transition: 0.3s;}
+        .btn-gradient:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(74, 0, 224, 0.4); filter: brightness(1.1); }
+        .btn-gradient:active { transform: translateY(0); }
     </style>
 </head>
 <body class="pb-safe pt-safe">
-    <div id="toastContainer" class="toast-container"></div>
 
     <div id="app" class="h-full min-h-screen relative">
         
-        <!-- شاشة تسجيل الدخول -->
-        <div v-if="!isAuthenticated" class="fixed inset-0 z-[100] flex flex-col items-center justify-center p-6 login-wrapper transition-colors">
-            <div class="blob blob-1"></div><div class="blob blob-2"></div>
-            <div class="w-full max-w-[340px] login-card p-8 rounded-[40px] shadow-2xl relative z-10">
-                <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-[24px] mx-auto flex items-center justify-center shadow-[0_10px_30px_rgba(59,130,246,0.4)] mb-8 transform rotate-3 hover:rotate-0 transition-all duration-300">
-                    <i data-lucide="factory" class="w-10 h-10 text-white"></i>
+        <div class="toast-container">
+            <transition-group name="toast-list">
+                <div v-for="toast in toasts" :key="toast.id" :class="['toast', toast.type]">
+                    <span>{{ toast.text }}</span>
                 </div>
-                <h2 class="text-[22px] font-black text-center text-gray-900 dark:text-white mb-2 tracking-tight">نظام إدارة الإنتاج</h2>
-                <p class="text-xs text-center text-gray-500 dark:text-gray-400 mb-8 font-medium">الرجاء إدخال رمز الوصول للمتابعة</p>
-                <form @submit.prevent="login" class="space-y-5">
-                    <div class="relative"><div class="absolute inset-y-0 right-0 pl-4 pr-4 flex items-center pointer-events-none"><i data-lucide="lock" class="w-5 h-5 text-gray-400 dark:text-gray-500"></i></div><input v-model="loginPin" type="tel" maxlength="4" placeholder="••••" class="w-full bg-white dark:bg-slate-900 border-2 border-white dark:border-slate-800 pr-12 pl-4 py-4 rounded-2xl text-center text-2xl font-black pin-input focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all outline-none dark:text-white shadow-inner text-blue-600 dark:text-blue-400"></div>
-                    <p v-if="loginError" class="text-xs font-bold text-rose-500 text-center bg-rose-50 dark:bg-rose-900/30 py-2 rounded-lg animate-pulse">{{ loginError }}</p>
-                    <button type="submit" class="w-full py-4 bg-gray-900 dark:bg-blue-600 text-white rounded-2xl font-bold text-[14px] shadow-lg shadow-gray-900/20 dark:shadow-blue-600/30 active:scale-95 transition-transform hover:bg-gray-800 dark:hover:bg-blue-500">دخول للنظام</button>
+            </transition-group>
+        </div>
+
+        <!-- شاشة الدخول -->
+        <div v-if="!isAuthenticated" class="login-wrapper-new">
+            <div class="bg-circles">
+                <div class="circle c1"></div>
+                <div class="circle c2"></div>
+            </div>
+
+            <div class="w-full max-w-[380px] login-box-new py-10 px-[30px] relative z-10 text-center">
+                <h2 class="text-[1.8rem] font-bold text-white mb-2">مرحباً بك</h2>
+                <p class="text-[#b0b0b0] text-[0.95rem] mb-8">الرجاء إدخال بياناتك للدخول</p>
+
+                <form @submit.prevent="login">
+                    <div class="input-field-new relative mb-5">
+                        <i data-lucide="user" class="absolute right-[15px] top-1/2 -translate-y-1/2 text-white/60 w-[1.1rem] h-[1.1rem]"></i>
+                        <input v-model="loginUsername" type="text" placeholder="اسم المستخدم" required dir="ltr" class="w-full py-[14px] pr-[45px] pl-[15px] rounded-xl outline-none text-[1rem] text-left tracking-wide">
+                    </div>
+
+                    <div class="input-field-new relative mb-5">
+                        <i data-lucide="lock" class="absolute right-[15px] top-1/2 -translate-y-1/2 text-white/60 w-[1.1rem] h-[1.1rem]"></i>
+                        <input v-model="loginPassword" type="password" placeholder="كلمة المرور" required dir="ltr" class="w-full py-[14px] pr-[45px] pl-[15px] rounded-xl outline-none text-[1rem] tracking-widest text-left">
+                    </div>
+
+                    <p v-if="loginError" class="text-sm font-bold text-rose-400 mb-4 animate-pulse">{{ loginError }}</p>
+
+                    <div class="flex justify-between items-center mb-[25px] text-[#ddd] text-[0.85rem]">
+                        <label class="flex items-center gap-[5px] cursor-pointer">
+                            <input type="checkbox" class="accent-[#8e2de2]" checked> تذكرني
+                        </label>
+                        <a href="#" class="text-[#bbb] hover:text-white hover:underline transition-colors">نسيت كلمة المرور؟</a>
+                    </div>
+
+                    <button type="submit" class="btn-gradient w-full py-[14px] border-none rounded-xl text-white text-[1.1rem] font-bold cursor-pointer">
+                        تسجيل الدخول
+                    </button>
                 </form>
-                <div class="mt-8 text-center pt-6 border-t border-gray-200/50 dark:border-slate-700/50"><span class="inline-block bg-gray-100 dark:bg-slate-800 px-3 py-1 rounded-full text-[10px] font-bold text-gray-500 dark:text-gray-400">الإدارة: 1234 | المشغل: 0000</span></div>
             </div>
         </div>
 
@@ -94,25 +140,28 @@
                 <div class="marquee-content pr-20 text-yellow-300">{{ latestAnnouncement.text }} <span class="text-gray-400 font-normal mr-2">({{ latestAnnouncement.date }})</span></div>
             </div>
 
-            <!-- الهيدر المطور (موجود في جميع الصفحات) -->
-            <header class="sticky top-0 z-30 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl border-b border-gray-100 dark:border-slate-800 transition-colors">
-                <div style="height: 68px;" class="px-5 flex items-center justify-between">
+            <!-- تم تعديل كلاسات الهيدر هنا ليكون أغمق قليلاً مع إضافة ظل -->
+            <header class="sticky top-0 z-30 bg-slate-100/90 dark:bg-slate-800/95 backdrop-blur-xl border-b border-slate-200 dark:border-slate-700 shadow-sm transition-colors">
+                <div class="pt-8 pb-4 px-5 flex items-center justify-between">
                     <h1 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">{{ headerTitle }}</h1>
                     
                     <div class="flex items-center gap-2.5">
-                        <button v-if="view === 'home'" @click="toggleDarkMode" class="w-11 h-11 rounded-xl bg-gray-50 dark:bg-slate-800 flex items-center justify-center border border-gray-200 dark:border-slate-700 active:scale-95 transition-all">
+                        <!-- تم تعديل الأزرار لتكون بارزة فوق الهيدر الأغمق -->
+                        <button v-if="view === 'home'" @click="toggleDarkMode" class="w-11 h-11 rounded-xl bg-white dark:bg-slate-700 flex items-center justify-center border border-slate-200 dark:border-slate-600 shadow-sm active:scale-95 transition-all">
                             <span v-html="isDarkMode ? sunIcon : moonIcon"></span>
                         </button>
-                        <button v-if="view === 'home'" @click="navigate('dashboard')" class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-100 dark:border-blue-800/50 active:scale-95 transition-all">
+                        <button v-if="view === 'home'" @click="navigate('dashboard')" class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-200 dark:border-blue-800 shadow-sm active:scale-95 transition-all">
                             <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
                         </button>
-                        <button v-if="isAdmin && view === 'home'" @click="wipeData" class="hidden w-11 h-11 rounded-xl bg-red-50 dark:bg-rose-900/30 text-red-600 dark:text-rose-400 items-center justify-center border border-red-100 dark:border-rose-800/50 active:scale-95 transition-all"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                        <button @click="logout" class="w-11 h-11 rounded-xl bg-rose-50 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center border border-rose-200 dark:border-rose-800 shadow-sm active:scale-95 transition-all" title="تسجيل الخروج">
+                            <i data-lucide="log-out" class="w-5 h-5"></i>
+                        </button>
                     </div>
                 </div>
                 
-                <!-- شريط البحث (يظهر في كل الصفحات ما عدا الإعلانات واللوحة) -->
                 <div v-if="view !== 'announcements' && view !== 'dashboard'" class="px-5 pb-3.5">
-                    <div class="relative bg-gray-100/80 dark:bg-slate-800/80 rounded-2xl transition-colors">
+                    <!-- تم تعديل مربع البحث ليكون أبيض ناصع مع إطار وظل ليصنع تبايناً مع الهيدر -->
+                    <div class="relative bg-white dark:bg-slate-900 rounded-2xl transition-colors border border-slate-200 dark:border-slate-700 shadow-sm">
                         <i data-lucide="search" class="absolute right-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400"></i>
                         <input v-model="query" type="text" placeholder="بحث بالاسم أو الكود..." class="w-full bg-transparent border-none pr-11 pl-11 py-3 rounded-2xl text-sm outline-none dark:text-white">
                         <button v-if="query" @click="query = ''" class="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-gray-200 dark:bg-slate-700 rounded-full flex items-center justify-center"><i data-lucide="x" class="w-3.5 h-3.5 text-gray-600 dark:text-gray-300"></i></button>
@@ -122,9 +171,6 @@
 
             <main class="px-5 py-5">
                 
-                <div v-if="isLoading" class="text-center text-blue-500 text-[11px] font-bold mb-4 animate-pulse">جاري تحديث البيانات...</div>
-
-                <!-- 1. البحث العام (يقاطع أي صفحة أنت فيها ليعرض النتائج) -->
                 <div v-if="query" class="space-y-3">
                     <div v-for="e in searchResults" :key="e.uid" @click="openDetails(e.uid)" class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-gray-100 dark:border-slate-700 flex items-center gap-4 shadow-sm cursor-pointer active:scale-95 transition-transform">
                         <div class="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center font-normal">{{ e.department === 'management' ? '💼' : e.shift }}</div>
@@ -133,21 +179,35 @@
                     <div v-if="!isLoading && searchResults.length === 0" class="text-center py-10 text-gray-400 text-sm">لا توجد نتائج لـ "{{ query }}"</div>
                 </div>
 
-                <!-- 2. لوحة القيادة -->
+                <!-- لوحة القيادة -->
                 <div v-else-if="view === 'dashboard'" class="space-y-6" style="animation: slideDown 0.4s ease-out;">
-                    <div class="grid grid-cols-2 gap-4"><div class="bg-gradient-to-br from-blue-500 to-indigo-600 p-5 rounded-[24px] shadow-lg flex flex-col relative overflow-hidden"><i data-lucide="users" class="w-16 h-16 text-white/10 absolute -bottom-2 -left-2"></i><span class="text-3xl font-black text-white relative z-10">{{ employees.length }}</span><span class="text-[11px] text-blue-100 font-bold mt-1 relative z-10">إجمالي قوة العمل</span></div><div class="bg-white dark:bg-slate-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col relative overflow-hidden"><i data-lucide="activity" class="w-12 h-12 text-rose-50 dark:text-rose-900/20 absolute -bottom-2 -left-2"></i><span class="text-3xl font-black text-rose-500 relative z-10">{{ employees.filter(e => e.status === 'sick').length }}</span><span class="text-[11px] text-gray-500 dark:text-gray-400 font-bold mt-1 relative z-10">إجازات مرضية</span></div></div>
-                    <div class="bg-white dark:bg-slate-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-slate-700"><div class="flex items-center gap-2 mb-4 justify-center"><i data-lucide="pie-chart" class="w-4 h-4 text-gray-400"></i><h3 class="text-[11px] font-black text-gray-500 uppercase tracking-widest">حالة التواجد الكلية</h3></div><div class="relative h-48 w-full"><canvas id="statusChart"></canvas></div></div>
-                    <div class="bg-white dark:bg-slate-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-slate-700"><div class="flex items-center gap-2 mb-4 justify-center"><i data-lucide="briefcase" class="w-4 h-4 text-gray-400"></i><h3 class="text-[11px] font-black text-gray-500 uppercase tracking-widest">توزيع المهام الوظيفية</h3></div><div class="relative h-48 w-full"><canvas id="rolesChart"></canvas></div></div>
-                    <div class="bg-white dark:bg-slate-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-slate-700 mb-10"><div class="flex items-center gap-2 mb-4 justify-center"><i data-lucide="clock" class="w-4 h-4 text-gray-400"></i><h3 class="text-[11px] font-black text-gray-500 uppercase tracking-widest">توزيع الأفراد على الورديات</h3></div><div class="relative h-48 w-full"><canvas id="shiftDistChart"></canvas></div></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gradient-to-br from-blue-500 to-indigo-600 p-5 rounded-[24px] shadow-lg flex flex-col relative overflow-hidden"><i data-lucide="users" class="w-16 h-16 text-white/10 absolute -bottom-2 -left-2"></i><span class="text-3xl font-black text-white relative z-10">{{ employees.length }}</span><span class="text-[11px] text-blue-100 font-bold mt-1 relative z-10">إجمالي قوة العمل</span></div>
+                        <div class="bg-white dark:bg-slate-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col relative overflow-hidden"><i data-lucide="activity" class="w-12 h-12 text-rose-50 dark:text-rose-900/20 absolute -bottom-2 -left-2"></i><span class="text-3xl font-black text-rose-500 relative z-10">{{ sickEmployeesCount }}</span><span class="text-[11px] text-gray-500 dark:text-gray-400 font-bold mt-1 relative z-10">إجازات مرضية</span></div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-slate-700">
+                        <div class="flex items-center gap-2 mb-4 justify-center"><i data-lucide="pie-chart" class="w-4 h-4 text-gray-400"></i><h3 class="text-[11px] font-black text-gray-500 uppercase tracking-widest">حالة التواجد الكلية</h3></div>
+                        <div class="relative h-48 w-full"><canvas id="statusChart"></canvas></div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-slate-700">
+                        <div class="flex items-center gap-2 mb-4 justify-center"><i data-lucide="briefcase" class="w-4 h-4 text-gray-400"></i><h3 class="text-[11px] font-black text-gray-500 uppercase tracking-widest">توزيع المهام الوظيفية الكلية</h3></div>
+                        <!-- تم زيادة الارتفاع ليتسع لجميع الوظائف في الهيكل الجديد -->
+                        <div class="relative h-96 w-full"><canvas id="rolesChart"></canvas></div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-slate-700 mb-10">
+                        <div class="flex items-center gap-2 mb-4 justify-center"><i data-lucide="clock" class="w-4 h-4 text-gray-400"></i><h3 class="text-[11px] font-black text-gray-500 uppercase tracking-widest">توزيع الورديات (تفصيلي)</h3></div>
+                        <div class="relative h-80 w-full"><canvas id="shiftDistChart"></canvas></div>
+                    </div>
                 </div>
 
-                <!-- 3. قسم الإعلانات -->
                 <div v-else-if="view === 'announcements'" class="space-y-6">
                     <div v-if="isAdmin" class="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700"><h3 class="text-xs font-bold text-blue-600 dark:text-blue-400 mb-3 flex items-center gap-1"><i data-lucide="edit" class="w-4 h-4"></i> نشر إعلان جديد</h3><textarea v-model="newAnnouncement" rows="2" placeholder="اكتب التنبيه هنا..." class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 p-3 rounded-xl text-sm outline-none focus:border-blue-500 mb-3 dark:text-white resize-none"></textarea><button @click="publishAnnouncement" class="w-full bg-blue-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-blue-700 active:scale-95 transition-all">نشر الآن</button></div>
                     <div class="space-y-3"><div v-for="ann in announcementsList" :key="ann.id" class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm relative overflow-hidden"><div class="absolute right-0 top-0 bottom-0 w-1 bg-amber-400"></div><div class="flex justify-between items-start mb-2"><span class="text-[10px] font-bold text-gray-400"><i data-lucide="clock" class="w-3 h-3 inline"></i> {{ ann.date }}</span><button v-if="isAdmin" @click="deleteAnnouncement(ann.id)" class="text-rose-500 hover:bg-rose-50 p-1 rounded-md"><i data-lucide="trash" class="w-3 h-3"></i></button></div><p class="text-sm font-bold text-gray-800 dark:text-gray-200 leading-relaxed">{{ ann.text }}</p></div><div v-if="!isLoading && announcementsList.length === 0" class="text-center py-10 text-gray-400 text-sm">لا توجد إعلانات سابقة.</div></div>
                 </div>
 
-                <!-- 4. قائمة الموظفين (للأقسام والورديات) -->
                 <div v-else-if="shift" class="space-y-4">
                     <div class="flex justify-between items-center mb-4 mr-1">
                         <h3 class="text-[10px] text-gray-400 uppercase tracking-widest flex items-center gap-1.5"><span>القائمة الفعلية</span></h3>
@@ -160,13 +220,11 @@
                     </div>
                 </div>
 
-                <!-- 5. اختيار الوردية (للدرفلة والتجهيزات) -->
                 <div v-else-if="view !== 'home'">
                     <div class="space-y-4"><div v-for="s in ['A','B','C','D']" :key="s" @click="navigateShift(s)" :class="getShiftCardClass(s)" class="p-4 rounded-2xl border flex items-center justify-between shadow-sm hover:shadow-md transition-all cursor-pointer"><div class="flex items-center gap-4"><div :class="getShiftIconClass(s)" class="w-12 h-12 rounded-xl text-white flex items-center justify-center text-lg shadow-md">{{ s }}</div><div><h3 class="text-gray-900 dark:text-white font-normal">وردية {{ s }}</h3><p :class="getShiftTextClass(s)" class="text-xs font-normal">{{ getShiftName(s) }}</p></div></div><i data-lucide="chevron-left" class="w-5 h-5 text-gray-300 dark:text-gray-600"></i></div></div>
                     <div class="mt-8 flex justify-between items-center px-1"><h3 class="text-[10px] text-gray-400 uppercase tracking-widest flex items-center gap-1.5"><span>القوة الإجمالية</span><span class="text-gray-900 dark:text-white font-bold">{{ deptTotalCount }}</span></h3><div class="flex items-center gap-2"><div class="badge-status badge-active"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span class="text-[9px] font-bold text-emerald-700 dark:text-emerald-400">نشط: {{ deptActiveCount }}</span></div><div class="badge-status badge-inactive"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span><span class="text-[9px] font-bold text-rose-700 dark:text-rose-400">مرضي: {{ deptSickCount }}</span></div></div></div>
                 </div>
 
-                <!-- 6. الشاشة الرئيسية (Home) -->
                 <div v-else>
                     <div class="mb-6 relative"><div class="relative bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-2xl border border-gray-200/60 dark:border-slate-700/60 shadow-sm overflow-hidden px-4 py-3 flex items-center justify-between gap-3"><div class="flex items-center gap-2.5 flex-1 min-w-0"><div class="relative w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-sm"></div><div class="flex flex-col min-w-0"><span class="text-[11px] text-gray-500 font-normal leading-tight">الوردية الآن</span><span class="text-sm font-normal text-gray-900 dark:text-white leading-tight">الوردية {{ liveShift.name }}</span></div></div><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 border border-emerald-200/50 dark:border-emerald-800/50 flex items-center justify-center shadow-sm"><span class="text-base font-normal text-emerald-600 dark:text-emerald-400">{{ liveShift.group }}</span></div></div></div>
                     
@@ -183,26 +241,76 @@
 
             <button v-if="isAdmin && shift && !query" @click="openModal('form')" class="fab-enhanced"><i data-lucide="plus" class="w-7 h-7"></i></button>
 
-            <!-- النوافذ المنبثقة (Modals) -->
+            <!-- Modals -->
             <div class="sheet-overlay" :class="{'is-open': modal !== null}" @click="closeModal"></div>
 
             <div class="sheet-container overflow-hidden" :class="{'is-open': modal === 'form'}">
                 <div class="px-5 py-3 flex justify-between items-center border-b border-gray-100 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 shrink-0"><h2 class="text-[15px] font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">{{ form.uid ? 'تحديث بيانات الموظف' : 'تسجيل موظف جديد' }}</h2><button @click="closeModal" class="w-7 h-7 bg-gray-50 dark:bg-slate-700 rounded-full flex items-center justify-center transition-colors text-gray-500 dark:text-gray-300"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></div>
                 <div class="px-5 py-3 overflow-y-auto no-scrollbar pb-8 flex-1">
                     <form @submit.prevent="saveEmployee">
-                        <div class="form-group"><label class="form-label"><i data-lucide="briefcase" class="w-3 h-3"></i> المسمى الوظيفي</label><select v-model="form.jobTitle" required class="form-input" @change="onJobSelect"><option value="">اختر الوظيفة...</option><option v-for="job in availableJobs" :key="job" :value="job">{{ job }}</option><option value="__NEW_JOB__" class="font-bold text-indigo-600 dark:text-indigo-400">✨ ➕ إضافة وظيفة جديدة</option></select></div>
-                        <div v-if="form.jobTitle === '__NEW_JOB__'" class="form-group" style="animation: slideDown 0.3s ease-out;"><div class="p-2.5 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/30 dark:to-blue-900/30 rounded-[12px] border border-indigo-100 dark:border-indigo-800/50 relative overflow-hidden"><div class="absolute right-0 top-0 bottom-0 w-1.5 bg-indigo-500 rounded-r-md"></div><label class="form-label text-indigo-800 dark:text-indigo-300"><i data-lucide="sparkles" class="w-3 h-3"></i> ادخال وظيفة جديدة</label><input v-model="form.newJob" type="text" class="form-input no-arrow focus:border-indigo-400 py-2" placeholder="أدخل المسمى الوظيفي بدقة..."></div></div>
-                        <div class="form-group"><label class="form-label"><i data-lucide="user" class="w-3 h-3"></i> اسم الموظف</label><select v-model="form.nameSelect" required class="form-input" @change="onNameSelect"><option value="">{{ form.jobTitle ? 'اختر الاسم...' : 'اختر الوظيفة أولاً...' }}</option><option v-for="name in availableNames" :key="name" :value="name">{{ name }}</option><option value="__NEW__" class="font-bold text-emerald-600 dark:text-emerald-400">➕ تسجيل اسم جديد غير مدرج</option></select></div>
-                        <div v-if="form.nameSelect === '__NEW__'" class="form-group" style="animation: slideDown 0.3s ease-out;"><div class="p-2.5 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-[12px] border border-emerald-100 dark:border-emerald-800/50 relative overflow-hidden"><div class="absolute right-0 top-0 bottom-0 w-1.5 bg-emerald-500 rounded-r-md"></div><label class="form-label text-emerald-800 dark:text-emerald-300"><i data-lucide="user-plus" class="w-3 h-3"></i> تسجيل اسم جديد</label><input v-model="form.newName" type="text" class="form-input no-arrow py-2" placeholder="أدخل الاسم بالكامل رباعياً..."></div></div>
-                        <div class="grid grid-cols-5 gap-3"><div class="form-group col-span-2"><label class="form-label"><i data-lucide="hash" class="w-3 h-3"></i> الكود</label><input v-model="form.code" type="number" class="form-input no-arrow text-center font-bold text-blue-700 dark:text-blue-400" placeholder="---"></div><div class="form-group col-span-3"><label class="form-label"><i data-lucide="smartphone" class="w-3 h-3"></i> الموبايل</label><input v-model="form.phone" type="tel" class="form-input no-arrow text-left tracking-wider" dir="ltr" placeholder="01X XXXX XXXX"></div></div>
-                        <div class="form-group"><label class="form-label"><i data-lucide="activity" class="w-3 h-3"></i> الحالة الجسدية</label><select v-model="form.status" class="form-input font-bold"><option value="active">🟢 متواجد على قوة العمل</option><option value="sick">🔴 إجازة مرضية</option></select></div>
-                        <div v-if="['rolling','prep'].includes(form.department)" class="mt-3 p-3 bg-slate-50/80 dark:bg-slate-800 rounded-[14px] border border-slate-200/60 dark:border-slate-700 shadow-sm"><h4 class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1.5 mb-2"><i data-lucide="map-pin" class="w-3 h-3"></i> موقع العمل الفعلي</h4><div class="grid grid-cols-2 gap-3"><div v-if="form.department === 'rolling'" class="form-group mb-0"><label class="form-label">الخط</label><select v-model="form.line" class="form-input py-2"><option value="1">خط 1</option><option value="2">خط 2</option></select></div><div class="form-group mb-0"><label class="form-label">الوردية</label><select v-model="form.shift" class="form-input py-2"><option value="A">وردية A</option><option value="B">وردية B</option><option value="C">وردية C</option><option value="D">وردية D</option></select></div></div></div>
+                        <div class="form-group">
+                            <label class="form-label"><i data-lucide="briefcase" class="w-3 h-3"></i> المسمى الوظيفي</label>
+                            <select v-model="form.jobTitle" required class="form-input" @change="onJobSelect">
+                                <option value="">اختر الوظيفة...</option>
+                                <option v-for="job in availableJobs" :key="job" :value="job">{{ job }}</option>
+                                <option value="__NEW_JOB__" class="font-bold text-indigo-600 dark:text-indigo-400">✨ ➕ إضافة وظيفة جديدة</option>
+                            </select>
+                        </div>
+                        <div v-if="form.jobTitle === '__NEW_JOB__'" class="form-group" style="animation: slideDown 0.3s ease-out;">
+                            <div class="p-2.5 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/30 dark:to-blue-900/30 rounded-[12px] border border-indigo-100 dark:border-indigo-800/50 relative overflow-hidden">
+                                <div class="absolute right-0 top-0 bottom-0 w-1.5 bg-indigo-500 rounded-r-md"></div>
+                                <label class="form-label text-indigo-800 dark:text-indigo-300"><i data-lucide="sparkles" class="w-3 h-3"></i> ادخال وظيفة جديدة</label>
+                                <input v-model="form.newJob" type="text" class="form-input no-arrow focus:border-indigo-400 py-2" placeholder="أدخل المسمى الوظيفي بدقة...">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><i data-lucide="user" class="w-3 h-3"></i> اسم الموظف</label>
+                            <select v-model="form.nameSelect" required class="form-input" @change="onNameSelect">
+                                <option value="">{{ form.jobTitle && form.jobTitle !== '__NEW_JOB__' ? 'اختر الاسم المرتبط بالوظيفة...' : 'اختر الوظيفة أولاً...' }}</option>
+                                <option v-for="name in availableNames" :key="name" :value="name">{{ name }}</option>
+                                <option value="__NEW__" class="font-bold text-emerald-600 dark:text-emerald-400">➕ تسجيل اسم جديد غير مدرج</option>
+                            </select>
+                        </div>
+                        <div v-if="form.nameSelect === '__NEW__'" class="form-group" style="animation: slideDown 0.3s ease-out;">
+                            <div class="p-2.5 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-[12px] border border-emerald-100 dark:border-emerald-800/50 relative overflow-hidden">
+                                <div class="absolute right-0 top-0 bottom-0 w-1.5 bg-emerald-500 rounded-r-md"></div>
+                                <label class="form-label text-emerald-800 dark:text-emerald-300"><i data-lucide="user-plus" class="w-3 h-3"></i> تسجيل اسم جديد</label>
+                                <input v-model="form.newName" type="text" class="form-input no-arrow py-2" placeholder="أدخل الاسم بالكامل رباعياً...">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-5 gap-3">
+                            <div class="form-group col-span-2">
+                                <label class="form-label"><i data-lucide="hash" class="w-3 h-3"></i> الكود</label>
+                                <input v-model="form.code" type="number" class="form-input no-arrow text-center font-bold text-blue-700 dark:text-blue-400" placeholder="---">
+                            </div>
+                            <div class="form-group col-span-3">
+                                <label class="form-label"><i data-lucide="smartphone" class="w-3 h-3"></i> الموبايل</label>
+                                <input v-model="form.phone" type="tel" class="form-input no-arrow text-left tracking-wider" dir="ltr" placeholder="01X XXXX XXXX">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><i data-lucide="activity" class="w-3 h-3"></i> الحالة الجسدية</label>
+                            <select v-model="form.status" class="form-input font-bold"><option value="active">🟢 متواجد على قوة العمل</option><option value="sick">🔴 إجازة مرضية</option></select>
+                        </div>
+                        <div v-if="['rolling','prep'].includes(form.department)" class="mt-3 p-3 bg-slate-50/80 dark:bg-slate-800 rounded-[14px] border border-slate-200/60 dark:border-slate-700 shadow-sm">
+                            <h4 class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1.5 mb-2"><i data-lucide="map-pin" class="w-3 h-3"></i> موقع العمل الفعلي</h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div v-if="form.department === 'rolling'" class="form-group mb-0">
+                                    <label class="form-label">الخط</label>
+                                    <select v-model="form.line" class="form-input py-2"><option value="1">خط 1</option><option value="2">خط 2</option></select>
+                                </div>
+                                <div class="form-group mb-0">
+                                    <label class="form-label">الوردية</label>
+                                    <select v-model="form.shift" class="form-input py-2"><option value="A">وردية A</option><option value="B">وردية B</option><option value="C">وردية C</option><option value="D">وردية D</option></select>
+                                </div>
+                            </div>
+                        </div>
                         <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-[14px] font-bold text-[13px] shadow-lg shadow-blue-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-4"><i data-lucide="save" class="w-4 h-4"></i> حفظ</button>
                     </form>
                 </div>
             </div>
 
-            <!-- بطاقة تفاصيل الموظف / والبدلاء (التصميم الفخم الموحد) -->
+            <!-- Details Modal -->
             <div class="sheet-container overflow-hidden bg-gray-50 dark:bg-slate-900" :class="{'is-open': modal === 'details' || modal === 'substitutes'}">
                 <div class="absolute top-4 right-4 z-50"><button @click="closeModal" class="w-8 h-8 bg-black/20 hover:bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center transition-all text-white active:scale-90"><i data-lucide="x" class="w-4 h-4"></i></button></div>
                 <div class="overflow-y-auto no-scrollbar flex-1 w-full h-full pb-6">
@@ -224,144 +332,371 @@
         </div> 
     </div>
 
+    <!-- Vue.js Logic -->
     <script>
-        const Toast = { show(message, type = 'info') { const container = document.getElementById('toastContainer'); if(!container) return; const toast = document.createElement('div'); toast.className = `toast ${type}`; toast.innerHTML = `<span>${message}</span>`; container.appendChild(toast); setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3000); } };
         const firebaseConfig = { apiKey: "AIzaSyBv9f9VzWWLMn4P_z-U-TKwkJBNaNdbAYI", authDomain: "production-ez.firebaseapp.com", databaseURL: "https://production-ez-default-rtdb.firebaseio.com", projectId: "production-ez", storageBucket: "production-ez.firebasestorage.app", messagingSenderId: "1066742430577", appId: "1:1066742430577:web:c3d40baf0cefccebb8d4d0" };
-        firebase.initializeApp(firebaseConfig); const db = firebase.database(); const auth = firebase.auth();
-        const Hierarchy = [ "مهندس الوردية", "ملاحظ الوردية", "قائم بأعمال الملاحظ", "مشغل غرفة التحكم الرئيسية", "مشغل غرفة تحكم الفرن", "مشغل غرفة التحكم النهائية", "فني تمييز المنتج النهائي", "فني درفلة المرحلة الإبتدائية", "فني درفلة المرحلة النهائية", "فني مراقبة سرير التبريد" ];
-        const SourceData = [ {job:"مهندس الوردية", name:"م/ محمد ناصر", code:"3206", phone:"01094078874"}, {job:"مشغل غرفة التحكم الرئيسية", name:"أحمد أمين السيد", code:"653", phone:"01008036236"}, {job:"مشغل غرفة تحكم الفرن", name:"علي رضا", code:"1508", phone:""}, {job:"مشغل غرفة التحكم النهائية", name:"صبري سعد القارح", code:"470", phone:"01002543889"}, {job:"فني تمييز المنتج النهائي", name:"سامح السيد الجمل", code:"1118", phone:""}, {job:"فني درفلة المرحلة الإبتدائية", name:"محمد عبد المنعم حسن", code:"1200", phone:""}, {job:"فني درفلة المرحلة النهائية", name:"نبيل عبدالرزاق دياب", code:"1670", phone:""}, {job:"فني مراقبة سرير التبريد", name:"باسم محمد الجمل", code:"1391", phone:""}, {job:"ملاحظ الوردية", name:"صبري عبدالحكيم", code:"171", phone:"01002618699"}, {job:"مشغل غرفة التحكم الرئيسية", name:"محمد يحيى", code:"1605", phone:"01027712866"}, {job:"مشغل غرفة تحكم الفرن", name:"حسين محمد علي", code:"2161", phone:"01004856286"}, {job:"مشغل غرفة التحكم النهائية", name:"أشرف صلاح", code:"666", phone:"01098483666"}, {job:"مشغل غرفة التحكم النهائية", name:"أحمد سعيد الشوربجي", code:"1626", phone:"01013753674"}, {job:"فني تمييز المنتج النهائي", name:"سمير الليثي", code:"1100", phone:"01016691033"}, {job:"فني درفلة المرحلة الإبتدائية", name:"عبدالرؤوف الخشن", code:"1769", phone:"01202499799"}, {job:"فني درفلة المرحلة الإبتدائية", name:"اسلام قاسم", code:"1979", phone:""}, {job:"فني درفلة المرحلة النهائية", name:"محمد مصطفى", code:"1891", phone:"01220532283"}, {job:"فني مراقبة سرير التبريد", name:"جابر عرفه", code:"1389", phone:""}, {job:"مهندس الوردية", name:"م/ أحمد الشامي", code:"3067", phone:"01034556015"}, {job:"ملاحظ الوردية", name:"صلاح كمال", code:"129", phone:""}, {job:"ملاحظ الوردية", name:"محمد خميس", code:"3233", phone:""}, {job:"مشغل غرفة التحكم الرئيسية", name:"سامح عبدالواحد", code:"1777", phone:""}, {job:"مشغل غرفة تحكم الفرن", name:"عبدالمجيد هاشم", code:"1689", phone:"01224198738"}, {job:"مشغل غرفة التحكم النهائية", name:"محمد كامل حنفي", code:"144", phone:""}, {job:"مشغل غرفة التحكم النهائية", name:"وليد علي الفقي", code:"1507", phone:""}, {job:"فني تمييز المنتج النهائي", name:"مروان سعد الطيب", code:"1203", phone:""}, {job:"فني درفلة المرحلة الإبتدائية", name:"عمرو علي محمد", code:"2739", phone:""}, {job:"فني درفلة المرحلة النهائية", name:"مصطفى أحمد رفاعي", code:"1759", phone:""}, {job:"فني مراقبة سرير التبريد", name:"السيد إمام", code:"1352", phone:""}, {job:"ملاحظ الوردية", name:"محمد عبد اللطيف", code:"805", phone:"01009105919"}, {job:"مشغل غرفة التحكم الرئيسية", name:"أحمد حمدي", code:"1815", phone:"01018479190"}, {job:"مشغل غرفة تحكم الفرن", name:"تامر سليمان", code:"1758", phone:"01206070550"}, {job:"مشغل غرفة تحكم الفرن", name:"رمضان فارس", code:"681", phone:"01224139352"}, {job:"مشغل غرفة التحكم النهائية", name:"أحمد عبدالحكيم", code:"737", phone:"01007782100"}, {job:"مشغل غرفة التحكم النهائية", name:"أسامة رمضان", code:"1499", phone:"01011138480"}, {job:"مشغل غرفة التحكم النهائية", name:"أحمد بهلول", code:"2238", phone:"01276376158"}, {job:"فني تمييز المنتج النهائي", name:"أسامه رشاد", code:"2716", phone:""}, {job:"فني درفلة المرحلة الإبتدائية", name:"أحمد سعد خوذ", code:"2803", phone:"01064112733"}, {job:"فني درفلة المرحلة النهائية", name:"وليد توفيق", code:"1762", phone:"01093009744"}, {job:"فني درفلة المرحلة النهائية", name:"مصطفى محمد", code:"1740", phone:"01007433435"}, {job:"فني مراقبة سرير التبريد", name:"السيد عبدالعزيز", code:"1199", phone:""}, {job:"فني مراقبة سرير التبريد", name:"ولاء عبد الستار", code:"200888", phone:"01062004919"}, {job:"مهندس الوردية", name:"م/ مصطفى الماكن", code:"3068", phone:"01008306664"}, {job:"ملاحظ الوردية", name:"إبراهيم محمد صبيح", code:"820", phone:""}, {job:"مشغل غرفة التحكم الرئيسية", name:"أحمد صبري", code:"2718", phone:""}, {job:"مشغل غرفة تحكم الفرن", name:"جمال العتريس", code:"132", phone:""}, {job:"مشغل غرفة التحكم النهائية", name:"ياسر محمد حامد", code:"1483", phone:""}, {job:"فني تمييز المنتج النهائي", name:"عبدالمطلب عبدالظاهر", code:"1424", phone:""}, {job:"فني درفلة المرحلة الإبتدائية", name:"محمد فكري عطية", code:"1418", phone:""}, {job:"فني درفلة المرحلة النهائية", name:"حسام حسن قاسم", code:"1996", phone:""}, {job:"فني درفلة المرحلة النهائية", name:"محمود عاشور", code:"1775", phone:""}, {job:"فني مراقبة سرير التبريد", name:"بكر عمر", code:"919", phone:""}, {job:"ملاحظ الوردية", name:"محمد الشبوكشي", code:"1814", phone:"01022054458"}, {job:"مشغل غرفة التحكم الرئيسية", name:"عبده علي الدبر", code:"1788", phone:"01226884648"}, {job:"مشغل غرفة تحكم الفرن", name:"عبد المنعم بدر", code:"3189", phone:"01022078799"}, {job:"مشغل غرفة التحكم النهائية", name:"عبدالمنعم الصباحي", code:"157", phone:""}, {job:"مشغل غرفة التحكم النهائية", name:"طارق عبدالعظيم", code:"1763", phone:"01003521530"}, {job:"فني تمييز المنتج النهائي", name:"نصر داود", code:"814", phone:""}, {job:"فني درفلة المرحلة الإبتدائية", name:"محمد إدريس", code:"1671", phone:"01008886133"}, {job:"فني درفلة المرحلة النهائية", name:"محمد السيد علام", code:"1120", phone:""}, {job:"فني درفلة المرحلة النهائية", name:"عبدالمجيد أحمد", code:"1783", phone:"01020221552"}, {job:"فني مراقبة سرير التبريد", name:"رضا صبري", code:"1421", phone:""}, {job:"مهندس الوردية", name:"م/ أحمد سالم", code:"2977", phone:"01065275096"}, {job:"ملاحظ الوردية", name:"نبيل صابر ذكي", code:"189", phone:""}, {job:"مشغل غرفة التحكم الرئيسية", name:"طارق محمد", code:"1609", phone:""}, {job:"مشغل غرفة تحكم الفرن", name:"محمد نبوي", code:"2069", phone:"01008886109"}, {job:"مشغل غرفة التحكم النهائية", name:"محمود فتحي محمد", code:"1500", phone:""}, {job:"فني تمييز المنتج النهائي", name:"محمدإبراهيم مرسى", code:"1351", phone:""}, {job:"فني درفلة المرحلة الإبتدائية", name:"خالد السيد جلال", code:"1867", phone:"01001138461"}, {job:"فني درفلة المرحلة النهائية", name:"عبدالباقى رمضان", code:"1782", phone:""}, {job:"فني درفلة المرحلة النهائية", name:"محمود صلاح المرشدى", code:"2004", phone:""}, {job:"فني درفلة المرحلة النهائية", name:"تامر سعيد", code:"1772", phone:""}, {job:"فني مراقبة سرير التبريد", name:"يوسف فهمي محمد", code:"1205", phone:""}, {job:"ملاحظ الوردية", name:"سعيد حماد", code:"684", phone:"01066870959"}, {job:"مشغل غرفة التحكم الرئيسية", name:"فتحي بكر", code:"241", phone:"01011899435"}, {job:"مشغل غرفة التحكم الرئيسية", name:"شريف الشرقاوي", code:"1798", phone:"01017700112"}, {job:"مشغل غرفة تحكم الفرن", name:"كريم قوقة", code:"3093", phone:"01098810099"}, {job:"مشغل غرفة التحكم النهائية", name:"كمال سعيد", code:"711", phone:"01277636259"}, {job:"مشغل غرفة التحكم النهائية", name:"علي شوقي", code:"1633", phone:""}, {job:"فني تمييز المنتج النهائي", name:"أحمد فاروق حمود", code:"1784", phone:""}, {job:"فني درفلة المرحلة الإبتدائية", name:"محمود السباعي", code:"2800", phone:"01201746399"}, {job:"فني درفلة المرحلة النهائية", name:"محمد علي الشريف", code:"1668", phone:""}, {job:"فني درفلة المرحلة النهائية", name:"ياسر عبدالغفار", code:"1122", phone:"01202515615"}, {job:"فني مراقبة سرير التبريد", name:"إبراهيم مرعي", code:"1353", phone:""}, {job:"فني مراقبة سرير التبريد", name:"تامر عبدالحميد", code:"1501", phone:""}, {job:"فني مراقبة سرير التبريد", name:"محمد عبدالعليم", code:"1204", phone:""} ];
+        firebase.initializeApp(firebaseConfig); 
+        const db = firebase.database(); 
+        const auth = firebase.auth();
 
-        const app = Vue.createApp({
-            data() {
-                return {
-                    isAuthenticated: false, isAdmin: false, loginPin: '', loginError: '', isDarkMode: false,
-                    isLoading: true, employees: [], customContacts: [], announcementsList: [], newAnnouncement: '',
-                    view: 'home', shift: null, query: '', modal: null, selectedUid: null, showRolling: false,
-                    form: { uid: '', jobTitle: '', newJob: '', nameSelect: '', newName: '', code: '', phone: '', status: 'active', department: '', line: '1', shift: 'A' },
-                    sunIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>',
-                    moonIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>'
-                }
-            },
-            computed: {
-                headerTitle() {
-                    if (this.query) return "البحث"; 
-                    if (this.view === 'dashboard') return "لوحة القيادة"; 
-                    if (this.shift === 'office') return "طاقم الإدارة"; 
-                    if (this.shift === 'broadcast') return "الإعلانات"; 
-                    if (this.shift) return `وردية ${this.shift}`; 
-                    if (this.view === 'management') return "إدارة الإنتاج"; 
-                    if (this.view === 'prep') return "ورشة التجهيزات"; 
-                    if (this.view === 'line1') return "خط درفلة 1"; 
-                    if (this.view === 'line2') return "خط درفلة 2"; 
-                    if (this.view === 'announcements') return "الإعلانات الداخلية"; 
-                    return "قسم الإنتاج"; 
-                },
-                liveShift() {
-                    const now = new Date(); const hour = now.getHours(); let targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()); let dutyType = (hour >= 8 && hour < 16) ? 'morning' : (hour >= 16 && hour < 24) ? 'noon' : 'evening'; if(hour < 8) targetDate.setDate(targetDate.getDate() - 1); let activeG = '-'; for (let g of ['A', 'B', 'C', 'D']) { if (this.getGroupStatus(g, targetDate).type === dutyType) { activeG = g; break; } } return { group: activeG, name: dutyType === 'morning' ? 'الأولى' : dutyType === 'noon' ? 'الثانية' : 'الثالثة', targetDate };
-                },
-                latestAnnouncement() { return this.announcementsList.length > 0 ? this.announcementsList[0] : null; },
-                filteredEmployees() {
-                    let filtered = this.employees.filter(e => {
-                        if (this.view === 'management') return e.department === 'management';
-                        if (this.view === 'announcements') return e.department === 'announcements';
-                        return e.shift === this.shift && (this.view === 'prep' ? e.department === 'prep' : e.line === this.view.replace('line', ''));
-                    });
-                    if (this.view === 'management') { filtered.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)); }
-                    return filtered;
-                },
-                activeCount() { return this.filteredEmployees.filter(e => e.status !== 'sick').length; },
-                sickCount() { return this.filteredEmployees.filter(e => e.status === 'sick').length; },
-                deptTotalCount() { return this.employees.filter(e => (this.view === 'prep' && e.department === 'prep') || (this.view.startsWith('line') && e.line === this.view.replace('line', ''))).length; },
-                deptActiveCount() { return this.employees.filter(e => e.status !== 'sick' && ((this.view === 'prep' && e.department === 'prep') || (this.view.startsWith('line') && e.line === this.view.replace('line', '')))).length; },
-                deptSickCount() { return this.employees.filter(e => e.status === 'sick' && ((this.view === 'prep' && e.department === 'prep') || (this.view.startsWith('line') && e.line === this.view.replace('line', '')))).length; },
-                searchResults() { let q = this.query.toLowerCase(); return this.employees.filter(e => (e.name && e.name.toLowerCase().includes(q)) || (e.code && e.code.toString().includes(q))); },
-                availableJobs() {
-                    const jobs = [...new Set([...Hierarchy, ...SourceData.map(i => i.job), ...this.customContacts.map(i => i.job), ...this.employees.map(i => i.jobTitle)])].filter(Boolean);
-                    jobs.sort((a, b) => { const indexA = Hierarchy.indexOf(a); const indexB = Hierarchy.indexOf(b); if (indexA === -1 && indexB === -1) return a.localeCompare(b, 'ar'); if (indexA === -1) return 1; if (indexB === -1) return -1; return indexA - indexB; }); return jobs;
-                },
-                availableNames() {
-                    if (this.form.jobTitle === '__NEW_JOB__') return []; const combined = [...SourceData, ...this.customContacts]; return [...new Set(combined.filter(i => i.job === this.form.jobTitle).map(i => i.name))].sort();
-                },
-                selectedEmployee() { return this.employees.find(x => x.uid === this.selectedUid); },
-                availableSubstitutes() {
-                    if(!this.selectedEmployee) return []; let raw = this.employees.filter(x => x.jobTitle === this.selectedEmployee.jobTitle && x.uid !== this.selectedUid); raw.sort((a, b) => (b.line === this.selectedEmployee.line ? 1 : 0) - (a.line === this.selectedEmployee.line ? 1 : 0)); const unique = []; const seen = new Set(); for (const sub of raw) { if (!seen.has(sub.name)) { seen.add(sub.name); unique.push(sub); } } return unique;
-                }
-            },
-            methods: {
-                login() {
-                    if(this.loginPin === '1234') { this.isAdmin = true; this.isAuthenticated = true; this.loginError = ''; localStorage.setItem('userAuth', 'admin'); this.$nextTick(() => { try { lucide.createIcons(); } catch(e){} }); } 
-                    else if(this.loginPin === '0000') { this.isAdmin = false; this.isAuthenticated = true; this.loginError = ''; localStorage.setItem('userAuth', 'operator'); this.$nextTick(() => { try { lucide.createIcons(); } catch(e){} }); } 
-                    else { this.loginError = 'رمز الدخول غير صحيح!'; this.loginPin = ''; }
-                },
-                toggleDarkMode() {
-                    this.isDarkMode = !this.isDarkMode;
-                    if(this.isDarkMode) { document.documentElement.classList.add('dark'); localStorage.setItem('theme', 'dark'); } 
+        // الترتيب الجديد للمسميات الوظيفية كما طلبت
+        const Hierarchy = [ 
+            "مدير الإدارة", 
+            "مدير الورشة", 
+            "مدير درفلة 1", 
+            "مدير درفلة 2", 
+            "مهندس الوردية", 
+            "ملاحظ الوردية", 
+            "قائم بأعمال الملاحظ", 
+            "مشغل غرفة التحكم الرئيسية", 
+            "مشغل غرفة تحكم الفرن", 
+            "مشغل غرفة التحكم النهائية", 
+            "فني تمييز المنتج النهائي", 
+            "فني درفلة المرحلة الإبتدائية", 
+            "فني درفلة المرحلة النهائية", 
+            "فني مراقبة سرير التبريد" 
+        ];
+
+        const { createApp, ref, reactive, computed, onMounted, onUpdated, nextTick } = Vue;
+
+        const app = createApp({
+            setup() {
+                const isAuthenticated = ref(false);
+                const isAdmin = ref(false);
+                const isDarkMode = ref(false);
+                const isLoading = ref(true);
+                const toasts = ref([]);
+                
+                const loginUsername = ref('');
+                const loginPassword = ref('');
+                const loginError = ref('');
+
+                const view = ref('home');
+                const shift = ref(null);
+                const query = ref('');
+                const modal = ref(null);
+                const selectedUid = ref(null);
+                const showRolling = ref(false);
+
+                const employees = ref([]);
+                const customContacts = ref([]);
+                const announcementsList = ref([]);
+                const newAnnouncement = ref('');
+
+                const form = reactive({ uid: '', jobTitle: '', newJob: '', nameSelect: '', newName: '', code: '', phone: '', status: 'active', department: '', line: '1', shift: 'A' });
+
+                const showToast = (text, type = 'info') => {
+                    const id = Date.now();
+                    toasts.value.push({ id, text, type });
+                    setTimeout(() => { toasts.value = toasts.value.filter(t => t.id !== id); }, 3000);
+                };
+
+                const updateIcons = () => { nextTick(() => { try { lucide.createIcons(); } catch(e){} }); };
+
+                const login = () => {
+                    if (loginUsername.value === 'admin' && loginPassword.value === 'ezz steel1996') { 
+                        isAdmin.value = true; isAuthenticated.value = true; loginError.value = ''; localStorage.setItem('userAuth', 'admin'); updateIcons(); 
+                    } else if (loginUsername.value === 'User' && loginPassword.value === 'ezz1996') { 
+                        isAdmin.value = false; isAuthenticated.value = true; loginError.value = ''; localStorage.setItem('userAuth', 'operator'); updateIcons(); 
+                    } else { loginError.value = 'بيانات الدخول غير صحيحة!'; loginPassword.value = ''; }
+                };
+
+                const logout = () => {
+                    isAuthenticated.value = false; isAdmin.value = false; loginUsername.value = ''; loginPassword.value = ''; localStorage.removeItem('userAuth'); view.value = 'home'; updateIcons();
+                };
+
+                const toggleDarkMode = () => {
+                    isDarkMode.value = !isDarkMode.value;
+                    if (isDarkMode.value) { document.documentElement.classList.add('dark'); localStorage.setItem('theme', 'dark'); } 
                     else { document.documentElement.classList.remove('dark'); localStorage.setItem('theme', 'light'); }
-                    setTimeout(() => { try { lucide.createIcons(); } catch(e){} }, 50);
-                },
-                publishAnnouncement() {
-                    if(!this.newAnnouncement.trim()) return Toast.show("اكتب نص الإعلان أولاً", "error");
-                    const ann = { id: "ANN-" + Date.now(), text: this.newAnnouncement.trim(), date: new Date().toLocaleString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), timestamp: Date.now() };
-                    db.ref('announcements/' + ann.id).set(ann).then(() => { this.newAnnouncement = ''; Toast.show("تم نشر الإعلان للجميع", "success"); });
-                },
-                deleteAnnouncement(id) { if(confirm("مسح الإعلان؟")) db.ref('announcements/' + id).remove(); },
-                initCharts() {
-                    if(window.chartInstances) { if(window.chartInstances.status) window.chartInstances.status.destroy(); if(window.chartInstances.roles) window.chartInstances.roles.destroy(); if(window.chartInstances.shiftDist) window.chartInstances.shiftDist.destroy(); } else { window.chartInstances = {}; }
-                    const isDark = this.isDarkMode; const textColor = isDark ? '#f1f5f9' : '#1F2937'; const gridColor = isDark ? '#334155' : '#E2E8F0';
-                    const active = this.employees.filter(e => e.status !== 'sick').length; const sick = this.employees.filter(e => e.status === 'sick').length;
-                    const ctxStatus = document.getElementById('statusChart');
-                    if(ctxStatus) { window.chartInstances.status = new Chart(ctxStatus, { type: 'doughnut', data: { labels: ['متواجد', 'إجازة'], datasets: [{ data: [active, sick], backgroundColor: ['#10B981', '#F43F5E'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { family: 'Tajawal' } } } }, cutout: '70%' } }); }
-                    const engineers = this.employees.filter(e => e.jobTitle && e.jobTitle.includes('مهندس')).length; const supervisors = this.employees.filter(e => e.jobTitle && (e.jobTitle.includes('ملاحظ') || e.jobTitle.includes('مدير'))).length; const operators = this.employees.filter(e => e.jobTitle && e.jobTitle.includes('مشغل')).length; const technicians = this.employees.filter(e => e.jobTitle && e.jobTitle.includes('فني')).length;
-                    const ctxRoles = document.getElementById('rolesChart');
-                    if(ctxRoles) { window.chartInstances.roles = new Chart(ctxRoles, { type: 'bar', data: { labels: ['مهندسين', 'ملاحظين', 'مشغلين', 'فنيين'], datasets: [{ label: 'العدد', data: [engineers, supervisors, operators, technicians], backgroundColor: ['#3B82F6', '#8B5CF6', '#F59E0B', '#14B8A6'], borderRadius: 6 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor } }, y: { grid: { display: false }, ticks: { color: textColor, font: { family: 'Tajawal', weight: 'bold' } } } }, plugins: { legend: { display: false } } } }); }
-                    const shiftA = this.employees.filter(e => e.shift === 'A').length; const shiftB = this.employees.filter(e => e.shift === 'B').length; const shiftC = this.employees.filter(e => e.shift === 'C').length; const shiftD = this.employees.filter(e => e.shift === 'D').length; const office = this.employees.filter(e => e.shift === 'office').length;
-                    const ctxShift = document.getElementById('shiftDistChart');
-                    if(ctxShift) { window.chartInstances.shiftDist = new Chart(ctxShift, { type: 'bar', data: { labels: ['A', 'B', 'C', 'D', 'إدارة'], datasets: [{ label: 'القوة', data: [shiftA, shiftB, shiftC, shiftD, office], backgroundColor: '#6366F1', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor } }, x: { grid: { display: false }, ticks: { color: textColor, font: { family: 'Tajawal', weight: 'bold' } } } }, plugins: { legend: { display: false } } } }); }
-                },
-                getGroupStatus(group, date) {
-                    const startDate = new Date(2025, 0, 1); const diff = Math.round((date - startDate) / 86400000); const initialStatuses = { 'A': { type: 'evening', day: 3 }, 'B': { type: 'morning-rest', day: 1 }, 'C': { type: 'noon', day: 5 }, 'D': { type: 'morning', day: 1 } }; let { type, day } = initialStatuses[group]; const remain = diff % 20;
-                    for (let i = 0; i < remain; i++) { day++; switch (type) { case 'morning': if (day > 5) { type='morning-rest'; day=1; } break; case 'morning-rest': if (day > 1) { type='noon'; day=1; } break; case 'noon': if (day > 5) { type='noon-rest'; day=1; } break; case 'noon-rest': if (day > 2) { type='evening'; day=1; } break; case 'evening': if (day > 5) { type='evening-rest'; day=1; } break; case 'evening-rest': if (day > 2) { type='morning'; day=1; } break; } } return { type, day };
-                },
-                getShiftCardClass(s) { const status = this.getGroupStatus(s, this.liveShift.targetDate); const isWorking = (s === this.liveShift.group); const isRest = status.type.includes('rest'); if(isWorking) return 'from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-emerald-200 dark:border-emerald-800/50'; if(isRest) return 'from-rose-50 to-red-50 dark:from-rose-900/20 dark:to-red-900/20 border-rose-200 dark:border-rose-800/50'; return 'from-gray-50 to-slate-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700'; },
-                getShiftIconClass(s) { const status = this.getGroupStatus(s, this.liveShift.targetDate); const isWorking = (s === this.liveShift.group); const isRest = status.type.includes('rest'); if(isWorking) return 'bg-gradient-to-br from-emerald-500 to-teal-500'; if(isRest) return 'bg-gradient-to-br from-rose-500 to-red-500'; return 'bg-gradient-to-br from-gray-400 to-slate-500 dark:from-slate-600 dark:to-slate-700'; },
-                getShiftTextClass(s) { const status = this.getGroupStatus(s, this.liveShift.targetDate); const isWorking = (s === this.liveShift.group); const isRest = status.type.includes('rest'); if(isWorking) return 'text-emerald-600 dark:text-emerald-400'; if(isRest) return 'text-rose-600 dark:text-rose-400'; return 'text-gray-500 dark:text-gray-400'; },
-                getShiftName(s) { const status = this.getGroupStatus(s, this.liveShift.targetDate); const typeMap = { 'morning':'الوردية الأولى', 'noon':'الوردية الثانية', 'evening':'الوردية الثالثة', 'morning-rest':'راحة', 'noon-rest':'راحة', 'evening-rest':'راحة' }; return typeMap[status.type] || 'خارج الدوام'; },
-                pushState() { history.pushState({ view: this.view, shift: this.shift, query: this.query, modal: this.modal, uid: this.selectedUid }, ""); this.$nextTick(() => { try { lucide.createIcons(); } catch(e){} }); },
-                navigate(view) { this.view = view; this.shift = (view === 'management' ? 'office' : view === 'announcements' ? 'broadcast' : null); this.query = ''; this.modal = null; this.pushState(); if(view === 'dashboard') { setTimeout(() => this.initCharts(), 100); } },
-                navigateShift(s) { this.shift = s; this.modal = null; this.pushState(); },
-                goHome() { this.view = 'home'; this.shift = null; this.query = ''; this.modal = null; this.showRolling = false; this.pushState(); },
-                count(dept, line = null) { return this.employees.filter(e => line ? e.department === dept && e.line === line : e.department === dept).length; },
-                openModal(type, uid = null) { this.modal = type; this.selectedUid = uid; if (type === 'form') { let dept = (this.view === 'management' ? 'management' : (this.view === 'prep' ? 'prep' : (this.view === 'announcements' ? 'announcements' : 'rolling'))); let line = this.view.startsWith('line') ? this.view.replace('line', '') : '1'; let shiftVal = (this.shift && !['office','broadcast'].includes(this.shift)) ? this.shift : 'A'; if (uid) { let e = this.employees.find(x => x.uid === uid); if (e) { this.form = { uid: e.uid, jobTitle: e.jobTitle, newJob: '', nameSelect: e.name, newName: '', code: e.code || '', phone: e.phone || '', status: e.status || 'active', department: e.department, line: e.line, shift: ['A','B','C','D'].includes(e.shift) ? e.shift : 'A' }; } } else { this.form = { uid: '', jobTitle: '', newJob: '', nameSelect: '', newName: '', code: '', phone: '', status: 'active', department: dept, line: line, shift: shiftVal }; } } this.pushState(); },
-                closeModal() { if(this.modal !== null) { window.history.back(); } },
-                openDetails(uid) { this.openModal('details', uid); },
-                showSubstitutes(uid) { this.openModal('substitutes', uid); },
-                onJobSelect() { if (this.form.jobTitle === '__NEW_JOB__') { this.form.nameSelect = '__NEW__'; } else { this.form.nameSelect = ''; this.form.code = ''; this.form.phone = ''; } },
-                onNameSelect() { if (this.form.nameSelect !== '__NEW__') { const combined = [...SourceData, ...this.customContacts]; const p = combined.find(i => i.name === this.form.nameSelect); if (p) { this.form.code = p.code || ''; this.form.phone = p.phone || ''; } } },
-                cleanPhone(p) { let c = p.replace(/\D/g, ''); return c.startsWith('0') ? '20' + c.substring(1) : (c.startsWith('1') ? '20' + c : c); },
-                getDeptName(e) { return e.department === 'management' ? 'إدارة الإنتاج' : (e.department === 'prep' ? 'ورشة التجهيزات' : (e.department === 'announcements' ? 'الإعلانات' : `خط درفلة ${e.line}`)); },
-                saveEmployee() { let finalName = this.form.nameSelect === '__NEW__' ? this.form.newName.trim() : this.form.nameSelect; let finalJob = this.form.jobTitle === '__NEW_JOB__' ? this.form.newJob.trim() : this.form.jobTitle; if (!finalName || !finalJob) return Toast.show("يرجى استكمال البيانات", "error"); if (this.form.nameSelect === '__NEW__') { db.ref('contacts/' + finalName.replace(/[.#$[\]]/g, "")).set({ job: finalJob, name: finalName, code: this.form.code, phone: this.form.phone }); } let uid = this.form.uid || "ID-" + Date.now(); let jobIdx = Hierarchy.indexOf(finalJob); let emp = { uid: uid, name: finalName, code: this.form.code, jobTitle: finalJob, department: this.form.department, line: this.form.department === 'rolling' ? this.form.line : 'none', shift: this.form.department === 'management' ? 'office' : (this.form.department === 'announcements' ? 'broadcast' : this.form.shift), phone: this.form.phone, status: this.form.status, sortOrder: jobIdx !== -1 ? jobIdx * 100 : 99999 }; db.ref('employees/' + uid).set(emp).then(() => { Toast.show("تم حفظ البيانات بنجاح", "success"); this.closeModal(); }); },
-                deleteEmployee(uid) { if (confirm('هل أنت متأكد من مسح هذه البيانات نهائياً؟')) { db.ref('employees/' + uid).remove(); this.closeModal(); } },
-                wipeData() { if(confirm("مسح كافة البيانات؟")) db.ref('employees').remove(); },
-                moveEmployee(uid, direction) { if (this.view !== 'management') return; let filtered = this.employees.filter(e => e.department === 'management').sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)); const idx = filtered.findIndex(e => e.uid === uid); if (idx < 0) return; const targetIdx = direction === 'up' ? idx - 1 : idx + 1; if (targetIdx < 0 || targetIdx >= filtered.length) return; filtered.forEach((e, i) => e.sortOrder = i * 10); let temp = filtered[idx].sortOrder; filtered[idx].sortOrder = filtered[targetIdx].sortOrder; filtered[targetIdx].sortOrder = temp; filtered.forEach(e => { db.ref(`employees/${e.uid}`).update({ sortOrder: e.sortOrder }); }); }
-            },
-            mounted() {
-                if(localStorage.getItem('theme') === 'dark') { this.isDarkMode = true; document.documentElement.classList.add('dark'); }
-                const savedAuth = localStorage.getItem('userAuth');
-                if(savedAuth) { this.isAuthenticated = true; this.isAdmin = (savedAuth === 'admin'); }
-                window.addEventListener('popstate', (e) => {
-                    if (e.state) { this.view = e.state.view || 'home'; this.shift = e.state.shift || null; this.query = e.state.query || ''; this.modal = e.state.modal || null; this.selectedUid = e.state.uid || null; if(this.view === 'home') this.showRolling = false; } 
-                    else { this.view = 'home'; this.shift = null; this.query = ''; this.modal = null; this.showRolling = false; }
-                    setTimeout(() => { try { lucide.createIcons(); } catch(e){} }, 50);
-                    if(this.view === 'dashboard') { setTimeout(() => this.initCharts(), 100); }
+                    updateIcons();
+                };
+
+                const headerTitle = computed(() => {
+                    if (query.value) return "البحث"; 
+                    if (view.value === 'dashboard') return "لوحة القيادة"; 
+                    if (shift.value === 'office') return "طاقم الإدارة"; 
+                    if (shift.value === 'broadcast') return "الإعلانات"; 
+                    if (shift.value) return `وردية ${shift.value}`; 
+                    if (view.value === 'management') return "إدارة الإنتاج"; 
+                    if (view.value === 'prep') return "ورشة التجهيزات"; 
+                    if (view.value === 'line1') return "خط درفلة 1"; 
+                    if (view.value === 'line2') return "خط درفلة 2"; 
+                    if (view.value === 'announcements') return "الإعلانات الداخلية"; 
+                    return "قسم الإنتاج"; 
                 });
-                auth.signInAnonymously().then(() => {
-                    db.ref('employees').on('value', (snapshot) => { const data = snapshot.val(); this.employees = data ? Object.values(data).sort((a, b) => { if (a.department === 'management' && b.department === 'management') return (a.sortOrder || 0) - (b.sortOrder || 0); const idxA = Hierarchy.indexOf(a.jobTitle); const idxB = Hierarchy.indexOf(b.jobTitle); if (idxA !== idxB) return idxA - idxB; return (a.sortOrder || 0) - (b.sortOrder || 0); }) : []; this.isLoading = false; if(this.view === 'dashboard') { setTimeout(() => this.initCharts(), 100); } });
-                    db.ref('contacts').on('value', (snapshot) => { const data = snapshot.val(); this.customContacts = data ? Object.values(data) : []; });
-                    db.ref('announcements').orderByChild('timestamp').on('value', (snapshot) => { const data = snapshot.val(); if(data) { this.announcementsList = Object.values(data).sort((a,b) => b.timestamp - a.timestamp); } else { this.announcementsList = []; } });
-                }).catch(() => { alert("Firebase Auth Error"); this.isLoading = false; });
-            },
-            updated() { try { lucide.createIcons(); } catch(e) {} }
+
+                const filteredEmployees = computed(() => {
+                    let filtered = employees.value.filter(e => {
+                        if (view.value === 'management') return e.department === 'management';
+                        if (view.value === 'announcements') return e.department === 'announcements';
+                        return e.shift === shift.value && (view.value === 'prep' ? e.department === 'prep' : e.line === view.value.replace('line', ''));
+                    });
+                    if (view.value === 'management') filtered.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+                    return filtered;
+                });
+
+                const searchResults = computed(() => {
+                    let q = query.value.toLowerCase(); 
+                    return employees.value.filter(e => (e.name && e.name.toLowerCase().includes(q)) || (e.code && e.code.toString().includes(q)));
+                });
+
+                const activeCount = computed(() => filteredEmployees.value.filter(e => e.status !== 'sick').length);
+                const sickCount = computed(() => filteredEmployees.value.filter(e => e.status === 'sick').length);
+                const sickEmployeesCount = computed(() => employees.value.filter(e => e.status === 'sick').length);
+                
+                const deptTotalCount = computed(() => employees.value.filter(e => (view.value === 'prep' && e.department === 'prep') || (view.value.startsWith('line') && e.line === view.value.replace('line', ''))).length);
+                const deptActiveCount = computed(() => employees.value.filter(e => e.status !== 'sick' && ((view.value === 'prep' && e.department === 'prep') || (view.value.startsWith('line') && e.line === view.value.replace('line', '')))).length);
+                const deptSickCount = computed(() => employees.value.filter(e => e.status === 'sick' && ((view.value === 'prep' && e.department === 'prep') || (view.value.startsWith('line') && e.line === view.value.replace('line', '')))).length);
+
+                const latestAnnouncement = computed(() => announcementsList.value.length > 0 ? announcementsList.value[0] : null);
+                const selectedEmployee = computed(() => employees.value.find(x => x.uid === selectedUid.value));
+
+                const liveShift = computed(() => {
+                    const now = new Date(); const hour = now.getHours(); 
+                    let targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()); 
+                    let dutyType = (hour >= 8 && hour < 16) ? 'morning' : (hour >= 16 && hour < 24) ? 'noon' : 'evening'; 
+                    if (hour < 8) targetDate.setDate(targetDate.getDate() - 1); 
+                    let activeG = '-'; 
+                    for (let g of ['A', 'B', 'C', 'D']) { if (getGroupStatus(g, targetDate).type === dutyType) { activeG = g; break; } } 
+                    return { group: activeG, name: dutyType === 'morning' ? 'الأولى' : dutyType === 'noon' ? 'الثانية' : 'الثالثة', targetDate };
+                });
+
+                const availableJobs = computed(() => {
+                    const jobs = [...new Set([...Hierarchy, ...customContacts.value.map(i => i.job), ...employees.value.map(i => i.jobTitle)])].filter(Boolean);
+                    return jobs.sort((a, b) => { const indexA = Hierarchy.indexOf(a); const indexB = Hierarchy.indexOf(b); if (indexA === -1 && indexB === -1) return a.localeCompare(b, 'ar'); if (indexA === -1) return 1; if (indexB === -1) return -1; return indexA - indexB; });
+                });
+
+                const availableNames = computed(() => {
+                    if (!form.jobTitle || form.jobTitle === '__NEW_JOB__') return []; 
+                    const namesFromContacts = customContacts.value.filter(i => i.job === form.jobTitle).map(i => i.name);
+                    const namesFromEmployees = employees.value.filter(i => i.jobTitle === form.jobTitle).map(i => i.name);
+                    return [...new Set([...namesFromContacts, ...namesFromEmployees])].sort();
+                });
+
+                const availableSubstitutes = computed(() => {
+                    if(!selectedEmployee.value) return []; 
+                    let raw = employees.value.filter(x => x.jobTitle === selectedEmployee.value.jobTitle && x.uid !== selectedUid.value); 
+                    raw.sort((a, b) => (b.line === selectedEmployee.value.line ? 1 : 0) - (a.line === selectedEmployee.value.line ? 1 : 0)); 
+                    const unique = []; const seen = new Set(); 
+                    for (const sub of raw) { if (!seen.has(sub.name)) { seen.add(sub.name); unique.push(sub); } } 
+                    return unique;
+                });
+
+                const getGroupStatus = (group, date) => {
+                    const startDate = new Date(2025, 0, 1); const diff = Math.round((date - startDate) / 86400000); 
+                    const initialStatuses = { 'A': { type: 'evening', day: 3 }, 'B': { type: 'morning-rest', day: 1 }, 'C': { type: 'noon', day: 5 }, 'D': { type: 'morning', day: 1 } }; 
+                    let { type, day } = initialStatuses[group]; const remain = diff % 20;
+                    for (let i = 0; i < remain; i++) { 
+                        day++; 
+                        switch (type) { 
+                            case 'morning': if (day > 5) { type='morning-rest'; day=1; } break; 
+                            case 'morning-rest': if (day > 1) { type='noon'; day=1; } break; 
+                            case 'noon': if (day > 5) { type='noon-rest'; day=1; } break; 
+                            case 'noon-rest': if (day > 2) { type='evening'; day=1; } break; 
+                            case 'evening': if (day > 5) { type='evening-rest'; day=1; } break; 
+                            case 'evening-rest': if (day > 2) { type='morning'; day=1; } break; 
+                        } 
+                    } 
+                    return { type, day };
+                };
+
+                const pushState = () => { history.pushState({ view: view.value, shift: shift.value, query: query.value, modal: modal.value, uid: selectedUid.value }, ""); updateIcons(); };
+                const navigate = (v) => { view.value = v; shift.value = (v === 'management' ? 'office' : v === 'announcements' ? 'broadcast' : null); query.value = ''; modal.value = null; pushState(); if(v === 'dashboard') setTimeout(() => initCharts(), 100); };
+                const navigateShift = (s) => { shift.value = s; modal.value = null; pushState(); };
+                const count = (dept, line = null) => employees.value.filter(e => line ? e.department === dept && e.line === line : e.department === dept).length;
+                const getDeptName = (e) => e.department === 'management' ? 'إدارة الإنتاج' : (e.department === 'prep' ? 'ورشة التجهيزات' : (e.department === 'announcements' ? 'الإعلانات' : `خط درفلة ${e.line}`));
+                const cleanPhone = (p) => { let c = p.replace(/\D/g, ''); return c.startsWith('0') ? '20' + c.substring(1) : (c.startsWith('1') ? '20' + c : c); };
+                const getShiftCardClass = (s) => { const status = getGroupStatus(s, liveShift.value.targetDate); if(s === liveShift.value.group) return 'from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-emerald-200 dark:border-emerald-800/50'; if(status.type.includes('rest')) return 'from-rose-50 to-red-50 dark:from-rose-900/20 dark:to-red-900/20 border-rose-200 dark:border-rose-800/50'; return 'from-gray-50 to-slate-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700'; };
+                const getShiftIconClass = (s) => { const status = getGroupStatus(s, liveShift.value.targetDate); if(s === liveShift.value.group) return 'bg-gradient-to-br from-emerald-500 to-teal-500'; if(status.type.includes('rest')) return 'bg-gradient-to-br from-rose-500 to-red-500'; return 'bg-gradient-to-br from-gray-400 to-slate-500 dark:from-slate-600 dark:to-slate-700'; };
+                const getShiftTextClass = (s) => { const status = getGroupStatus(s, liveShift.value.targetDate); if(s === liveShift.value.group) return 'text-emerald-600 dark:text-emerald-400'; if(status.type.includes('rest')) return 'text-rose-600 dark:text-rose-400'; return 'text-gray-500 dark:text-gray-400'; };
+                const getShiftName = (s) => { const status = getGroupStatus(s, liveShift.value.targetDate); const typeMap = { 'morning':'الوردية الأولى', 'noon':'الوردية الثانية', 'evening':'الوردية الثالثة', 'morning-rest':'راحة', 'noon-rest':'راحة', 'evening-rest':'راحة' }; return typeMap[status.type] || 'خارج الدوام'; };
+
+                const openModal = (type, uid = null) => { 
+                    modal.value = type; selectedUid.value = uid; 
+                    if (type === 'form') { 
+                        let dept = (view.value === 'management' ? 'management' : (view.value === 'prep' ? 'prep' : (view.value === 'announcements' ? 'announcements' : 'rolling'))); 
+                        let line = view.value.startsWith('line') ? view.value.replace('line', '') : '1'; 
+                        let shiftVal = (shift.value && !['office','broadcast'].includes(shift.value)) ? shift.value : 'A'; 
+                        if (uid) { 
+                            let e = employees.value.find(x => x.uid === uid); 
+                            if (e) { Object.assign(form, { uid: e.uid, jobTitle: e.jobTitle, newJob: '', nameSelect: e.name, newName: '', code: e.code || '', phone: e.phone || '', status: e.status || 'active', department: e.department, line: e.line, shift: ['A','B','C','D'].includes(e.shift) ? e.shift : 'A' }); } 
+                        } else { 
+                            Object.assign(form, { uid: '', jobTitle: '', newJob: '', nameSelect: '', newName: '', code: '', phone: '', status: 'active', department: dept, line: line, shift: shiftVal }); 
+                        } 
+                    } 
+                    pushState(); 
+                };
+                const closeModal = () => { if(modal.value !== null) window.history.back(); };
+                const openDetails = (uid) => openModal('details', uid);
+                const showSubstitutes = (uid) => openModal('substitutes', uid);
+                
+                const onJobSelect = () => { if (form.jobTitle === '__NEW_JOB__') { form.nameSelect = '__NEW__'; } else { form.nameSelect = ''; form.code = ''; form.phone = ''; } };
+                const onNameSelect = () => { 
+                    if (form.nameSelect !== '__NEW__' && form.nameSelect !== '') { 
+                        let personData = customContacts.value.find(i => i.name === form.nameSelect); 
+                        if (!personData) { personData = employees.value.find(i => i.name === form.nameSelect); }
+                        if (personData) { form.code = personData.code || ''; form.phone = personData.phone || ''; } else { form.code = ''; form.phone = ''; }
+                    } else { form.code = ''; form.phone = ''; }
+                };
+
+                const publishAnnouncement = () => {
+                    if(!newAnnouncement.value.trim()) return showToast("اكتب نص الإعلان أولاً", "error");
+                    const ann = { id: "ANN-" + Date.now(), text: newAnnouncement.value.trim(), date: new Date().toLocaleString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), timestamp: Date.now() };
+                    db.ref('announcements/' + ann.id).set(ann).then(() => { newAnnouncement.value = ''; showToast("تم نشر الإعلان للجميع", "success"); });
+                };
+                const deleteAnnouncement = (id) => { if(confirm("مسح الإعلان؟")) db.ref('announcements/' + id).remove(); };
+
+                const saveEmployee = () => { 
+                    let finalName = form.nameSelect === '__NEW__' ? form.newName.trim() : form.nameSelect; 
+                    let finalJob = form.jobTitle === '__NEW_JOB__' ? form.newJob.trim() : form.jobTitle; 
+                    if (!finalName || !finalJob) return showToast("يرجى استكمال البيانات", "error"); 
+                    if (form.nameSelect === '__NEW__') { db.ref('contacts/' + finalName.replace(/[.#$[\]]/g, "")).set({ job: finalJob, name: finalName, code: form.code, phone: form.phone }); } 
+                    let uid = form.uid || "ID-" + Date.now(); let jobIdx = Hierarchy.indexOf(finalJob); 
+                    let emp = { uid: uid, name: finalName, code: form.code, jobTitle: finalJob, department: form.department, line: form.department === 'rolling' ? form.line : 'none', shift: form.department === 'management' ? 'office' : (form.department === 'announcements' ? 'broadcast' : form.shift), phone: form.phone, status: form.status, sortOrder: jobIdx !== -1 ? jobIdx * 100 : 99999 }; 
+                    db.ref('employees/' + uid).set(emp).then(() => { showToast("تم حفظ البيانات بنجاح", "success"); closeModal(); }); 
+                };
+                const deleteEmployee = (uid) => { if (confirm('مسح البيانات نهائياً؟')) { db.ref('employees/' + uid).remove(); closeModal(); } };
+                
+                const moveEmployee = (uid, direction) => { 
+                    if (view.value !== 'management') return; 
+                    let filtered = employees.value.filter(e => e.department === 'management').sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)); 
+                    const idx = filtered.findIndex(e => e.uid === uid); if (idx < 0) return; 
+                    const targetIdx = direction === 'up' ? idx - 1 : idx + 1; if (targetIdx < 0 || targetIdx >= filtered.length) return; 
+                    filtered.forEach((e, i) => e.sortOrder = i * 10); 
+                    let temp = filtered[idx].sortOrder; filtered[idx].sortOrder = filtered[targetIdx].sortOrder; filtered[targetIdx].sortOrder = temp; 
+                    filtered.forEach(e => db.ref(`employees/${e.uid}`).update({ sortOrder: e.sortOrder })); 
+                };
+
+                // --- تحديث الرسوم البيانية (Charts) ---
+                const initCharts = () => {
+                    if(window.chartInstances) { Object.values(window.chartInstances).forEach(c => c?.destroy()); } else { window.chartInstances = {}; }
+                    const textColor = isDarkMode.value ? '#f1f5f9' : '#1F2937'; const gridColor = isDarkMode.value ? '#334155' : '#E2E8F0';
+                    const activeColor = '#10B981'; const sickColor = '#F43F5E';
+                    
+                    // 1. حالة التواجد الكلية
+                    const active = employees.value.filter(e => e.status !== 'sick').length; const sick = employees.value.filter(e => e.status === 'sick').length;
+                    if(document.getElementById('statusChart')) { window.chartInstances.status = new Chart(document.getElementById('statusChart'), { type: 'doughnut', data: { labels: ['متواجد', 'إجازة'], datasets: [{ data: [active, sick], backgroundColor: [activeColor, sickColor], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { family: 'Tajawal' } } }, tooltip: { callbacks: { label: function(context) { return ' ' + context.label + ': ' + Number(context.raw).toString(); } } } }, cutout: '70%' } }); }
+                    
+                    // 2. توزيع المهام الوظيفية الكلية (تكدس / Stacked)
+                    // جلب الوظائف وترتيبها بناءً على المصفوقة الهرمية
+                    let rolesSet = new Set();
+                    employees.value.forEach(e => { if(e.jobTitle) rolesSet.add(e.jobTitle); });
+                    let rolesLabels = Array.from(rolesSet);
+                    rolesLabels.sort((a, b) => { let idxA = Hierarchy.indexOf(a); let idxB = Hierarchy.indexOf(b); if (idxA === -1 && idxB === -1) return a.localeCompare(b, 'ar'); if (idxA === -1) return 1; if (idxB === -1) return -1; return idxA - idxB; });
+
+                    let rolesActiveData = rolesLabels.map(role => employees.value.filter(e => e.jobTitle === role && e.status !== 'sick').length);
+                    let rolesSickData = rolesLabels.map(role => employees.value.filter(e => e.jobTitle === role && e.status === 'sick').length);
+                    
+                    if(document.getElementById('rolesChart')) { 
+                        window.chartInstances.roles = new Chart(document.getElementById('rolesChart'), { 
+                            type: 'bar', 
+                            data: { 
+                                labels: rolesLabels, 
+                                datasets: [
+                                    { label: 'نشط', data: rolesActiveData, backgroundColor: activeColor, borderRadius: 4 },
+                                    { label: 'مرضي', data: rolesSickData, backgroundColor: sickColor, borderRadius: 4 }
+                                ] 
+                            }, 
+                            options: { 
+                                indexAxis: 'y', responsive: true, maintainAspectRatio: false, 
+                                interaction: { mode: 'index', intersect: false },
+                                scales: { 
+                                    x: { stacked: true, grid: { color: gridColor }, ticks: { color: textColor, stepSize: 1, callback: function(val) { return Number(val).toString(); } } }, 
+                                    y: { stacked: true, grid: { display: false }, ticks: { color: textColor, font: { family: 'Tajawal', weight: 'bold', size: 10 } } } 
+                                }, 
+                                plugins: { 
+                                    legend: { display: true, position: 'bottom', labels: { color: textColor, font: { family: 'Tajawal' } } },
+                                    tooltip: { callbacks: { label: function(context) { return ' ' + context.dataset.label + ': ' + Number(context.raw).toString(); } } }
+                                } 
+                            } 
+                        }); 
+                    }
+                    
+                    // 3. توزيع الورديات التفصيلي (تكدس / Stacked)
+                    const shiftConfigs = [
+                        { label: 'A - درفلة 1', f: e => e.shift==='A' && e.department==='rolling' && e.line==='1' },
+                        { label: 'B - درفلة 1', f: e => e.shift==='B' && e.department==='rolling' && e.line==='1' },
+                        { label: 'C - درفلة 1', f: e => e.shift==='C' && e.department==='rolling' && e.line==='1' },
+                        { label: 'D - درفلة 1', f: e => e.shift==='D' && e.department==='rolling' && e.line==='1' },
+                        { label: 'A - درفلة 2', f: e => e.shift==='A' && e.department==='rolling' && e.line==='2' },
+                        { label: 'B - درفلة 2', f: e => e.shift==='B' && e.department==='rolling' && e.line==='2' },
+                        { label: 'C - درفلة 2', f: e => e.shift==='C' && e.department==='rolling' && e.line==='2' },
+                        { label: 'D - درفلة 2', f: e => e.shift==='D' && e.department==='rolling' && e.line==='2' },
+                        { label: 'A - تجهيزات', f: e => e.shift==='A' && e.department==='prep' },
+                        { label: 'B - تجهيزات', f: e => e.shift==='B' && e.department==='prep' },
+                        { label: 'C - تجهيزات', f: e => e.shift==='C' && e.department==='prep' },
+                        { label: 'D - تجهيزات', f: e => e.shift==='D' && e.department==='prep' },
+                        { label: 'الإدارة (Office)', f: e => e.department==='management' }
+                    ];
+
+                    let activeShifts = shiftConfigs.filter(c => employees.value.filter(c.f).length > 0);
+                    let shiftLabels = activeShifts.map(c => c.label);
+                    let shiftActiveData = activeShifts.map(c => employees.value.filter(e => c.f(e) && e.status !== 'sick').length);
+                    let shiftSickData = activeShifts.map(c => employees.value.filter(e => c.f(e) && e.status === 'sick').length);
+
+                    if(document.getElementById('shiftDistChart')) { 
+                        window.chartInstances.shiftDist = new Chart(document.getElementById('shiftDistChart'), { 
+                            type: 'bar', 
+                            data: { 
+                                labels: shiftLabels, 
+                                datasets: [
+                                    { label: 'نشط', data: shiftActiveData, backgroundColor: activeColor, borderRadius: 4 },
+                                    { label: 'مرضي', data: shiftSickData, backgroundColor: sickColor, borderRadius: 4 }
+                                ] 
+                            }, 
+                            options: { 
+                                indexAxis: 'y', responsive: true, maintainAspectRatio: false, 
+                                interaction: { mode: 'index', intersect: false },
+                                scales: { 
+                                    x: { stacked: true, grid: { color: gridColor }, ticks: { color: textColor, stepSize: 1, callback: function(val) { return Number(val).toString(); } } }, 
+                                    y: { stacked: true, grid: { display: false }, ticks: { color: textColor, font: { family: 'Tajawal', weight: 'bold', size: 10 } } } 
+                                }, 
+                                plugins: { 
+                                    legend: { display: true, position: 'bottom', labels: { color: textColor, font: { family: 'Tajawal' } } },
+                                    tooltip: { callbacks: { label: function(context) { return ' ' + context.dataset.label + ': ' + Number(context.raw).toString(); } } }
+                                } 
+                            } 
+                        }); 
+                    }
+                };
+
+                onMounted(() => {
+                    if(localStorage.getItem('theme') === 'dark') { isDarkMode.value = true; document.documentElement.classList.add('dark'); }
+                    
+                    const savedAuth = localStorage.getItem('userAuth');
+                    if(savedAuth) { isAuthenticated.value = true; isAdmin.value = (savedAuth === 'admin'); updateIcons(); }
+                    
+                    window.addEventListener('popstate', (e) => {
+                        if (e.state) { view.value = e.state.view || 'home'; shift.value = e.state.shift || null; query.value = e.state.query || ''; modal.value = e.state.modal || null; selectedUid.value = e.state.uid || null; if(view.value === 'home') showRolling.value = false; } 
+                        else { view.value = 'home'; shift.value = null; query.value = ''; modal.value = null; showRolling.value = false; }
+                        updateIcons(); if(view.value === 'dashboard') setTimeout(() => initCharts(), 100);
+                    });
+
+                    auth.signInAnonymously().then(() => {
+                        db.ref('employees').on('value', (s) => { const d = s.val(); employees.value = d ? Object.values(d).sort((a, b) => { if (a.department === 'management' && b.department === 'management') return (a.sortOrder || 0) - (b.sortOrder || 0); const idxA = Hierarchy.indexOf(a.jobTitle); const idxB = Hierarchy.indexOf(b.jobTitle); if (idxA !== idxB) return idxA - idxB; return (a.sortOrder || 0) - (b.sortOrder || 0); }) : []; isLoading.value = false; if(view.value === 'dashboard') setTimeout(() => initCharts(), 100); });
+                        db.ref('contacts').on('value', (s) => { const d = s.val(); customContacts.value = d ? Object.values(d) : []; });
+                        db.ref('announcements').orderByChild('timestamp').on('value', (s) => { const d = s.val(); announcementsList.value = d ? Object.values(d).sort((a,b) => b.timestamp - a.timestamp) : []; });
+                    }).catch(() => { alert("Firebase Auth Error"); isLoading.value = false; });
+                });
+
+                onUpdated(() => { updateIcons(); });
+
+                return {
+                    isAuthenticated, isAdmin, isDarkMode, isLoading, toasts, loginUsername, loginPassword, loginError,
+                    view, shift, query, modal, selectedUid, showRolling, form, employees, announcementsList,
+                    headerTitle, filteredEmployees, searchResults, activeCount, sickCount, sickEmployeesCount, 
+                    deptTotalCount, deptActiveCount, deptSickCount, latestAnnouncement, selectedEmployee, liveShift,
+                    availableJobs, availableNames, availableSubstitutes, newAnnouncement,
+                    sunIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>',
+                    moonIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>',
+                    login, logout, toggleDarkMode, navigate, navigateShift, count, getDeptName, cleanPhone, getShiftCardClass, getShiftIconClass, getShiftTextClass, getShiftName,
+                    openModal, closeModal, openDetails, showSubstitutes, onJobSelect, onNameSelect,
+                    publishAnnouncement, deleteAnnouncement, saveEmployee, deleteEmployee, moveEmployee
+                };
+            }
         });
+        
         app.mount('#app');
     </script>
 </body>
