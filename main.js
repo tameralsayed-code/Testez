@@ -32,9 +32,9 @@ const { createApp, ref, reactive, computed, onMounted, onUpdated, nextTick } = V
 
 const app = createApp({
     setup() {
-        // التعديل هنا: فحص حالة تسجيل الدخول من الذاكرة *قبل* تحميل الواجهة
+        // قراءة حالة الدخول فوراً لمنع ظهور شاشة تسجيل الدخول كـ Splash Screen
         const savedAuth = localStorage.getItem('userAuth');
-        const isAuthenticated = ref(savedAuth !== null);
+        const isAuthenticated = ref(savedAuth ? true : false);
         const isAdmin = ref(savedAuth === 'admin');
         
         const isDarkMode = ref(false);
@@ -333,8 +333,7 @@ const app = createApp({
         onMounted(() => {
             if(localStorage.getItem('theme') === 'dark') { isDarkMode.value = true; document.documentElement.classList.add('dark'); }
             
-            // التعديل هنا: تحديث الأيقونات فقط إذا كان مسجلاً (لأننا قمنا بفحص تسجيل الدخول في الأعلى)
-            if(isAuthenticated.value) { updateIcons(); }
+            updateIcons(); // تحديث الأيقونات مباشرة في حالة الدخول السريع
             
             window.addEventListener('popstate', (e) => {
                 if (e.state) { view.value = e.state.view || 'home'; shift.value = e.state.shift || null; query.value = e.state.query || ''; modal.value = e.state.modal || null; selectedUid.value = e.state.uid || null; if(view.value === 'home') showRolling.value = false; } 
