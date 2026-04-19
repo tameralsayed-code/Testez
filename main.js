@@ -51,8 +51,18 @@ const app = createApp({
 
         const toggleDarkMode = () => {
             isDarkMode.value = !isDarkMode.value;
-            if (isDarkMode.value) { document.documentElement.classList.add('dark'); localStorage.setItem('theme', 'dark'); } 
-            else { document.documentElement.classList.remove('dark'); localStorage.setItem('theme', 'light'); }
+            const themeMeta = document.getElementById('theme-color-meta');
+            
+            if (isDarkMode.value) { 
+                document.documentElement.classList.add('dark'); 
+                localStorage.setItem('theme', 'dark'); 
+                if(themeMeta) themeMeta.setAttribute('content', '#0f172a');
+            } 
+            else { 
+                document.documentElement.classList.remove('dark'); 
+                localStorage.setItem('theme', 'light'); 
+                if(themeMeta) themeMeta.setAttribute('content', '#3B82F6');
+            }
             updateIcons();
         };
 
@@ -300,17 +310,8 @@ const app = createApp({
             }
         };
 
-        const removeSplashScreen = () => {
-            const splash = document.getElementById('splash-screen');
-            if (splash) {
-                splash.style.opacity = '0';
-                splash.style.visibility = 'hidden';
-                setTimeout(() => splash.remove(), 600); // تنظيف الـ DOM بعد انتهاء الأنيميشن
-            }
-        };
-
         onMounted(() => {
-            if(localStorage.getItem('theme') === 'dark') { isDarkMode.value = true; document.documentElement.classList.add('dark'); }
+            if(localStorage.getItem('theme') === 'dark') { isDarkMode.value = true; document.documentElement.classList.add('dark'); document.getElementById('theme-color-meta').setAttribute('content', '#0f172a'); }
             
             window.addEventListener('popstate', (e) => {
                 if (e.state) { view.value = e.state.view || 'home'; shift.value = e.state.shift || null; query.value = e.state.query || ''; modal.value = e.state.modal || null; selectedUid.value = e.state.uid || null; if(view.value === 'home') showRolling.value = false; } 
@@ -333,9 +334,6 @@ const app = createApp({
             if (cachedAnnouncements) { 
                 announcementsList.value = JSON.parse(cachedAnnouncements); 
             }
-
-            // إخفاء شاشة التحميل بعد وقت كافٍ لرؤية الأنيميشن الاحترافي (1.2 ثانية)
-            setTimeout(removeSplashScreen, 1200);
 
             if (cachedEmployees && view.value === 'dashboard') { 
                 setTimeout(() => initCharts(), 100); 

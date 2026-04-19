@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#3B82F6">
+    <meta name="theme-color" content="#3B82F6" id="theme-color-meta">
     <title>قسم الإنتاج | Enterprise Edition</title>
     
+    <!-- إخفاء العناصر قبل تحميل Vue -->
+    <style>
+        [v-cloak] { display: none !important; }
+    </style>
+
     <!-- تسريع تحميل الخطوط -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,7 +23,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
     
-    <!-- تحميل المكتبات في الخلفية باستخدام defer لتسريع ظهور الصفحة -->
+    <!-- تحميل المكتبات في الخلفية باستخدام defer -->
     <script src="https://unpkg.com/lucide@latest" defer></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js" defer></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
@@ -26,119 +31,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 
-    <!-- تنسيق إخفاء التطبيق قبل التحميل وشاشة الـ Splash Screen الاحترافية -->
-    <style>
-        [v-cloak] { display: none !important; }
-        
-        /* تنسيق شاشة التحميل الاحترافية الجديدة */
-        #splash-screen {
-            position: fixed; inset: 0; 
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            z-index: 999999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
-        }
-        
-        .splash-content {
-            display: flex; flex-direction: column; align-items: center;
-            animation: floatUp 0.8s ease-out forwards;
-        }
-
-        .logo-container {
-            width: 88px; height: 88px;
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            border-radius: 24px;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3), inset 0 2px 0 rgba(255,255,255,0.2);
-            margin-bottom: 24px;
-            color: white;
-            animation: pulseGlow 2s infinite alternate;
-        }
-
-        .splash-title {
-            font-family: 'Tajawal', sans-serif;
-            font-size: 26px; font-weight: 900; color: #ffffff;
-            margin: 0 0 4px 0; letter-spacing: -0.5px;
-        }
-
-        .splash-subtitle {
-            font-family: 'Tajawal', sans-serif;
-            font-size: 11px; font-weight: 700; color: #94a3b8;
-            letter-spacing: 3px; text-transform: uppercase;
-            margin-bottom: 40px;
-        }
-
-        .loading-bar-container {
-            width: 180px; height: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px; overflow: hidden;
-            margin-bottom: 12px;
-            position: relative;
-        }
-
-        .loading-bar {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: #3b82f6;
-            border-radius: 4px;
-            transform-origin: right;
-            animation: slideLoad 1.5s ease-in-out infinite alternate;
-        }
-
-        .loading-text {
-            font-family: 'Tajawal', sans-serif;
-            font-size: 12px; color: #64748b; font-weight: 500;
-            animation: pulseText 1.5s infinite alternate;
-        }
-
-        @keyframes floatUp {
-            0% { opacity: 0; transform: translateY(30px) scale(0.95); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        @keyframes pulseGlow {
-            0% { box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2), inset 0 2px 0 rgba(255,255,255,0.2); transform: scale(1); }
-            100% { box-shadow: 0 25px 50px rgba(59, 130, 246, 0.5), inset 0 2px 0 rgba(255,255,255,0.2); transform: scale(1.05); }
-        }
-
-        @keyframes slideLoad {
-            0% { transform: scaleX(0); transform-origin: right; }
-            49% { transform: scaleX(1); transform-origin: right; }
-            51% { transform: scaleX(1); transform-origin: left; }
-            100% { transform: scaleX(0); transform-origin: left; }
-        }
-
-        @keyframes pulseText {
-            0% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-    </style>
 </head>
 <body class="pb-safe pt-safe">
 
-    <!-- شاشة التحميل السريعة الاحترافية -->
-    <div id="splash-screen">
-        <div class="splash-content">
-            <div class="logo-container">
-                <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path>
-                    <path d="M17 18h1"></path>
-                    <path d="M13 18h1"></path>
-                    <path d="M9 18h1"></path>
-                </svg>
-            </div>
-            
-            <h1 class="splash-title">قسم الإنتاج</h1>
-            <p class="splash-subtitle">Enterprise Edition</p>
-            
-            <div class="loading-bar-container" dir="ltr">
-                <div class="loading-bar"></div>
-            </div>
-            <div class="loading-text">جاري إعداد بيئة العمل...</div>
-        </div>
-    </div>
-
-    <!-- إضافة v-cloak ليتم إخفاء العناصر غير المكتملة -->
+    <!-- التطبيق -->
     <div id="app" v-cloak class="h-full min-h-screen relative">
         
         <div class="toast-container">
@@ -149,7 +45,6 @@
             </transition-group>
         </div>
 
-        <!-- التطبيق الرئيسي -->
         <div class="pb-36">
             
             <div v-if="latestAnnouncement" class="bg-gray-900 dark:bg-black text-white text-xs font-bold py-2 overflow-hidden flex items-center relative z-40 shadow-md">
@@ -157,7 +52,6 @@
                 <div class="marquee-content pr-20 text-yellow-300">{{ latestAnnouncement.text }} <span class="text-gray-400 font-normal mr-2">({{ latestAnnouncement.date }})</span></div>
             </div>
 
-            <!-- الهيدر -->
             <header class="sticky top-0 z-30 bg-slate-200/90 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-300 dark:border-slate-800 shadow-md transition-colors">
                 <div class="pt-8 pb-4 px-5 flex items-center justify-between">
                     <h1 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">{{ headerTitle }}</h1>
@@ -191,7 +85,6 @@
                     <div v-if="!isLoading && searchResults.length === 0" class="text-center py-10 text-gray-400 text-sm">لا توجد نتائج لـ "{{ query }}"</div>
                 </div>
 
-                <!-- لوحة القيادة -->
                 <div v-else-if="view === 'dashboard'" class="space-y-6" style="animation: slideDown 0.4s ease-out;">
                     <div class="grid grid-cols-2 gap-4">
                         <div class="bg-gradient-to-br from-blue-500 to-indigo-600 p-5 rounded-[24px] shadow-lg flex flex-col relative overflow-hidden"><i data-lucide="users" class="w-16 h-16 text-white/10 absolute -bottom-2 -left-2"></i><span class="text-3xl font-black text-white relative z-10">{{ employees.length }}</span><span class="text-[11px] text-blue-100 font-bold mt-1 relative z-10">إجمالي قوة العمل</span></div>
