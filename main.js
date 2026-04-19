@@ -12,38 +12,20 @@ const db = firebase.database();
 const auth = firebase.auth();
 
 const Hierarchy = [ 
-    "مدير الإدارة", 
-    "مدير الورشة", 
-    "مدير درفلة 1", 
-    "مدير درفلة 2", 
-    "مهندس الوردية", 
-    "ملاحظ الوردية", 
-    "قائم بأعمال الملاحظ", 
-    "مشغل غرفة التحكم الرئيسية", 
-    "مشغل غرفة تحكم الفرن", 
-    "مشغل غرفة التحكم النهائية", 
-    "فني تمييز المنتج النهائي", 
-    "فني درفلة المرحلة الإبتدائية", 
-    "فني درفلة المرحلة النهائية", 
-    "فني مراقبة سرير التبريد" 
+    "مدير الإدارة", "مدير الورشة", "مدير درفلة 1", "مدير درفلة 2", "مهندس الوردية", 
+    "ملاحظ الوردية", "قائم بأعمال الملاحظ", "مشغل غرفة التحكم الرئيسية", 
+    "مشغل غرفة تحكم الفرن", "مشغل غرفة التحكم النهائية", "فني تمييز المنتج النهائي", 
+    "فني درفلة المرحلة الإبتدائية", "فني درفلة المرحلة النهائية", "فني مراقبة سرير التبريد" 
 ];
 
 const { createApp, ref, reactive, computed, onMounted, onUpdated, nextTick } = Vue;
 
 const app = createApp({
     setup() {
-        // قراءة حالة الدخول فوراً لمنع ظهور شاشة تسجيل الدخول كـ Splash Screen
-        const savedAuth = localStorage.getItem('userAuth');
-        const isAuthenticated = ref(savedAuth ? true : false);
-        const isAdmin = ref(savedAuth === 'admin');
-        
+        const isAdmin = ref(true); 
         const isDarkMode = ref(false);
         const isLoading = ref(true);
         const toasts = ref([]);
-        
-        const loginUsername = ref('');
-        const loginPassword = ref('');
-        const loginError = ref('');
 
         const view = ref('home');
         const shift = ref(null);
@@ -66,18 +48,6 @@ const app = createApp({
         };
 
         const updateIcons = () => { nextTick(() => { try { lucide.createIcons(); } catch(e){} }); };
-
-        const login = () => {
-            if (loginUsername.value === 'admin' && loginPassword.value === 'ezz steel1996') { 
-                isAdmin.value = true; isAuthenticated.value = true; loginError.value = ''; localStorage.setItem('userAuth', 'admin'); updateIcons(); 
-            } else if (loginUsername.value === 'User' && loginPassword.value === 'ezz1996') { 
-                isAdmin.value = false; isAuthenticated.value = true; loginError.value = ''; localStorage.setItem('userAuth', 'operator'); updateIcons(); 
-            } else { loginError.value = 'بيانات الدخول غير صحيحة!'; loginPassword.value = ''; }
-        };
-
-        const logout = () => {
-            isAuthenticated.value = false; isAdmin.value = false; loginUsername.value = ''; loginPassword.value = ''; localStorage.removeItem('userAuth'); view.value = 'home'; updateIcons();
-        };
 
         const toggleDarkMode = () => {
             isDarkMode.value = !isDarkMode.value;
@@ -330,10 +300,17 @@ const app = createApp({
             }
         };
 
+        const removeSplashScreen = () => {
+            const splash = document.getElementById('splash-screen');
+            if (splash) {
+                splash.style.opacity = '0';
+                splash.style.visibility = 'hidden';
+                setTimeout(() => splash.remove(), 600); // تنظيف الـ DOM بعد انتهاء الأنيميشن
+            }
+        };
+
         onMounted(() => {
             if(localStorage.getItem('theme') === 'dark') { isDarkMode.value = true; document.documentElement.classList.add('dark'); }
-            
-            updateIcons(); // تحديث الأيقونات مباشرة في حالة الدخول السريع
             
             window.addEventListener('popstate', (e) => {
                 if (e.state) { view.value = e.state.view || 'home'; shift.value = e.state.shift || null; query.value = e.state.query || ''; modal.value = e.state.modal || null; selectedUid.value = e.state.uid || null; if(view.value === 'home') showRolling.value = false; } 
@@ -356,6 +333,9 @@ const app = createApp({
             if (cachedAnnouncements) { 
                 announcementsList.value = JSON.parse(cachedAnnouncements); 
             }
+
+            // إخفاء شاشة التحميل بعد وقت كافٍ لرؤية الأنيميشن الاحترافي (1.2 ثانية)
+            setTimeout(removeSplashScreen, 1200);
 
             if (cachedEmployees && view.value === 'dashboard') { 
                 setTimeout(() => initCharts(), 100); 
@@ -401,14 +381,14 @@ const app = createApp({
         onUpdated(() => { updateIcons(); });
 
         return {
-            isAuthenticated, isAdmin, isDarkMode, isLoading, toasts, loginUsername, loginPassword, loginError,
+            isAdmin, isDarkMode, isLoading, toasts,
             view, shift, query, modal, selectedUid, showRolling, form, employees, announcementsList,
             headerTitle, filteredEmployees, searchResults, activeCount, sickCount, sickEmployeesCount, 
             deptTotalCount, deptActiveCount, deptSickCount, latestAnnouncement, selectedEmployee, liveShift,
             availableJobs, availableNames, availableSubstitutes, newAnnouncement,
             sunIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>',
             moonIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>',
-            login, logout, toggleDarkMode, navigate, navigateShift, count, getDeptName, cleanPhone, getShiftCardClass, getShiftIconClass, getShiftTextClass, getShiftName,
+            toggleDarkMode, navigate, navigateShift, count, getDeptName, cleanPhone, getShiftCardClass, getShiftIconClass, getShiftTextClass, getShiftName,
             openModal, closeModal, openDetails, showSubstitutes, onJobSelect, onNameSelect,
             publishAnnouncement, deleteAnnouncement, saveEmployee, deleteEmployee, moveEmployee
         };

@@ -6,16 +6,140 @@
     <meta name="theme-color" content="#3B82F6">
     <title>قسم الإنتاج | Enterprise Edition</title>
     
-    <!-- الخطوط (يجب أن تبقى في الأعلى) -->
+    <!-- تسريع تحميل الخطوط -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
     
-    <!-- ملف الستايل الخاص بك (يجب أن يبقى في الأعلى لضمان ظهور الألوان فوراً) -->
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Tajawal','sans-serif']}}}}</script>
+    
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
+    
+    <!-- تحميل المكتبات في الخلفية باستخدام defer لتسريع ظهور الصفحة -->
+    <script src="https://unpkg.com/lucide@latest" defer></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+
+    <!-- تنسيق إخفاء التطبيق قبل التحميل وشاشة الـ Splash Screen الاحترافية -->
+    <style>
+        [v-cloak] { display: none !important; }
+        
+        /* تنسيق شاشة التحميل الاحترافية الجديدة */
+        #splash-screen {
+            position: fixed; inset: 0; 
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            z-index: 999999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
+        }
+        
+        .splash-content {
+            display: flex; flex-direction: column; align-items: center;
+            animation: floatUp 0.8s ease-out forwards;
+        }
+
+        .logo-container {
+            width: 88px; height: 88px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border-radius: 24px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3), inset 0 2px 0 rgba(255,255,255,0.2);
+            margin-bottom: 24px;
+            color: white;
+            animation: pulseGlow 2s infinite alternate;
+        }
+
+        .splash-title {
+            font-family: 'Tajawal', sans-serif;
+            font-size: 26px; font-weight: 900; color: #ffffff;
+            margin: 0 0 4px 0; letter-spacing: -0.5px;
+        }
+
+        .splash-subtitle {
+            font-family: 'Tajawal', sans-serif;
+            font-size: 11px; font-weight: 700; color: #94a3b8;
+            letter-spacing: 3px; text-transform: uppercase;
+            margin-bottom: 40px;
+        }
+
+        .loading-bar-container {
+            width: 180px; height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px; overflow: hidden;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .loading-bar {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #3b82f6;
+            border-radius: 4px;
+            transform-origin: right;
+            animation: slideLoad 1.5s ease-in-out infinite alternate;
+        }
+
+        .loading-text {
+            font-family: 'Tajawal', sans-serif;
+            font-size: 12px; color: #64748b; font-weight: 500;
+            animation: pulseText 1.5s infinite alternate;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 0; transform: translateY(30px) scale(0.95); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2), inset 0 2px 0 rgba(255,255,255,0.2); transform: scale(1); }
+            100% { box-shadow: 0 25px 50px rgba(59, 130, 246, 0.5), inset 0 2px 0 rgba(255,255,255,0.2); transform: scale(1.05); }
+        }
+
+        @keyframes slideLoad {
+            0% { transform: scaleX(0); transform-origin: right; }
+            49% { transform: scaleX(1); transform-origin: right; }
+            51% { transform: scaleX(1); transform-origin: left; }
+            100% { transform: scaleX(0); transform-origin: left; }
+        }
+
+        @keyframes pulseText {
+            0% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
 </head>
 <body class="pb-safe pt-safe">
 
-    <div id="app" class="h-full min-h-screen relative">
+    <!-- شاشة التحميل السريعة الاحترافية -->
+    <div id="splash-screen">
+        <div class="splash-content">
+            <div class="logo-container">
+                <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path>
+                    <path d="M17 18h1"></path>
+                    <path d="M13 18h1"></path>
+                    <path d="M9 18h1"></path>
+                </svg>
+            </div>
+            
+            <h1 class="splash-title">قسم الإنتاج</h1>
+            <p class="splash-subtitle">Enterprise Edition</p>
+            
+            <div class="loading-bar-container" dir="ltr">
+                <div class="loading-bar"></div>
+            </div>
+            <div class="loading-text">جاري إعداد بيئة العمل...</div>
+        </div>
+    </div>
+
+    <!-- إضافة v-cloak ليتم إخفاء العناصر غير المكتملة -->
+    <div id="app" v-cloak class="h-full min-h-screen relative">
         
         <div class="toast-container">
             <transition-group name="toast-list">
@@ -25,46 +149,8 @@
             </transition-group>
         </div>
 
-        <!-- شاشة الدخول -->
-        <div v-if="!isAuthenticated" class="login-wrapper-new">
-            <div class="bg-circles">
-                <div class="circle c1"></div>
-                <div class="circle c2"></div>
-            </div>
-
-            <div class="w-full max-w-[380px] login-box-new py-10 px-[30px] relative z-10 text-center">
-                <h2 class="text-[1.8rem] font-bold text-white mb-2">مرحباً بك</h2>
-                <p class="text-[#b0b0b0] text-[0.95rem] mb-8">الرجاء إدخال بياناتك للدخول</p>
-
-                <form @submit.prevent="login">
-                    <div class="input-field-new relative mb-5">
-                        <i data-lucide="user" class="absolute right-[15px] top-1/2 -translate-y-1/2 text-white/60 w-[1.1rem] h-[1.1rem]"></i>
-                        <input v-model="loginUsername" type="text" placeholder="اسم المستخدم" required dir="ltr" class="w-full py-[14px] pr-[45px] pl-[15px] rounded-xl outline-none text-[1rem] text-left tracking-wide">
-                    </div>
-
-                    <div class="input-field-new relative mb-5">
-                        <i data-lucide="lock" class="absolute right-[15px] top-1/2 -translate-y-1/2 text-white/60 w-[1.1rem] h-[1.1rem]"></i>
-                        <input v-model="loginPassword" type="password" placeholder="كلمة المرور" required dir="ltr" class="w-full py-[14px] pr-[45px] pl-[15px] rounded-xl outline-none text-[1rem] tracking-widest text-left">
-                    </div>
-
-                    <p v-if="loginError" class="text-sm font-bold text-rose-400 mb-4 animate-pulse">{{ loginError }}</p>
-
-                    <div class="flex justify-between items-center mb-[25px] text-[#ddd] text-[0.85rem]">
-                        <label class="flex items-center gap-[5px] cursor-pointer">
-                            <input type="checkbox" class="accent-[#8e2de2]" checked> تذكرني
-                        </label>
-                        <a href="#" class="text-[#bbb] hover:text-white hover:underline transition-colors">نسيت كلمة المرور؟</a>
-                    </div>
-
-                    <button type="submit" class="btn-gradient w-full py-[14px] border-none rounded-xl text-white text-[1.1rem] font-bold cursor-pointer">
-                        تسجيل الدخول
-                    </button>
-                </form>
-            </div>
-        </div>
-
         <!-- التطبيق الرئيسي -->
-        <div v-else class="pb-36">
+        <div class="pb-36">
             
             <div v-if="latestAnnouncement" class="bg-gray-900 dark:bg-black text-white text-xs font-bold py-2 overflow-hidden flex items-center relative z-40 shadow-md">
                 <span class="bg-rose-600 px-3 py-2 absolute right-0 z-10 h-full flex items-center shadow-[10px_0_15px_rgba(0,0,0,0.5)]">عاجل 📢</span>
@@ -82,9 +168,6 @@
                         </button>
                         <button v-if="view === 'home'" @click="navigate('dashboard')" class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-200 dark:border-blue-800 shadow-sm active:scale-95 transition-all">
                             <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
-                        </button>
-                        <button @click="logout" class="w-11 h-11 rounded-xl bg-rose-50 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 flex items-center justify-center border border-rose-200 dark:border-rose-800 shadow-sm active:scale-95 transition-all" title="تسجيل الخروج">
-                            <i data-lucide="log-out" class="w-5 h-5"></i>
                         </button>
                     </div>
                 </div>
@@ -260,23 +343,7 @@
         </div> 
     </div>
 
-    <!-- 
-      الخطوة الثانية: 
-      المكتبات الثقيلة (Tailwind و Vue و Firebase وغيرها)
-      تم نقلها إلى أسفل الصفحة (قبل وسم إغلاق البودي) 
-      لجعل الهاتف يعرض واجهة التطبيق فوراً بدون انتظار.
-    -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Tajawal','sans-serif']}}}}</script>
-    
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <!-- Script File -->
-    <script src="main.js"></script>
+    <script src="main.js" defer></script>
 </body>
 </html>
