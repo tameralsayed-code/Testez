@@ -140,13 +140,12 @@
                 <div class="marquee-content pr-20 text-yellow-300">{{ latestAnnouncement.text }} <span class="text-gray-400 font-normal mr-2">({{ latestAnnouncement.date }})</span></div>
             </div>
 
-            <!-- الهيدر بتصميم أغمق قليلاً وتناسق أعلى -->
+            <!-- الهيدر -->
             <header class="sticky top-0 z-30 bg-slate-200/90 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-300 dark:border-slate-800 shadow-md transition-colors">
                 <div class="pt-8 pb-4 px-5 flex items-center justify-between">
                     <h1 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">{{ headerTitle }}</h1>
                     
                     <div class="flex items-center gap-2.5">
-                        <!-- الأزرار بخلفية فاتحة لتبرز فوق الهيدر الأغمق -->
                         <button v-if="view === 'home'" @click="toggleDarkMode" class="w-11 h-11 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center border border-slate-300 dark:border-slate-700 shadow-sm active:scale-95 transition-all">
                             <span v-html="isDarkMode ? sunIcon : moonIcon"></span>
                         </button>
@@ -160,7 +159,6 @@
                 </div>
                 
                 <div v-if="view !== 'announcements' && view !== 'dashboard'" class="px-5 pb-3.5">
-                    <!-- مربع البحث بلون أبيض ناصع في الوضع الفاتح ليتناقض مع الهيدر الرمادي -->
                     <div class="relative bg-white dark:bg-slate-800 rounded-2xl transition-colors border border-slate-300 dark:border-slate-700 shadow-sm">
                         <i data-lucide="search" class="absolute right-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400 dark:text-gray-500"></i>
                         <input v-model="query" type="text" placeholder="بحث بالاسم أو الكود..." class="w-full bg-transparent border-none pr-11 pl-11 py-3 rounded-2xl text-sm outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500">
@@ -170,6 +168,7 @@
             </header>
 
             <main class="px-5 py-5">
+                <!-- بـاقي تصـميـم التطبـيق (نـفـس الكـود السابـق لم يـتم تـعديـله) -->
                 
                 <div v-if="query" class="space-y-3">
                     <div v-for="e in searchResults" :key="e.uid" @click="openDetails(e.uid)" class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-gray-100 dark:border-slate-700 flex items-center gap-4 shadow-sm cursor-pointer active:scale-95 transition-transform">
@@ -671,11 +670,68 @@
                         updateIcons(); if(view.value === 'dashboard') setTimeout(() => initCharts(), 100);
                     });
 
+                    // -------------------------------------------------------------------------
+                    // 1. ميزة العمل بدون إنترنت (عرض البيانات من الذاكرة المؤقتة فوراً)
+                    // -------------------------------------------------------------------------
+                    const cachedEmployees = localStorage.getItem('offline_employees');
+                    if (cachedEmployees) { 
+                        employees.value = JSON.parse(cachedEmployees); 
+                        isLoading.value = false; 
+                    }
+
+                    const cachedContacts = localStorage.getItem('offline_contacts');
+                    if (cachedContacts) { 
+                        customContacts.value = JSON.parse(cachedContacts); 
+                    }
+
+                    const cachedAnnouncements = localStorage.getItem('offline_announcements');
+                    if (cachedAnnouncements) { 
+                        announcementsList.value = JSON.parse(cachedAnnouncements); 
+                    }
+
+                    if (cachedEmployees && view.value === 'dashboard') { 
+                        setTimeout(() => initCharts(), 100); 
+                    }
+                    // -------------------------------------------------------------------------
+
                     auth.signInAnonymously().then(() => {
-                        db.ref('employees').on('value', (s) => { const d = s.val(); employees.value = d ? Object.values(d).sort((a, b) => { if (a.department === 'management' && b.department === 'management') return (a.sortOrder || 0) - (b.sortOrder || 0); const idxA = Hierarchy.indexOf(a.jobTitle); const idxB = Hierarchy.indexOf(b.jobTitle); if (idxA !== idxB) return idxA - idxB; return (a.sortOrder || 0) - (b.sortOrder || 0); }) : []; isLoading.value = false; if(view.value === 'dashboard') setTimeout(() => initCharts(), 100); });
-                        db.ref('contacts').on('value', (s) => { const d = s.val(); customContacts.value = d ? Object.values(d) : []; });
-                        db.ref('announcements').orderByChild('timestamp').on('value', (s) => { const d = s.val(); announcementsList.value = d ? Object.values(d).sort((a,b) => b.timestamp - a.timestamp) : []; });
-                    }).catch(() => { alert("Firebase Auth Error"); isLoading.value = false; });
+                        
+                        // 2. تحديث الواجهة عند توفر الإنترنت وحفظ نسخة جديدة في الذاكرة
+                        db.ref('employees').on('value', (s) => { 
+                            const d = s.val(); 
+                            employees.value = d ? Object.values(d).sort((a, b) => { 
+                                if (a.department === 'management' && b.department === 'management') return (a.sortOrder || 0) - (b.sortOrder || 0); 
+                                const idxA = Hierarchy.indexOf(a.jobTitle); 
+                                const idxB = Hierarchy.indexOf(b.jobTitle); 
+                                if (idxA !== idxB) return idxA - idxB; 
+                                return (a.sortOrder || 0) - (b.sortOrder || 0); 
+                            }) : []; 
+                            
+                            // حفظ في الذاكرة للاستخدام بدون نت
+                            localStorage.setItem('offline_employees', JSON.stringify(employees.value));
+                            
+                            isLoading.value = false; 
+                            if(view.value === 'dashboard') setTimeout(() => initCharts(), 100); 
+                        });
+
+                        db.ref('contacts').on('value', (s) => { 
+                            const d = s.val(); 
+                            customContacts.value = d ? Object.values(d) : []; 
+                            localStorage.setItem('offline_contacts', JSON.stringify(customContacts.value));
+                        });
+
+                        db.ref('announcements').orderByChild('timestamp').on('value', (s) => { 
+                            const d = s.val(); 
+                            announcementsList.value = d ? Object.values(d).sort((a,b) => b.timestamp - a.timestamp) : []; 
+                            localStorage.setItem('offline_announcements', JSON.stringify(announcementsList.value));
+                        });
+
+                    }).catch(() => { 
+                        if (!cachedEmployees) { 
+                            isLoading.value = false; 
+                            showToast("لا يوجد اتصال بالإنترنت", "error"); 
+                        } 
+                    });
                 });
 
                 onUpdated(() => { updateIcons(); });
