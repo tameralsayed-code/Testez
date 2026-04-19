@@ -32,8 +32,11 @@ const { createApp, ref, reactive, computed, onMounted, onUpdated, nextTick } = V
 
 const app = createApp({
     setup() {
-        const isAuthenticated = ref(false);
-        const isAdmin = ref(false);
+        // التعديل هنا: فحص حالة تسجيل الدخول من الذاكرة *قبل* تحميل الواجهة
+        const savedAuth = localStorage.getItem('userAuth');
+        const isAuthenticated = ref(savedAuth !== null);
+        const isAdmin = ref(savedAuth === 'admin');
+        
         const isDarkMode = ref(false);
         const isLoading = ref(true);
         const toasts = ref([]);
@@ -330,8 +333,8 @@ const app = createApp({
         onMounted(() => {
             if(localStorage.getItem('theme') === 'dark') { isDarkMode.value = true; document.documentElement.classList.add('dark'); }
             
-            const savedAuth = localStorage.getItem('userAuth');
-            if(savedAuth) { isAuthenticated.value = true; isAdmin.value = (savedAuth === 'admin'); updateIcons(); }
+            // التعديل هنا: تحديث الأيقونات فقط إذا كان مسجلاً (لأننا قمنا بفحص تسجيل الدخول في الأعلى)
+            if(isAuthenticated.value) { updateIcons(); }
             
             window.addEventListener('popstate', (e) => {
                 if (e.state) { view.value = e.state.view || 'home'; shift.value = e.state.shift || null; query.value = e.state.query || ''; modal.value = e.state.modal || null; selectedUid.value = e.state.uid || null; if(view.value === 'home') showRolling.value = false; } 
