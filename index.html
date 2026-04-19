@@ -140,31 +140,31 @@
                 <div class="marquee-content pr-20 text-yellow-300">{{ latestAnnouncement.text }} <span class="text-gray-400 font-normal mr-2">({{ latestAnnouncement.date }})</span></div>
             </div>
 
-            <!-- تم تعديل كلاسات الهيدر هنا ليكون أغمق قليلاً مع إضافة ظل -->
-            <header class="sticky top-0 z-30 bg-slate-100/90 dark:bg-slate-800/95 backdrop-blur-xl border-b border-slate-200 dark:border-slate-700 shadow-sm transition-colors">
+            <!-- الهيدر بتصميم أغمق قليلاً وتناسق أعلى -->
+            <header class="sticky top-0 z-30 bg-slate-200/90 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-300 dark:border-slate-800 shadow-md transition-colors">
                 <div class="pt-8 pb-4 px-5 flex items-center justify-between">
                     <h1 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">{{ headerTitle }}</h1>
                     
                     <div class="flex items-center gap-2.5">
-                        <!-- تم تعديل الأزرار لتكون بارزة فوق الهيدر الأغمق -->
-                        <button v-if="view === 'home'" @click="toggleDarkMode" class="w-11 h-11 rounded-xl bg-white dark:bg-slate-700 flex items-center justify-center border border-slate-200 dark:border-slate-600 shadow-sm active:scale-95 transition-all">
+                        <!-- الأزرار بخلفية فاتحة لتبرز فوق الهيدر الأغمق -->
+                        <button v-if="view === 'home'" @click="toggleDarkMode" class="w-11 h-11 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center border border-slate-300 dark:border-slate-700 shadow-sm active:scale-95 transition-all">
                             <span v-html="isDarkMode ? sunIcon : moonIcon"></span>
                         </button>
-                        <button v-if="view === 'home'" @click="navigate('dashboard')" class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-200 dark:border-blue-800 shadow-sm active:scale-95 transition-all">
+                        <button v-if="view === 'home'" @click="navigate('dashboard')" class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-200 dark:border-blue-800 shadow-sm active:scale-95 transition-all">
                             <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
                         </button>
-                        <button @click="logout" class="w-11 h-11 rounded-xl bg-rose-50 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center border border-rose-200 dark:border-rose-800 shadow-sm active:scale-95 transition-all" title="تسجيل الخروج">
+                        <button @click="logout" class="w-11 h-11 rounded-xl bg-rose-50 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 flex items-center justify-center border border-rose-200 dark:border-rose-800 shadow-sm active:scale-95 transition-all" title="تسجيل الخروج">
                             <i data-lucide="log-out" class="w-5 h-5"></i>
                         </button>
                     </div>
                 </div>
                 
                 <div v-if="view !== 'announcements' && view !== 'dashboard'" class="px-5 pb-3.5">
-                    <!-- تم تعديل مربع البحث ليكون أبيض ناصع مع إطار وظل ليصنع تبايناً مع الهيدر -->
-                    <div class="relative bg-white dark:bg-slate-900 rounded-2xl transition-colors border border-slate-200 dark:border-slate-700 shadow-sm">
-                        <i data-lucide="search" class="absolute right-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400"></i>
-                        <input v-model="query" type="text" placeholder="بحث بالاسم أو الكود..." class="w-full bg-transparent border-none pr-11 pl-11 py-3 rounded-2xl text-sm outline-none dark:text-white">
-                        <button v-if="query" @click="query = ''" class="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-gray-200 dark:bg-slate-700 rounded-full flex items-center justify-center"><i data-lucide="x" class="w-3.5 h-3.5 text-gray-600 dark:text-gray-300"></i></button>
+                    <!-- مربع البحث بلون أبيض ناصع في الوضع الفاتح ليتناقض مع الهيدر الرمادي -->
+                    <div class="relative bg-white dark:bg-slate-800 rounded-2xl transition-colors border border-slate-300 dark:border-slate-700 shadow-sm">
+                        <i data-lucide="search" class="absolute right-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400 dark:text-gray-500"></i>
+                        <input v-model="query" type="text" placeholder="بحث بالاسم أو الكود..." class="w-full bg-transparent border-none pr-11 pl-11 py-3 rounded-2xl text-sm outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500">
+                        <button v-if="query" @click="query = ''" class="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-gray-200 dark:bg-slate-700 rounded-full flex items-center justify-center hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors"><i data-lucide="x" class="w-3.5 h-3.5 text-gray-600 dark:text-gray-300"></i></button>
                     </div>
                 </div>
             </header>
@@ -193,7 +193,6 @@
                     
                     <div class="bg-white dark:bg-slate-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-slate-700">
                         <div class="flex items-center gap-2 mb-4 justify-center"><i data-lucide="briefcase" class="w-4 h-4 text-gray-400"></i><h3 class="text-[11px] font-black text-gray-500 uppercase tracking-widest">توزيع المهام الوظيفية الكلية</h3></div>
-                        <!-- تم زيادة الارتفاع ليتسع لجميع الوظائف في الهيكل الجديد -->
                         <div class="relative h-96 w-full"><canvas id="rolesChart"></canvas></div>
                     </div>
                     
@@ -579,7 +578,6 @@
                     if(document.getElementById('statusChart')) { window.chartInstances.status = new Chart(document.getElementById('statusChart'), { type: 'doughnut', data: { labels: ['متواجد', 'إجازة'], datasets: [{ data: [active, sick], backgroundColor: [activeColor, sickColor], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { family: 'Tajawal' } } }, tooltip: { callbacks: { label: function(context) { return ' ' + context.label + ': ' + Number(context.raw).toString(); } } } }, cutout: '70%' } }); }
                     
                     // 2. توزيع المهام الوظيفية الكلية (تكدس / Stacked)
-                    // جلب الوظائف وترتيبها بناءً على المصفوقة الهرمية
                     let rolesSet = new Set();
                     employees.value.forEach(e => { if(e.jobTitle) rolesSet.add(e.jobTitle); });
                     let rolesLabels = Array.from(rolesSet);
