@@ -27,6 +27,10 @@ const app = createApp({
         const isLoading = ref(true);
         const toasts = ref([]);
 
+        // متغيرات التبديل بين الأدمن والمستخدم
+        const headerClickCount = ref(0);
+        let headerClickTimer = null;
+
         const view = ref('home');
         const shift = ref(null);
         const query = ref('');
@@ -64,6 +68,22 @@ const app = createApp({
                 if(themeMeta) themeMeta.setAttribute('content', '#3B82F6');
             }
             updateIcons();
+        };
+
+        // دالة التبديل عند الضغط 5 مرات
+        const handleHeaderClick = () => {
+            headerClickCount.value++;
+            clearTimeout(headerClickTimer);
+            
+            headerClickTimer = setTimeout(() => {
+                headerClickCount.value = 0;
+            }, 1500);
+
+            if (headerClickCount.value >= 5) {
+                isAdmin.value = !isAdmin.value;
+                headerClickCount.value = 0;
+                showToast(isAdmin.value ? "تم تفعيل صلاحيات الإدارة 🔓" : "تم التبديل لوضع المستخدم العادي 🔒", isAdmin.value ? "success" : "info");
+            }
         };
 
         const headerTitle = computed(() => {
@@ -388,7 +408,7 @@ const app = createApp({
             moonIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>',
             toggleDarkMode, navigate, navigateShift, count, getDeptName, cleanPhone, getShiftCardClass, getShiftIconClass, getShiftTextClass, getShiftName,
             openModal, closeModal, openDetails, showSubstitutes, onJobSelect, onNameSelect,
-            publishAnnouncement, deleteAnnouncement, saveEmployee, deleteEmployee, moveEmployee
+            publishAnnouncement, deleteAnnouncement, saveEmployee, deleteEmployee, moveEmployee, handleHeaderClick
         };
     }
 });
