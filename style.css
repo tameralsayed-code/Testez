@@ -92,10 +92,12 @@ input[type=number] {
     border-color: #3B82F6;
 }
 
-/* Modal Transitions */
+/* Modal Transitions - معدلة للعمل بسرعة فائقة مثل تطبيقات أندرويد الأصلية */
 .sheet-container {
     transform: translateY(100%);
-    transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    /* تم تسريع الحركة وتغيير المنحنى ليصبح Snappy بدلاً من البطء المزعج */
+    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    will-change: transform; /* إجبار كارت الشاشة (GPU) على معالجة الحركة لمنع التقطيع */
     position: fixed;
     bottom: 0;
     left: 0;
@@ -123,7 +125,8 @@ input[type=number] {
     background: rgba(15, 23, 42, 0.7);
     opacity: 0;
     pointer-events: none;
-    transition: opacity var(--transition-base);
+    transition: opacity 0.25s ease;
+    will-change: opacity; /* تسريع معالجة الشفافية */
     z-index: 40;
     backdrop-filter: blur(5px);
 }
@@ -197,6 +200,7 @@ input[type=number] {
     box-shadow: 0 12px 28px rgba(59, 130, 246, 0.4);
     border: none;
     transition: all 0.3s;
+    will-change: transform;
 }
 
 .fab-enhanced:active { transform: scale(0.92); }

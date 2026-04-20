@@ -22,7 +22,8 @@ const { createApp, ref, reactive, computed, onMounted, onUpdated, nextTick } = V
 
 const app = createApp({
     setup() {
-        const isAdmin = ref(true); 
+        // تم تغيير الحالة الافتراضية إلى false (مستخدم عادي)
+        const isAdmin = ref(false); 
         const isDarkMode = ref(false);
         const isLoading = ref(true);
         const toasts = ref([]);
@@ -30,6 +31,9 @@ const app = createApp({
         // متغيرات التبديل بين الأدمن والمستخدم
         const headerClickCount = ref(0);
         let headerClickTimer = null;
+        
+        // بيانات تسجيل الدخول
+        const loginData = reactive({ username: '', password: '' });
 
         const view = ref('home');
         const shift = ref(null);
@@ -80,9 +84,27 @@ const app = createApp({
             }, 1500);
 
             if (headerClickCount.value >= 5) {
-                isAdmin.value = !isAdmin.value;
                 headerClickCount.value = 0;
-                showToast(isAdmin.value ? "تم تفعيل صلاحيات الإدارة 🔓" : "تم التبديل لوضع المستخدم العادي 🔒", isAdmin.value ? "success" : "info");
+                if (isAdmin.value) {
+                    isAdmin.value = false;
+                    showToast("تم تسجيل الخروج من وضع الإدارة 🔒", "info");
+                } else {
+                    openModal('login'); // فتح نافذة تسجيل الدخول
+                }
+            }
+        };
+
+        // دالة التحقق من تسجيل الدخول
+        const handleLogin = () => {
+            // == يمكنك تغيير اسم المستخدم وكلمة المرور من هنا ==
+            if (loginData.username === 'admin' && loginData.password === '1234') {
+                isAdmin.value = true;
+                closeModal();
+                showToast("تم تفعيل صلاحيات الإدارة بنجاح 🔓", "success");
+                loginData.username = ''; 
+                loginData.password = '';
+            } else {
+                showToast("بيانات الدخول غير صحيحة ❌", "error");
             }
         };
 
@@ -404,11 +426,12 @@ const app = createApp({
             headerTitle, filteredEmployees, searchResults, activeCount, sickCount, sickEmployeesCount, 
             deptTotalCount, deptActiveCount, deptSickCount, latestAnnouncement, selectedEmployee, liveShift,
             availableJobs, availableNames, availableSubstitutes, newAnnouncement,
+            loginData, // إضافة كائن بيانات تسجيل الدخول
             sunIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>',
             moonIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>',
             toggleDarkMode, navigate, navigateShift, count, getDeptName, cleanPhone, getShiftCardClass, getShiftIconClass, getShiftTextClass, getShiftName,
             openModal, closeModal, openDetails, showSubstitutes, onJobSelect, onNameSelect,
-            publishAnnouncement, deleteAnnouncement, saveEmployee, deleteEmployee, moveEmployee, handleHeaderClick
+            publishAnnouncement, deleteAnnouncement, saveEmployee, deleteEmployee, moveEmployee, handleHeaderClick, handleLogin
         };
     }
 });
