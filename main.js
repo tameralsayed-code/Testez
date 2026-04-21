@@ -267,22 +267,28 @@ const app = createApp({
             db.ref('employees/' + uid).set(emp).then(() => { showToast("تم الحفظ وتعيين الموظف بنجاح", "success"); closeModal(); }); 
         };
         
-        // 🔴 التعديل الأهم (نظام إخلاء الطرف / سحب الموظف) 🔴
+        // 🔴 فتح نافذة التأكيد الاحترافية 🔴
         const deleteEmployee = (uid) => { 
-            if (confirm('هل تريد إزالة هذا الموظف من مكانه الحالي؟ (سيبقى محفوظاً في النظام ومتاحاً للإضافة لأي وردية أخرى لاحقاً)')) { 
-                db.ref('employees/' + uid).update({
-                    department: 'unassigned', // جعله غير معين بأي قسم
-                    shift: 'none',            // سحب الوردية
-                    line: 'none'              // سحب الخط
-                }).then(() => {
-                    closeModal();
-                    showToast("تم إخلاء طرف الموظف، وهو متاح للتعيين في مكان آخر", "success");
-                }).catch(err => {
-                    showToast("حدث خطأ أثناء الاتصال", "error");
-                });
-            } 
+            selectedUid.value = uid; 
+            modal.value = 'confirm-delete'; // إظهار النافذة الجديدة بدلاً من رسالة المتصفح
         };
-        // ----------------------------------------------------
+
+        // 🔴 تنفيذ الحذف الفعلي بعد التأكيد 🔴
+        const executeDelete = () => { 
+            const uid = selectedUid.value;
+            if (!uid) return;
+
+            db.ref('employees/' + uid).update({
+                department: 'unassigned', // جعله غير معين بأي قسم
+                shift: 'none',            // سحب الوردية
+                line: 'none'              // سحب الخط
+            }).then(() => {
+                modal.value = null; // إغلاق جميع النوافذ وإعادته للقائمة
+                showToast("تم إخلاء طرف الموظف، وهو متاح للتعيين في مكان آخر", "success");
+            }).catch(err => {
+                showToast("حدث خطأ أثناء الاتصال", "error");
+            });
+        };
 
         const moveEmployee = (uid, direction) => { 
             if (view.value !== 'management') return; 
@@ -474,7 +480,7 @@ const app = createApp({
             moonIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>',
             toggleDarkMode, navigate, navigateShift, count, getDeptName, cleanPhone, getShiftCardClass, getShiftIconClass, getShiftTextClass, getShiftName,
             openModal, closeModal, openDetails, showSubstitutes, onJobSelect, onNameSelect,
-            publishAnnouncement, deleteAnnouncement, saveEmployee, deleteEmployee, moveEmployee, handleHeaderClick, handleLogin
+            publishAnnouncement, deleteAnnouncement, saveEmployee, deleteEmployee, executeDelete, moveEmployee, handleHeaderClick, handleLogin
         };
     }
 });

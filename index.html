@@ -179,8 +179,38 @@
                 </div>
             </div>
 
+            <!-- نافذة تأكيد حذف الموظف (النافذة الجديدة) -->
+            <div class="fixed inset-0 z-[70] flex items-center justify-center p-5 pointer-events-none">
+                <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto" 
+                     :class="modal === 'confirm-delete' ? 'opacity-100' : 'opacity-0'" 
+                     v-show="modal === 'confirm-delete'" @click="modal = 'details'"></div>
+                
+                <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-[24px] shadow-2xl p-6 transition-all duration-300 pointer-events-auto relative z-10 text-center"
+                     :class="modal === 'confirm-delete' ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-10'"
+                     v-show="modal === 'confirm-delete'">
+                    
+                    <div class="w-16 h-16 bg-rose-50 dark:bg-rose-900/30 text-rose-500 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-100 dark:border-rose-800/50 shadow-sm transform -rotate-6">
+                        <i data-lucide="trash-2" class="w-8 h-8"></i>
+                    </div>
+                    
+                    <h3 class="text-xl font-black text-gray-900 dark:text-white mb-2">هل تريد حذف الموظف ؟</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-6 leading-relaxed px-2">
+                        سيتم إخلاء طرف الموظف من مكانه الحالي، وسيبقى محفوظاً في النظام لإضافته لوردية أخرى لاحقاً.
+                    </p>
+                    
+                    <div class="flex gap-3">
+                        <button @click="modal = 'details'" class="flex-[1] bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 font-bold py-3.5 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 active:scale-95 transition-all shadow-sm">
+                            إلغاء
+                        </button>
+                        <button @click="executeDelete" class="flex-[1.5] bg-rose-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-rose-500/30 hover:bg-rose-600 active:scale-95 transition-all">
+                            نعم، تأكيد الحذف
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Modals -->
-            <div class="sheet-overlay" :class="{'is-open': modal !== null && modal !== 'login'}" @click="closeModal"></div>
+            <div class="sheet-overlay" :class="{'is-open': modal !== null && modal !== 'login' && modal !== 'confirm-delete'}" @click="closeModal"></div>
 
             <div class="sheet-container overflow-hidden" :class="{'is-open': modal === 'form'}">
                 <div class="px-5 py-3 flex justify-between items-center border-b border-gray-100 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 shrink-0"><h2 class="text-[15px] font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">{{ form.uid ? 'تحديث بيانات الموظف' : 'تسجيل موظف جديد' }}</h2><button @click="closeModal" class="w-7 h-7 bg-gray-50 dark:bg-slate-700 rounded-full flex items-center justify-center transition-colors text-gray-500 dark:text-gray-300"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></div>
