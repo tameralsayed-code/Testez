@@ -22,17 +22,14 @@ const { createApp, ref, reactive, computed, onMounted, onUpdated, nextTick } = V
 
 const app = createApp({
     setup() {
-        // تم تغيير الحالة الافتراضية إلى false (مستخدم عادي)
         const isAdmin = ref(false); 
         const isDarkMode = ref(false);
         const isLoading = ref(true);
         const toasts = ref([]);
 
-        // متغيرات التبديل بين الأدمن والمستخدم
         const headerClickCount = ref(0);
         let headerClickTimer = null;
         
-        // بيانات تسجيل الدخول
         const loginData = reactive({ username: '', password: '' });
 
         const view = ref('home');
@@ -74,7 +71,6 @@ const app = createApp({
             updateIcons();
         };
 
-        // دالة التبديل عند الضغط 5 مرات
         const handleHeaderClick = () => {
             headerClickCount.value++;
             clearTimeout(headerClickTimer);
@@ -89,14 +85,12 @@ const app = createApp({
                     isAdmin.value = false;
                     showToast("تم تسجيل الخروج من وضع الإدارة 🔒", "info");
                 } else {
-                    openModal('login'); // فتح نافذة تسجيل الدخول
+                    openModal('login');
                 }
             }
         };
 
-        // دالة التحقق من تسجيل الدخول
         const handleLogin = () => {
-            // == يمكنك تغيير اسم المستخدم وكلمة المرور من هنا ==
             if (loginData.username === 'admin' && loginData.password === '1234') {
                 isAdmin.value = true;
                 closeModal();
@@ -122,6 +116,7 @@ const app = createApp({
             return "قسم الإنتاج"; 
         });
 
+        // قائمة العرض تفلتر الموظفين بناءً على أماكنهم، الموظف (غير المعين) لن يظهر هنا
         const filteredEmployees = computed(() => {
             let filtered = employees.value.filter(e => {
                 if (view.value === 'management') return e.department === 'management';
@@ -139,7 +134,10 @@ const app = createApp({
 
         const activeCount = computed(() => filteredEmployees.value.filter(e => e.status !== 'sick').length);
         const sickCount = computed(() => filteredEmployees.value.filter(e => e.status === 'sick').length);
-        const sickEmployeesCount = computed(() => employees.value.filter(e => e.status === 'sick').length);
+        
+        // إحصائيات الموظفين النشطين في الشركة (نستبعد غير المعينين من إجمالي القوة العاملة)
+        const activeCompanyEmployees = computed(() => employees.value.filter(e => e.department !== 'unassigned'));
+        const sickEmployeesCount = computed(() => activeCompanyEmployees.value.filter(e => e.status === 'sick').length);
         
         const deptTotalCount = computed(() => employees.value.filter(e => (view.value === 'prep' && e.department === 'prep') || (view.value.startsWith('line') && e.line === view.value.replace('line', ''))).length);
         const deptActiveCount = computed(() => employees.value.filter(e => e.status !== 'sick' && ((view.value === 'prep' && e.department === 'prep') || (view.value.startsWith('line') && e.line === view.value.replace('line', '')))).length);
@@ -172,7 +170,8 @@ const app = createApp({
 
         const availableSubstitutes = computed(() => {
             if(!selectedEmployee.value) return []; 
-            let raw = employees.value.filter(x => x.jobTitle === selectedEmployee.value.jobTitle && x.uid !== selectedUid.value); 
+            // إظهار البدلاء من الموظفين المعينين فقط
+            let raw = employees.value.filter(x => x.jobTitle === selectedEmployee.value.jobTitle && x.uid !== selectedUid.value && x.department !== 'unassigned'); 
             raw.sort((a, b) => (b.line === selectedEmployee.value.line ? 1 : 0) - (a.line === selectedEmployee.value.line ? 1 : 0)); 
             const unique = []; const seen = new Set(); 
             for (const sub of raw) { if (!seen.has(sub.name)) { seen.add(sub.name); unique.push(sub); } } 
@@ -201,7 +200,7 @@ const app = createApp({
         const navigate = (v) => { view.value = v; shift.value = (v === 'management' ? 'office' : v === 'announcements' ? 'broadcast' : null); query.value = ''; modal.value = null; pushState(); if(v === 'dashboard') setTimeout(() => initCharts(), 100); };
         const navigateShift = (s) => { shift.value = s; modal.value = null; pushState(); };
         const count = (dept, line = null) => employees.value.filter(e => line ? e.department === dept && e.line === line : e.department === dept).length;
-        const getDeptName = (e) => e.department === 'management' ? 'إدارة الإنتاج' : (e.department === 'prep' ? 'ورشة التجهيزات' : (e.department === 'announcements' ? 'الإعلانات' : `خط درفلة ${e.line}`));
+        const getDeptName = (e) => e.department === 'unassigned' ? 'غير معين بوردية' : (e.department === 'management' ? 'إدارة الإنتاج' : (e.department === 'prep' ? 'ورشة التجهيزات' : (e.department === 'announcements' ? 'الإعلانات' : `خط درفلة ${e.line}`)));
         const cleanPhone = (p) => { let c = p.replace(/\D/g, ''); return c.startsWith('0') ? '20' + c.substring(1) : (c.startsWith('1') ? '20' + c : c); };
         const getShiftCardClass = (s) => { const status = getGroupStatus(s, liveShift.value.targetDate); if(s === liveShift.value.group) return 'from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-emerald-200 dark:border-emerald-800/50'; if(status.type.includes('rest')) return 'from-rose-50 to-red-50 dark:from-rose-900/20 dark:to-red-900/20 border-rose-200 dark:border-rose-800/50'; return 'from-gray-50 to-slate-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700'; };
         const getShiftIconClass = (s) => { const status = getGroupStatus(s, liveShift.value.targetDate); if(s === liveShift.value.group) return 'bg-gradient-to-br from-emerald-500 to-teal-500'; if(status.type.includes('rest')) return 'bg-gradient-to-br from-rose-500 to-red-500'; return 'bg-gradient-to-br from-gray-400 to-slate-500 dark:from-slate-600 dark:to-slate-700'; };
@@ -227,13 +226,24 @@ const app = createApp({
         const openDetails = (uid) => openModal('details', uid);
         const showSubstitutes = (uid) => openModal('substitutes', uid);
         
-        const onJobSelect = () => { if (form.jobTitle === '__NEW_JOB__') { form.nameSelect = '__NEW__'; } else { form.nameSelect = ''; form.code = ''; form.phone = ''; } };
+        const onJobSelect = () => { if (form.jobTitle === '__NEW_JOB__') { form.nameSelect = '__NEW__'; } else { form.nameSelect = ''; form.code = ''; form.phone = ''; form.uid = ''; } };
+        
+        // 🔴 تعديل ذكي: عند اختيار اسم من القائمة المنسدلة، نمسك الـ UID الخاص به لكي ننقله ولا نكرره
         const onNameSelect = () => { 
             if (form.nameSelect !== '__NEW__' && form.nameSelect !== '') { 
-                let personData = customContacts.value.find(i => i.name === form.nameSelect); 
-                if (!personData) { personData = employees.value.find(i => i.name === form.nameSelect); }
-                if (personData) { form.code = personData.code || ''; form.phone = personData.phone || ''; } else { form.code = ''; form.phone = ''; }
-            } else { form.code = ''; form.phone = ''; }
+                let personData = employees.value.find(i => i.name === form.nameSelect); 
+                if (!personData) { personData = customContacts.value.find(i => i.name === form.nameSelect); }
+                
+                if (personData) { 
+                    form.code = personData.code || ''; 
+                    form.phone = personData.phone || ''; 
+                    form.uid = personData.uid || ''; // احتفظ بالمعرف
+                } else { 
+                    form.code = ''; form.phone = ''; form.uid = '';
+                }
+            } else { 
+                form.code = ''; form.phone = ''; form.uid = '';
+            }
         };
 
         const publishAnnouncement = () => {
@@ -248,12 +258,32 @@ const app = createApp({
             let finalJob = form.jobTitle === '__NEW_JOB__' ? form.newJob.trim() : form.jobTitle; 
             if (!finalName || !finalJob) return showToast("يرجى استكمال البيانات", "error"); 
             if (form.nameSelect === '__NEW__') { db.ref('contacts/' + finalName.replace(/[.#$[\]]/g, "")).set({ job: finalJob, name: finalName, code: form.code, phone: form.phone }); } 
-            let uid = form.uid || "ID-" + Date.now(); let jobIdx = Hierarchy.indexOf(finalJob); 
+            
+            // إذا كان الموظف موجوداً مسبقاً سيتم استخدام الـ UID الخاص به ونقله، وإلا سيتم إنشاء واحد جديد
+            let uid = form.uid || "ID-" + Date.now(); 
+            let jobIdx = Hierarchy.indexOf(finalJob); 
             let emp = { uid: uid, name: finalName, code: form.code, jobTitle: finalJob, department: form.department, line: form.department === 'rolling' ? form.line : 'none', shift: form.department === 'management' ? 'office' : (form.department === 'announcements' ? 'broadcast' : form.shift), phone: form.phone, status: form.status, sortOrder: jobIdx !== -1 ? jobIdx * 100 : 99999 }; 
-            db.ref('employees/' + uid).set(emp).then(() => { showToast("تم حفظ البيانات بنجاح", "success"); closeModal(); }); 
+            
+            db.ref('employees/' + uid).set(emp).then(() => { showToast("تم الحفظ وتعيين الموظف بنجاح", "success"); closeModal(); }); 
         };
-        const deleteEmployee = (uid) => { if (confirm('مسح البيانات نهائياً؟')) { db.ref('employees/' + uid).remove(); closeModal(); } };
         
+        // 🔴 التعديل الأهم (نظام إخلاء الطرف / سحب الموظف) 🔴
+        const deleteEmployee = (uid) => { 
+            if (confirm('هل تريد إزالة هذا الموظف من مكانه الحالي؟ (سيبقى محفوظاً في النظام ومتاحاً للإضافة لأي وردية أخرى لاحقاً)')) { 
+                db.ref('employees/' + uid).update({
+                    department: 'unassigned', // جعله غير معين بأي قسم
+                    shift: 'none',            // سحب الوردية
+                    line: 'none'              // سحب الخط
+                }).then(() => {
+                    closeModal();
+                    showToast("تم إخلاء طرف الموظف، وهو متاح للتعيين في مكان آخر", "success");
+                }).catch(err => {
+                    showToast("حدث خطأ أثناء الاتصال", "error");
+                });
+            } 
+        };
+        // ----------------------------------------------------
+
         const moveEmployee = (uid, direction) => { 
             if (view.value !== 'management') return; 
             let filtered = employees.value.filter(e => e.department === 'management').sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)); 
@@ -269,16 +299,21 @@ const app = createApp({
             const textColor = isDarkMode.value ? '#f1f5f9' : '#1F2937'; const gridColor = isDarkMode.value ? '#334155' : '#E2E8F0';
             const activeColor = '#10B981'; const sickColor = '#F43F5E';
             
-            const active = employees.value.filter(e => e.status !== 'sick').length; const sick = employees.value.filter(e => e.status === 'sick').length;
+            // في الرسوم البيانية، نستخدم فقط الموظفين المعينين في الشركة (نستبعد غير المعينين)
+            const chartsData = employees.value.filter(e => e.department !== 'unassigned');
+            
+            const active = chartsData.filter(e => e.status !== 'sick').length; 
+            const sick = chartsData.filter(e => e.status === 'sick').length;
+            
             if(document.getElementById('statusChart')) { window.chartInstances.status = new Chart(document.getElementById('statusChart'), { type: 'doughnut', data: { labels: ['متواجد', 'إجازة'], datasets: [{ data: [active, sick], backgroundColor: [activeColor, sickColor], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { family: 'Tajawal' } } }, tooltip: { callbacks: { label: function(context) { return ' ' + context.label + ': ' + Number(context.raw).toString(); } } } }, cutout: '70%' } }); }
             
             let rolesSet = new Set();
-            employees.value.forEach(e => { if(e.jobTitle) rolesSet.add(e.jobTitle); });
+            chartsData.forEach(e => { if(e.jobTitle) rolesSet.add(e.jobTitle); });
             let rolesLabels = Array.from(rolesSet);
             rolesLabels.sort((a, b) => { let idxA = Hierarchy.indexOf(a); let idxB = Hierarchy.indexOf(b); if (idxA === -1 && idxB === -1) return a.localeCompare(b, 'ar'); if (idxA === -1) return 1; if (idxB === -1) return -1; return idxA - idxB; });
 
-            let rolesActiveData = rolesLabels.map(role => employees.value.filter(e => e.jobTitle === role && e.status !== 'sick').length);
-            let rolesSickData = rolesLabels.map(role => employees.value.filter(e => e.jobTitle === role && e.status === 'sick').length);
+            let rolesActiveData = rolesLabels.map(role => chartsData.filter(e => e.jobTitle === role && e.status !== 'sick').length);
+            let rolesSickData = rolesLabels.map(role => chartsData.filter(e => e.jobTitle === role && e.status === 'sick').length);
             
             if(document.getElementById('rolesChart')) { 
                 window.chartInstances.roles = new Chart(document.getElementById('rolesChart'), { 
@@ -321,10 +356,10 @@ const app = createApp({
                 { label: 'الإدارة (Office)', f: e => e.department==='management' }
             ];
 
-            let activeShifts = shiftConfigs.filter(c => employees.value.filter(c.f).length > 0);
+            let activeShifts = shiftConfigs.filter(c => chartsData.filter(c.f).length > 0);
             let shiftLabels = activeShifts.map(c => c.label);
-            let shiftActiveData = activeShifts.map(c => employees.value.filter(e => c.f(e) && e.status !== 'sick').length);
-            let shiftSickData = activeShifts.map(c => employees.value.filter(e => c.f(e) && e.status === 'sick').length);
+            let shiftActiveData = activeShifts.map(c => chartsData.filter(e => c.f(e) && e.status !== 'sick').length);
+            let shiftSickData = activeShifts.map(c => chartsData.filter(e => c.f(e) && e.status === 'sick').length);
 
             if(document.getElementById('shiftDistChart')) { 
                 window.chartInstances.shiftDist = new Chart(document.getElementById('shiftDistChart'), { 
@@ -368,22 +403,31 @@ const app = createApp({
             }
 
             const cachedContacts = localStorage.getItem('offline_contacts');
-            if (cachedContacts) { 
-                customContacts.value = JSON.parse(cachedContacts); 
-            }
+            if (cachedContacts) { customContacts.value = JSON.parse(cachedContacts); }
 
             const cachedAnnouncements = localStorage.getItem('offline_announcements');
-            if (cachedAnnouncements) { 
-                announcementsList.value = JSON.parse(cachedAnnouncements); 
-            }
+            if (cachedAnnouncements) { announcementsList.value = JSON.parse(cachedAnnouncements); }
 
-            if (cachedEmployees && view.value === 'dashboard') { 
-                setTimeout(() => initCharts(), 100); 
-            }
+            if (cachedEmployees && view.value === 'dashboard') { setTimeout(() => initCharts(), 100); }
+
+            // 🟢 مراقبة الاتصال بالإنترنت 🟢
+            let isFirstLoad = true;
+            db.ref('.info/connected').on('value', function(snap) {
+                if (snap.val() === true) {
+                    if (!isFirstLoad) showToast("تمت استعادة الاتصال بالإنترنت 🟢", "success");
+                    isFirstLoad = false;
+                } else {
+                    if (!isFirstLoad) {
+                        setTimeout(() => { showToast("أنت الآن في وضع عدم الاتصال (أوفلاين) 🔴", "error"); }, 1500);
+                    }
+                }
+            });
 
             auth.signInAnonymously().then(() => {
+                // 🟢 استرجاع الموظفين بشكله الأصلي والاعتماد على حالة "unassigned" في الفلترة
                 db.ref('employees').on('value', (s) => { 
                     const d = s.val(); 
+                    
                     employees.value = d ? Object.values(d).sort((a, b) => { 
                         if (a.department === 'management' && b.department === 'management') return (a.sortOrder || 0) - (b.sortOrder || 0); 
                         const idxA = Hierarchy.indexOf(a.jobTitle); 
@@ -425,8 +469,7 @@ const app = createApp({
             view, shift, query, modal, selectedUid, showRolling, form, employees, announcementsList,
             headerTitle, filteredEmployees, searchResults, activeCount, sickCount, sickEmployeesCount, 
             deptTotalCount, deptActiveCount, deptSickCount, latestAnnouncement, selectedEmployee, liveShift,
-            availableJobs, availableNames, availableSubstitutes, newAnnouncement,
-            loginData, // إضافة كائن بيانات تسجيل الدخول
+            availableJobs, availableNames, availableSubstitutes, newAnnouncement, loginData, activeCompanyEmployees,
             sunIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>',
             moonIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>',
             toggleDarkMode, navigate, navigateShift, count, getDeptName, cleanPhone, getShiftCardClass, getShiftIconClass, getShiftTextClass, getShiftName,

@@ -6,24 +6,19 @@
     <meta name="theme-color" content="#3B82F6" id="theme-color-meta">
     <title>قسم الإنتاج | Enterprise Edition</title>
     
-    <!-- إخفاء العناصر قبل تحميل Vue -->
     <style>
         [v-cloak] { display: none !important; }
     </style>
 
-    <!-- تسريع تحميل الخطوط -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Tajawal','sans-serif']}}}}</script>
     
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
     
-    <!-- تحميل المكتبات في الخلفية باستخدام defer -->
     <script src="https://unpkg.com/lucide@latest" defer></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js" defer></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
@@ -34,7 +29,6 @@
 </head>
 <body class="pb-safe pt-safe">
 
-    <!-- التطبيق -->
     <div id="app" v-cloak class="h-full min-h-screen relative">
         
         <div class="toast-container">
@@ -87,7 +81,7 @@
 
                 <div v-else-if="view === 'dashboard'" class="space-y-6" style="animation: slideDown 0.4s ease-out;">
                     <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-gradient-to-br from-blue-500 to-indigo-600 p-5 rounded-[24px] shadow-lg flex flex-col relative overflow-hidden"><i data-lucide="users" class="w-16 h-16 text-white/10 absolute -bottom-2 -left-2"></i><span class="text-3xl font-black text-white relative z-10">{{ employees.length }}</span><span class="text-[11px] text-blue-100 font-bold mt-1 relative z-10">إجمالي قوة العمل</span></div>
+                        <div class="bg-gradient-to-br from-blue-500 to-indigo-600 p-5 rounded-[24px] shadow-lg flex flex-col relative overflow-hidden"><i data-lucide="users" class="w-16 h-16 text-white/10 absolute -bottom-2 -left-2"></i><span class="text-3xl font-black text-white relative z-10">{{ employees.length }}</span><span class="text-[11px] text-blue-100 font-bold mt-1 relative z-10">إجمالي القوة (النشطة)</span></div>
                         <div class="bg-white dark:bg-slate-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col relative overflow-hidden"><i data-lucide="activity" class="w-12 h-12 text-rose-50 dark:text-rose-900/20 absolute -bottom-2 -left-2"></i><span class="text-3xl font-black text-rose-500 relative z-10">{{ sickEmployeesCount }}</span><span class="text-[11px] text-gray-500 dark:text-gray-400 font-bold mt-1 relative z-10">إجازات مرضية</span></div>
                     </div>
                     
@@ -126,7 +120,6 @@
 
                 <div v-else-if="view !== 'home'">
                     
-                    <!-- عنوان اختر الوردية -->
                     <div v-if="view.startsWith('line') || view === 'prep'" class="mb-4 flex items-center gap-2">
                         <div class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-sm">
                             <i data-lucide="mouse-pointer-click" class="w-4 h-4"></i>
@@ -264,7 +257,7 @@
                         <div v-if="selectedEmployee" :class="selectedEmployee.status === 'sick' ? 'emp-sick-bg' : 'emp-header-bg'" class="relative rounded-b-[40px] pt-12 pb-12 px-6 text-center shadow-lg"><div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div><div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl -ml-5 -mb-5 pointer-events-none"></div><div class="relative inline-block mb-3"><div class="w-20 h-20 bg-white dark:bg-slate-800 rounded-[22px] flex items-center justify-center text-3xl font-black shadow-2xl border-4 border-white/20 dark:border-white/10 relative z-10" :class="selectedEmployee.status === 'sick' ? 'text-rose-600 dark:text-rose-400' : 'text-blue-600 dark:text-blue-400'">{{ selectedEmployee.department === 'management' ? '💼' : selectedEmployee.shift }}</div><div v-if="selectedEmployee.status === 'sick'" class="absolute -bottom-2 -right-2 bg-rose-500 text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold shadow-md border-2 border-white z-20">مرضي</div></div><h2 class="text-[20px] font-black text-white leading-tight mb-1">{{ selectedEmployee.name }}</h2><div class="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-3 py-1 text-white text-[11px] font-bold rounded-xl border border-white/20"><i data-lucide="briefcase" class="w-3.5 h-3.5"></i><span class="truncate max-w-[200px]">{{ selectedEmployee.jobTitle }}</span></div></div>
                         <div v-if="selectedEmployee && (selectedEmployee.phone || isAdmin)" class="flex gap-3 px-6 -mt-6 relative z-20 mb-6"><a v-if="selectedEmployee.phone" :href="'tel:' + selectedEmployee.phone" class="flex-1 bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-700 p-3.5 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors active:scale-95"><div class="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center"><i data-lucide="phone" class="w-4 h-4"></i></div><span class="text-xs font-bold text-gray-800 dark:text-gray-200">اتصال هاتف</span></a><a v-if="selectedEmployee.phone" :href="'https://wa.me/' + cleanPhone(selectedEmployee.phone)" target="_blank" class="flex-1 bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-700 p-3.5 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors active:scale-95"><div class="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center"><i data-lucide="message-circle" class="w-4 h-4"></i></div><span class="text-xs font-bold text-gray-800 dark:text-gray-200">واتساب</span></a></div>
                         <div class="px-5 mb-6" v-if="selectedEmployee"><div class="grid grid-cols-2 gap-3"><div v-if="selectedEmployee.status === 'sick'" class="col-span-2 bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-800 rounded-2xl p-4 flex items-center justify-between shadow-sm"><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full bg-white dark:bg-rose-900 text-rose-500 dark:text-rose-300 flex items-center justify-center"><i data-lucide="activity" class="w-4 h-4"></i></div><span class="text-xs font-bold text-rose-800 dark:text-rose-300">حالة التواجد</span></div><span class="text-xs font-black text-rose-600 dark:text-rose-400 bg-white dark:bg-rose-900/50 px-2 py-1 rounded-md">إجازة مرضية</span></div><div v-if="selectedEmployee.code" class="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl p-4 shadow-sm flex flex-col justify-center"><span class="text-[10px] text-gray-400 font-bold uppercase mb-1 flex items-center gap-1"><i data-lucide="hash" class="w-3 h-3"></i> الكود الوظيفي</span><span class="text-base font-black text-blue-700 dark:text-blue-400">{{ selectedEmployee.code }}</span></div><div v-if="selectedEmployee.phone" class="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl p-4 shadow-sm flex flex-col justify-center"><span class="text-[10px] text-gray-400 font-bold uppercase mb-1 flex items-center gap-1"><i data-lucide="smartphone" class="w-3 h-3"></i> رقم الهاتف</span><span class="text-sm font-black text-gray-900 dark:text-white tracking-wide" dir="ltr">{{ selectedEmployee.phone }}</span></div><div :class="(selectedEmployee.code && selectedEmployee.phone) ? 'col-span-2' : (selectedEmployee.code || selectedEmployee.phone ? 'col-span-1' : 'col-span-2')" class="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl p-4 shadow-sm flex flex-col justify-center"><span class="text-[10px] text-gray-400 font-bold uppercase mb-1 flex items-center gap-1"><i data-lucide="layout-grid" class="w-3 h-3"></i> القسم المعين</span><span class="text-sm font-bold text-gray-900 dark:text-white">{{ getDeptName(selectedEmployee) }}</span></div></div></div>
-                        <div v-if="isAdmin && selectedEmployee" class="px-5 pt-2 border-t border-gray-200/50 dark:border-slate-700 flex gap-3"><button @click="deleteEmployee(selectedEmployee.uid)" class="flex-[1] bg-white dark:bg-slate-800 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl py-3.5 text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95"><i data-lucide="trash-2" class="w-4 h-4"></i> مسح</button><button @click="openModal('form', selectedEmployee.uid)" class="flex-[2] bg-gray-900 dark:bg-blue-600 text-white rounded-2xl py-3.5 text-xs font-bold flex items-center justify-center gap-1.5 shadow-md active:scale-95"><i data-lucide="edit-3" class="w-4 h-4"></i> تعديل البيانات</button></div>
+                        <div v-if="isAdmin && selectedEmployee" class="px-5 pt-2 border-t border-gray-200/50 dark:border-slate-700 flex gap-3"><button @click="deleteEmployee(selectedEmployee.uid)" class="flex-[1] bg-white dark:bg-slate-800 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl py-3.5 text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95"><i data-lucide="archive" class="w-4 h-4"></i> مسح</button><button @click="openModal('form', selectedEmployee.uid)" class="flex-[2] bg-gray-900 dark:bg-blue-600 text-white rounded-2xl py-3.5 text-xs font-bold flex items-center justify-center gap-1.5 shadow-md active:scale-95"><i data-lucide="edit-3" class="w-4 h-4"></i> تعديل البيانات</button></div>
                     </div>
 
                     <div v-show="modal === 'substitutes' && selectedEmployee">
@@ -277,20 +270,6 @@
         </div> 
     </div>
 
-    <!-- Script File -->
     <script src="main.js" defer></script>
-    
-    <!-- تشغيل نظام الكاش والتحديث التلقائي PWA -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').then(reg => {
-                    console.log('تم تفعيل نظام السرعة الفائقة بنجاح', reg);
-                }).catch(err => {
-                    console.log('فشل تفعيل النظام', err);
-                });
-            });
-        }
-    </script>
 </body>
 </html>
