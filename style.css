@@ -21,8 +21,9 @@
 body {
     background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
     color: #1F2937;
-    overflow-x: hidden;
-    min-height: 100vh;
+    overflow: hidden; /* يمنع السكرول للشاشة بالكامل */
+    height: 100vh;
+    height: 100dvh; /* توافق مثالي مع شاشات الهواتف الحديثة */
     position: relative;
     transition: background 0.3s, color 0.3s;
 }
@@ -30,6 +31,15 @@ body {
 .dark body {
     background: linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
     color: #f1f5f9;
+}
+
+/* إخفاء شريط التمرير الوهمي ليكون التصميم أنظف */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
