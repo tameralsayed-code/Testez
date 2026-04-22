@@ -1,4 +1,4 @@
-const CACHE_NAME = 'production-app-v5'; // تم التحديث إلى v5 لفرض التحديث على الهواتف
+const CACHE_NAME = 'production-app-v6'; // تم التحديث إلى v5 لفرض التحديث على الهواتف
 
 // الملفات التي سيتم حفظها في الذاكرة المخفية للهاتف 
 const ASSETS_TO_CACHE = [ 
