@@ -18,7 +18,15 @@ const Hierarchy = [
     "فني درفلة المرحلة الإبتدائية", "فني درفلة المرحلة النهائية", "فني مراقبة سرير التبريد" 
 ];
 
-const { createApp, ref, reactive, computed, onMounted, onUpdated, nextTick } = Vue;
+function debounce(func, timeout = 300){
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { func.apply(this, args); }, timeout);
+  };
+}
+
+const { createApp, ref, reactive, computed, onMounted, onUpdated, nextTick, watch } = Vue;
 
 const app = createApp({
     setup() {
@@ -34,10 +42,15 @@ const app = createApp({
 
         const view = ref('home');
         const shift = ref(null);
+        const searchQuery = ref('');
         const query = ref('');
         const modal = ref(null);
         const selectedUid = ref(null);
         const showRolling = ref(false);
+
+        watch(searchQuery, debounce((newVal) => {
+            query.value = newVal;
+        }, 300));
 
         const employees = ref([]);
         const customContacts = ref([]);
@@ -74,7 +87,7 @@ const app = createApp({
             else { 
                 document.documentElement.classList.remove('dark'); 
                 localStorage.setItem('theme', 'light'); 
-                if(themeMeta) themeMeta.setAttribute('content', '#3B82F6');
+                if(themeMeta) themeMeta.setAttribute('content', '#f8fafc');
             }
             updateIcons();
         };
@@ -188,8 +201,6 @@ const app = createApp({
             return unique;
         });
 
-        // ================== منظومة الإعلانات الذكية ==================
-
         const getTitlePrefix = (jobTitle) => {
             if (!jobTitle) return "السيد";
             if (jobTitle.includes("مشغل")) return "المشغل";
@@ -273,8 +284,7 @@ const app = createApp({
                     const end = new Date(annForm.toDate);
                     
                     let subIndex = 0; 
-                    let lastAssignedSubUid = null; // 🔴 لتسجيل من طَبّق اليوم السابق لمنع التكرار
-                    
+                    let lastAssignedSubUid = null;
                     let scheduleRows = [];
                     
                     let normalWorkers = employees.value.filter(e => 
@@ -292,7 +302,6 @@ const app = createApp({
                         let targetStatus = getGroupStatus(absentEmp.shift, currentDate); 
                         
                         if (targetStatus.type.includes('rest')) {
-                            // إذا كان اليوم راحة، نصفر متغير أمس لأنه لا يوجد إرهاق متواصل
                             lastAssignedSubUid = null; 
                             continue; 
                         }
@@ -310,18 +319,14 @@ const app = createApp({
 
                         let assignedSub = null;
                         
-                        // اختيار البديل
                         for (let i = 0; i < subs.length; i++) {
                             let currentSub = subs[(subIndex + i) % subs.length];
-                            
-                            // 🔴 تخطي الموظف إذا كان هو من قام بالتغطية يوم أمس
                             if (currentSub.uid === lastAssignedSubUid) continue;
 
                             let subStatus = getGroupStatus(currentSub.shift, currentDate);
                             
                             if (!subStatus.type.includes('rest')) {
                                 let subShiftNum = shiftMap[subStatus.type];
-                                // شرط التجاور: 1 مع 2، أو 2 مع 3 فقط
                                 if (Math.abs(targetShiftNum - subShiftNum) === 1) {
                                     assignedSub = currentSub;
                                     subIndex = (subIndex + i + 1) % subs.length; 
@@ -330,12 +335,7 @@ const app = createApp({
                             }
                         }
 
-                        // تسجيل الموظف الذي غطى اليوم ليتم تخطيه غداً
-                        if (assignedSub) {
-                            lastAssignedSubUid = assignedSub.uid;
-                        } else {
-                            lastAssignedSubUid = null;
-                        }
+                        if (assignedSub) { lastAssignedSubUid = assignedSub.uid; } else { lastAssignedSubUid = null; }
 
                         let rowData = { date: dateStr, morning: '—', noon: '—', evening: '—', subName: assignedSub ? assignedSub.name : null };
 
@@ -420,13 +420,13 @@ const app = createApp({
         };
 
         const pushState = () => { history.pushState({ view: view.value, shift: shift.value, query: query.value, modal: modal.value, uid: selectedUid.value }, ""); updateIcons(); };
-        const navigate = (v) => { view.value = v; shift.value = (v === 'management' ? 'office' : v === 'announcements' ? 'broadcast' : null); query.value = ''; modal.value = null; pushState(); if(v === 'dashboard') setTimeout(() => initCharts(), 100); };
+        const navigate = (v) => { view.value = v; shift.value = (v === 'management' ? 'office' : v === 'announcements' ? 'broadcast' : null); query.value = ''; searchQuery.value = ''; modal.value = null; pushState(); if(v === 'dashboard') setTimeout(() => initCharts(), 100); };
         const navigateShift = (s) => { shift.value = s; modal.value = null; pushState(); };
         const count = (dept, line = null) => employees.value.filter(e => line ? e.department === dept && e.line === line : e.department === dept).length;
         const getDeptName = (e) => e.department === 'unassigned' ? 'غير معين بوردية' : (e.department === 'management' ? 'إدارة الإنتاج' : (e.department === 'prep' ? 'ورشة التجهيزات' : (e.department === 'announcements' ? 'الإعلانات' : `خط درفلة ${e.line}`)));
         const cleanPhone = (p) => { let c = p.replace(/\D/g, ''); return c.startsWith('0') ? '20' + c.substring(1) : (c.startsWith('1') ? '20' + c : c); };
-        const getShiftCardClass = (s) => { const status = getGroupStatus(s, liveShift.value.targetDate); if(s === liveShift.value.group) return 'from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-emerald-200 dark:border-emerald-800/50'; if(status.type.includes('rest')) return 'from-rose-50 to-red-50 dark:from-rose-900/20 dark:to-red-900/20 border-rose-200 dark:border-rose-800/50'; return 'from-gray-50 to-slate-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700'; };
-        const getShiftIconClass = (s) => { const status = getGroupStatus(s, liveShift.value.targetDate); if(s === liveShift.value.group) return 'bg-gradient-to-br from-emerald-500 to-teal-500'; if(status.type.includes('rest')) return 'bg-gradient-to-br from-rose-500 to-red-500'; return 'bg-gradient-to-br from-gray-400 to-slate-500 dark:from-slate-600 dark:to-slate-700'; };
+        const getShiftCardClass = (s) => { const status = getGroupStatus(s, liveShift.value.targetDate); if(s === liveShift.value.group) return 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800/50'; if(status.type.includes('rest')) return 'bg-rose-50/50 dark:bg-rose-900/10 border-rose-200 dark:border-rose-800/50'; return ''; };
+        const getShiftIconClass = (s) => { const status = getGroupStatus(s, liveShift.value.targetDate); if(s === liveShift.value.group) return 'bg-gradient-to-br from-emerald-500 to-teal-500 shadow-emerald-500/30'; if(status.type.includes('rest')) return 'bg-gradient-to-br from-rose-500 to-red-500 shadow-rose-500/30'; return 'bg-gradient-to-br from-gray-400 to-slate-500 dark:from-slate-600 dark:to-slate-700'; };
         const getShiftTextClass = (s) => { const status = getGroupStatus(s, liveShift.value.targetDate); if(s === liveShift.value.group) return 'text-emerald-600 dark:text-emerald-400'; if(status.type.includes('rest')) return 'text-rose-600 dark:text-rose-400'; return 'text-gray-500 dark:text-gray-400'; };
         const getShiftName = (s) => { const status = getGroupStatus(s, liveShift.value.targetDate); const typeMap = { 'morning':'الوردية الأولى', 'noon':'الوردية الثانية', 'evening':'الوردية الثالثة', 'morning-rest':'راحة', 'noon-rest':'راحة', 'evening-rest':'راحة' }; return typeMap[status.type] || 'خارج الدوام'; };
 
@@ -495,19 +495,37 @@ const app = createApp({
 
         const initCharts = () => {
             if(window.chartInstances) { Object.values(window.chartInstances).forEach(c => c?.destroy()); } else { window.chartInstances = {}; }
-            const textColor = isDarkMode.value ? '#f1f5f9' : '#1F2937'; const gridColor = isDarkMode.value ? '#334155' : '#E2E8F0';
-            
-            const activeColor = '#10B981'; 
-            const trainingColor = '#F59E0B';
-            const sickColor = '#F43F5E';
+            const textColor = isDarkMode.value ? '#f1f5f9' : '#1F2937'; 
+            const gridColor = isDarkMode.value ? 'rgba(51, 65, 85, 0.3)' : 'rgba(226, 232, 240, 0.5)';
             
             const chartsData = employees.value.filter(e => e.department !== 'unassigned');
+            
+            Chart.defaults.font.family = 'Tajawal';
+
+            const getGradient = (ctxId, colorStart, colorEnd) => {
+                const ctx = document.getElementById(ctxId)?.getContext('2d');
+                if(!ctx) return colorStart;
+                let grad = ctx.createLinearGradient(0, 0, 400, 0);
+                grad.addColorStop(0, colorStart);
+                grad.addColorStop(1, colorEnd);
+                return grad;
+            };
+
+            const activeColor = getGradient('rolesChart', '#10B981', '#059669'); 
+            const trainingColor = getGradient('rolesChart', '#F59E0B', '#D97706');
+            const sickColor = getGradient('rolesChart', '#F43F5E', '#E11D48');
             
             const active = chartsData.filter(e => e.status !== 'sick' && e.status !== 'training').length; 
             const training = chartsData.filter(e => e.status === 'training').length; 
             const sick = chartsData.filter(e => e.status === 'sick').length;
             
-            if(document.getElementById('statusChart')) { window.chartInstances.status = new Chart(document.getElementById('statusChart'), { type: 'doughnut', data: { labels: ['متواجد', 'متدرب', 'إجازة'], datasets: [{ data: [active, training, sick], backgroundColor: [activeColor, trainingColor, sickColor], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { family: 'Tajawal' } } }, tooltip: { callbacks: { label: function(context) { return ' ' + context.label + ': ' + Number(context.raw).toString(); } } } }, cutout: '70%' } }); }
+            if(document.getElementById('statusChart')) { 
+                window.chartInstances.status = new Chart(document.getElementById('statusChart'), { 
+                    type: 'doughnut', 
+                    data: { labels: ['متواجد', 'متدرب', 'إجازة'], datasets: [{ data: [active, training, sick], backgroundColor: ['#10B981', '#F59E0B', '#F43F5E'], borderWidth: 0, hoverOffset: 4 }] }, 
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, usePointStyle: true } }, tooltip: { backgroundColor: isDarkMode.value ? '#1e293b' : '#ffffff', titleColor: textColor, bodyColor: textColor, borderColor: gridColor, borderWidth: 1, padding: 10, cornerRadius: 12, callbacks: { label: function(context) { return ' ' + context.label + ': ' + Number(context.raw).toString(); } } } }, cutout: '75%' } 
+                }); 
+            }
             
             let rolesSet = new Set();
             chartsData.forEach(e => { if(e.jobTitle) rolesSet.add(e.jobTitle); });
@@ -524,21 +542,21 @@ const app = createApp({
                     data: { 
                         labels: rolesLabels, 
                         datasets: [
-                            { label: 'نشط', data: rolesActiveData, backgroundColor: activeColor, borderRadius: 4 },
-                            { label: 'متدرب', data: rolesTrainingData, backgroundColor: trainingColor, borderRadius: 4 },
-                            { label: 'مرضي', data: rolesSickData, backgroundColor: sickColor, borderRadius: 4 }
+                            { label: 'نشط', data: rolesActiveData, backgroundColor: activeColor, borderRadius: 6, borderSkipped: false },
+                            { label: 'متدرب', data: rolesTrainingData, backgroundColor: trainingColor, borderRadius: 6, borderSkipped: false },
+                            { label: 'مرضي', data: rolesSickData, backgroundColor: sickColor, borderRadius: 6, borderSkipped: false }
                         ] 
                     }, 
                     options: { 
                         indexAxis: 'y', responsive: true, maintainAspectRatio: false, 
                         interaction: { mode: 'index', intersect: false },
                         scales: { 
-                            x: { stacked: true, grid: { color: gridColor }, ticks: { color: textColor, stepSize: 1, callback: function(val) { return Number(val).toString(); } } }, 
-                            y: { stacked: true, grid: { display: false }, ticks: { color: textColor, font: { family: 'Tajawal', weight: 'bold', size: 10 } } } 
+                            x: { stacked: true, grid: { color: gridColor }, ticks: { color: textColor, stepSize: 1 } }, 
+                            y: { stacked: true, grid: { display: false }, ticks: { color: textColor, font: { weight: 'bold', size: 11 } } } 
                         }, 
                         plugins: { 
-                            legend: { display: true, position: 'bottom', labels: { color: textColor, font: { family: 'Tajawal' } } },
-                            tooltip: { callbacks: { label: function(context) { return ' ' + context.dataset.label + ': ' + Number(context.raw).toString(); } } }
+                            legend: { display: true, position: 'top', labels: { color: textColor, usePointStyle: true } },
+                            tooltip: { backgroundColor: isDarkMode.value ? '#1e293b' : '#ffffff', titleColor: textColor, bodyColor: textColor, borderColor: gridColor, borderWidth: 1, padding: 10, cornerRadius: 12, callbacks: { label: function(context) { return ' ' + context.dataset.label + ': ' + Number(context.raw).toString(); } } }
                         } 
                     } 
                 }); 
@@ -572,21 +590,21 @@ const app = createApp({
                     data: { 
                         labels: shiftLabels, 
                         datasets: [
-                            { label: 'نشط', data: shiftActiveData, backgroundColor: activeColor, borderRadius: 4 },
-                            { label: 'متدرب', data: shiftTrainingData, backgroundColor: trainingColor, borderRadius: 4 },
-                            { label: 'مرضي', data: shiftSickData, backgroundColor: sickColor, borderRadius: 4 }
+                            { label: 'نشط', data: shiftActiveData, backgroundColor: activeColor, borderRadius: 6, borderSkipped: false },
+                            { label: 'متدرب', data: shiftTrainingData, backgroundColor: trainingColor, borderRadius: 6, borderSkipped: false },
+                            { label: 'مرضي', data: shiftSickData, backgroundColor: sickColor, borderRadius: 6, borderSkipped: false }
                         ] 
                     }, 
                     options: { 
                         indexAxis: 'y', responsive: true, maintainAspectRatio: false, 
                         interaction: { mode: 'index', intersect: false },
                         scales: { 
-                            x: { stacked: true, grid: { color: gridColor }, ticks: { color: textColor, stepSize: 1, callback: function(val) { return Number(val).toString(); } } }, 
-                            y: { stacked: true, grid: { display: false }, ticks: { color: textColor, font: { family: 'Tajawal', weight: 'bold', size: 10 } } } 
+                            x: { stacked: true, grid: { color: gridColor }, ticks: { color: textColor, stepSize: 1 } }, 
+                            y: { stacked: true, grid: { display: false }, ticks: { color: textColor, font: { weight: 'bold', size: 10 } } } 
                         }, 
                         plugins: { 
-                            legend: { display: true, position: 'bottom', labels: { color: textColor, font: { family: 'Tajawal' } } },
-                            tooltip: { callbacks: { label: function(context) { return ' ' + context.dataset.label + ': ' + Number(context.raw).toString(); } } }
+                            legend: { display: true, position: 'top', labels: { color: textColor, usePointStyle: true } },
+                            tooltip: { backgroundColor: isDarkMode.value ? '#1e293b' : '#ffffff', titleColor: textColor, bodyColor: textColor, borderColor: gridColor, borderWidth: 1, padding: 10, cornerRadius: 12, callbacks: { label: function(context) { return ' ' + context.dataset.label + ': ' + Number(context.raw).toString(); } } }
                         } 
                     } 
                 }); 
@@ -597,8 +615,8 @@ const app = createApp({
             if(localStorage.getItem('theme') === 'dark') { isDarkMode.value = true; document.documentElement.classList.add('dark'); document.getElementById('theme-color-meta').setAttribute('content', '#0f172a'); }
             
             window.addEventListener('popstate', (e) => {
-                if (e.state) { view.value = e.state.view || 'home'; shift.value = e.state.shift || null; query.value = e.state.query || ''; modal.value = e.state.modal || null; selectedUid.value = e.state.uid || null; if(view.value === 'home') showRolling.value = false; } 
-                else { view.value = 'home'; shift.value = null; query.value = ''; modal.value = null; showRolling.value = false; }
+                if (e.state) { view.value = e.state.view || 'home'; shift.value = e.state.shift || null; query.value = e.state.query || ''; searchQuery.value = e.state.query || ''; modal.value = e.state.modal || null; selectedUid.value = e.state.uid || null; if(view.value === 'home') showRolling.value = false; } 
+                else { view.value = 'home'; shift.value = null; query.value = ''; searchQuery.value = ''; modal.value = null; showRolling.value = false; }
                 updateIcons(); if(view.value === 'dashboard') setTimeout(() => initCharts(), 100);
             });
 
@@ -654,7 +672,7 @@ const app = createApp({
 
         return {
             isAdmin, isDarkMode, isLoading, toasts,
-            view, shift, query, modal, selectedUid, showRolling, form, employees, announcementsList,
+            view, shift, searchQuery, query, modal, selectedUid, showRolling, form, employees, announcementsList,
             headerTitle, filteredEmployees, searchResults, activeCount, trainingCount, sickCount, sickEmployeesCount, 
             deptTotalCount, deptActiveCount, deptTrainingCount, deptSickCount, latestAnnouncement, selectedEmployee, liveShift,
             availableJobs, availableNames, availableSubstitutes, loginData, activeCompanyEmployees,
@@ -663,7 +681,7 @@ const app = createApp({
             resetAnnFormSteps, generateSingleCoverText, generateAutoSchedule,
             
             sunIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>',
-            moonIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>',
+            moonIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>',
             toggleDarkMode, navigate, navigateShift, count, getDeptName, cleanPhone, getShiftCardClass, getShiftIconClass, getShiftTextClass, getShiftName,
             openModal, closeModal, openDetails, showSubstitutes, onJobSelect, onNameSelect,
             publishAnnouncement, deleteAnnouncement, saveEmployee, deleteEmployee, executeDelete, moveEmployee, handleHeaderClick, handleLogin
