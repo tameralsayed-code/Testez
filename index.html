@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" class="transition-colors duration-500">
+<html lang="ar" dir="rtl" class="transition-colors duration-300">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#f8fafc" id="theme-color-meta">
+    <meta name="theme-color" content="#3B82F6" id="theme-color-meta">
     <title>قسم الإنتاج | Enterprise Edition</title>
     
     <style>
@@ -29,6 +29,7 @@
 </head>
 <body class="pb-safe pt-safe">
 
+    <!-- قمنا بجعل التطبيق بحجم الشاشة مع flex-col لتقسيم المساحات -->
     <div id="app" v-cloak class="h-[100dvh] w-full flex flex-col relative overflow-hidden">
         
         <div class="toast-container">
@@ -39,466 +40,263 @@
             </transition-group>
         </div>
 
-        <div v-if="latestAnnouncement" class="shrink-0 bg-gray-900/90 backdrop-blur-md text-white text-xs font-bold py-2 overflow-hidden flex items-center relative z-40 shadow-md">
+        <!-- shrink-0 يمنع هذا الجزء من التقلص ويبقيه ثابتاً -->
+        <div v-if="latestAnnouncement" class="shrink-0 bg-gray-900 dark:bg-black text-white text-xs font-bold py-2 overflow-hidden flex items-center relative z-40 shadow-md">
             <span class="bg-rose-600 px-3 py-2 absolute right-0 z-10 h-full flex items-center shadow-[10px_0_15px_rgba(0,0,0,0.5)]">عاجل 📢</span>
             <div class="marquee-content pr-20 text-yellow-300">{{ latestAnnouncement.text }} <span class="text-gray-400 font-normal mr-2">({{ latestAnnouncement.date }})</span></div>
         </div>
 
-        <header class="shrink-0 z-30 glass-panel border-b-0 shadow-sm transition-colors rounded-b-3xl mb-2">
+        <!-- الهيدر ثابت بفضل shrink-0 -->
+        <header class="shrink-0 z-30 bg-slate-200/90 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-300 dark:border-slate-800 shadow-md transition-colors">
             <div class="pt-8 pb-4 px-5 flex items-center justify-between">
                 <h1 @click="handleHeaderClick" class="text-xl font-bold text-gray-900 dark:text-white tracking-tight cursor-pointer select-none">{{ headerTitle }}</h1>
                 
                 <div class="flex items-center gap-2.5">
-                    <button v-if="view === 'home'" @click="toggleDarkMode" class="w-11 h-11 rounded-xl bg-white/50 dark:bg-slate-800/50 flex items-center justify-center border border-slate-200/50 dark:border-slate-700/50 shadow-sm active:scale-95 transition-all hover:bg-white dark:hover:bg-slate-700">
+                    <button v-if="view === 'home'" @click="toggleDarkMode" class="w-11 h-11 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center border border-slate-300 dark:border-slate-700 shadow-sm active:scale-95 transition-all">
                         <span v-html="isDarkMode ? sunIcon : moonIcon"></span>
                     </button>
-                    <button v-if="view === 'home'" @click="navigate('dashboard')" class="w-11 h-11 rounded-xl bg-blue-50/80 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-200/50 dark:border-blue-800/50 shadow-sm active:scale-95 transition-all hover:bg-blue-100 dark:hover:bg-blue-900">
+                    <button v-if="view === 'home'" @click="navigate('dashboard')" class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-200 dark:border-blue-800 shadow-sm active:scale-95 transition-all">
                         <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
                     </button>
                 </div>
             </div>
             
-            <div v-if="view !== 'announcements' && view !== 'dashboard'" class="px-5 pb-5">
-                <div class="relative bg-white/60 dark:bg-slate-800/60 backdrop-blur-md rounded-2xl transition-colors border border-slate-200/50 dark:border-slate-700/50 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/50">
+            <div v-if="view !== 'announcements' && view !== 'dashboard'" class="px-5 pb-3.5">
+                <div class="relative bg-white dark:bg-slate-800 rounded-2xl transition-colors border border-slate-300 dark:border-slate-700 shadow-sm">
                     <i data-lucide="search" class="absolute right-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400 dark:text-gray-500"></i>
-                    <!-- تم التعديل هنا لاستخدام searchQuery و debounce -->
-                    <input v-model="searchQuery" type="text" placeholder="بحث بالاسم أو الكود..." class="w-full bg-transparent border-none pr-11 pl-11 py-3.5 rounded-2xl text-sm outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 font-medium">
-                    <button v-if="searchQuery" @click="searchQuery = ''" class="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 bg-gray-200/80 dark:bg-slate-700/80 rounded-full flex items-center justify-center hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors"><i data-lucide="x" class="w-4 h-4 text-gray-600 dark:text-gray-300"></i></button>
+                    <input v-model="query" type="text" placeholder="بحث بالاسم أو الكود..." class="w-full bg-transparent border-none pr-11 pl-11 py-3 rounded-2xl text-sm outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500">
+                    <button v-if="query" @click="query = ''" class="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-gray-200 dark:bg-slate-700 rounded-full flex items-center justify-center hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors"><i data-lucide="x" class="w-3.5 h-3.5 text-gray-600 dark:text-gray-300"></i></button>
                 </div>
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto px-5 pt-3 pb-32 no-scrollbar relative">
-            <transition name="page-fade" mode="out-in">
-                <!-- Wrapper for transitions -->
-                <div :key="view + (shift || '') + (query ? 'q' : '')">
-                    
-                    <!-- نتائج البحث -->
-                    <div v-if="query" class="space-y-3">
-                        <div v-for="e in searchResults" :key="e.uid" @click="openDetails(e.uid)" class="glass-panel p-4 rounded-2xl flex items-center gap-4 shadow-sm cursor-pointer active:scale-95 transition-all hover:shadow-md border-transparent hover:border-blue-200 dark:hover:border-blue-800">
-                            <div class="w-12 h-12 bg-blue-50/80 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center font-bold text-lg shadow-inner">{{ e.department === 'management' ? '💼' : e.shift }}</div>
-                            <div class="text-right flex-1"><h3 class="text-[15px] font-bold text-gray-900 dark:text-white">{{ e.name }}</h3><p class="text-xs text-gray-500 mt-0.5">{{ e.jobTitle }}</p></div>
-                        </div>
-                        <div v-if="!isLoading && searchResults.length === 0" class="text-center py-12 text-gray-400 text-sm font-medium">لا توجد نتائج لـ "{{ query }}"</div>
-                    </div>
-
-                    <!-- لوحة القيادة -->
-                    <div v-else-if="view === 'dashboard'" class="space-y-5">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-gradient-to-br from-blue-500 to-indigo-600 p-6 rounded-[28px] shadow-xl shadow-blue-500/20 flex flex-col relative overflow-hidden"><i data-lucide="users" class="w-20 h-20 text-white/10 absolute -bottom-4 -left-4"></i><span class="text-4xl font-black text-white relative z-10">{{ employees.length }}</span><span class="text-xs text-blue-100 font-medium mt-1 relative z-10">إجمالي القوة (المسجلة)</span></div>
-                            <div class="glass-panel p-6 rounded-[28px] shadow-sm flex flex-col relative overflow-hidden"><i data-lucide="activity" class="w-16 h-16 text-rose-50 dark:text-rose-900/10 absolute -bottom-2 -left-2"></i><span class="text-4xl font-black text-rose-500 relative z-10">{{ sickEmployeesCount }}</span><span class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1 relative z-10">إجازات مرضية</span></div>
-                        </div>
-                        
-                        <div class="glass-panel p-5 rounded-[28px] shadow-sm">
-                            <div class="flex items-center gap-2 mb-4 justify-center"><i data-lucide="pie-chart" class="w-4 h-4 text-gray-400"></i><h3 class="text-[11px] font-black text-gray-500 uppercase tracking-widest">حالة التواجد الكلية</h3></div>
-                            <div class="relative h-48 w-full"><canvas id="statusChart"></canvas></div>
-                        </div>
-                        
-                        <div class="glass-panel p-5 rounded-[28px] shadow-sm">
-                            <div class="flex items-center gap-2 mb-4 justify-center"><i data-lucide="briefcase" class="w-4 h-4 text-gray-400"></i><h3 class="text-[11px] font-black text-gray-500 uppercase tracking-widest">توزيع المهام الوظيفية الكلية</h3></div>
-                            <div class="relative h-96 w-full"><canvas id="rolesChart"></canvas></div>
-                        </div>
-                        
-                        <div class="glass-panel p-5 rounded-[28px] shadow-sm mb-10">
-                            <div class="flex items-center gap-2 mb-4 justify-center"><i data-lucide="clock" class="w-4 h-4 text-gray-400"></i><h3 class="text-[11px] font-black text-gray-500 uppercase tracking-widest">توزيع الورديات (تفصيلي)</h3></div>
-                            <div class="relative h-80 w-full"><canvas id="shiftDistChart"></canvas></div>
-                        </div>
-                    </div>
-
-                    <!-- منظومة الإعلانات -->
-                    <div v-else-if="view === 'announcements'" class="space-y-5">
-                        
-                        <div v-if="isAdmin" class="glass-panel p-6 rounded-[28px] shadow-sm transition-all duration-300">
-                            <h3 class="text-sm font-bold text-blue-600 dark:text-blue-400 mb-5 flex items-center gap-2"><div class="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center"><i data-lucide="edit" class="w-4 h-4"></i></div> صياغة إعلان جديد</h3>
-                            
-                            <div class="mb-5">
-                                <label class="form-label mb-2">نوع الإعلان</label>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                    <label v-for="type in [{id:'alert', name:'تنبيه 📢'}, {id:'sick', name:'مرضي 💊'}, {id:'summer', name:'مصيف 🏖️'}, {id:'umrah', name:'عمرة 🕋'}]" :key="type.id" class="relative cursor-pointer">
-                                        <input type="radio" v-model="annForm.type" :value="type.id" class="peer sr-only" @change="resetAnnFormSteps(1)">
-                                        <div class="text-center py-2.5 px-1 rounded-xl text-[12px] font-bold border border-gray-200 dark:border-slate-600 text-gray-500 dark:text-gray-400 peer-checked:bg-blue-500 peer-checked:border-blue-500 peer-checked:text-white transition-all shadow-sm">
-                                            {{ type.name }}
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <transition name="page-fade">
-                                <div v-if="annForm.type !== 'alert'" class="space-y-4 mb-5 border-t border-gray-100 dark:border-slate-700 pt-5">
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <div class="form-group mb-0"><label class="form-label">من تاريخ</label><input type="date" v-model="annForm.fromDate" class="form-input text-xs py-2.5" @change="resetAnnFormSteps(2)"></div>
-                                        <div class="form-group mb-0"><label class="form-label">إلى تاريخ</label><input type="date" v-model="annForm.toDate" class="form-input text-xs py-2.5" @change="resetAnnFormSteps(2)"></div>
-                                    </div>
-
-                                    <div v-if="annForm.fromDate && annForm.toDate" class="form-group mb-0">
-                                        <label class="form-label">الوظيفة المستهدفة</label>
-                                        <select v-model="annForm.jobTitle" class="form-input py-2.5" @change="resetAnnFormSteps(3)">
-                                            <option value="">اختر الوظيفة...</option>
-                                            <option v-for="job in annAvailableJobs" :key="job" :value="job">{{ job }}</option>
-                                        </select>
-                                    </div>
-
-                                    <div v-if="annForm.jobTitle" class="form-group mb-0">
-                                        <label class="form-label">الموظف (طالب الإجازة)</label>
-                                        <select v-model="annForm.employeeUid" class="form-input py-2.5" @change="resetAnnFormSteps(4)">
-                                            <option value="">اختر الموظف...</option>
-                                            <option v-for="emp in annAvailableEmployees" :key="emp.uid" :value="emp.uid">{{ emp.name }} ({{ getDeptName(emp) }})</option>
-                                        </select>
-                                    </div>
-
-                                    <div v-if="annForm.employeeUid" class="bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
-                                        <label class="form-label mb-3">آلية تغطية العمل</label>
-                                        <div class="grid grid-cols-2 gap-2 mb-4">
-                                            <label class="relative cursor-pointer">
-                                                <input type="radio" v-model="annForm.coverType" value="single" class="peer sr-only" @change="generateSingleCoverText">
-                                                <div class="text-center py-2.5 rounded-xl text-xs font-bold border border-gray-200 dark:border-slate-600 text-gray-500 peer-checked:bg-indigo-50 peer-checked:dark:bg-indigo-900/30 peer-checked:border-indigo-500 peer-checked:text-indigo-600 transition-all">موظف محدد</div>
-                                            </label>
-                                            <label class="relative cursor-pointer">
-                                                <input type="radio" v-model="annForm.coverType" value="schedule" class="peer sr-only" @change="generateAutoSchedule">
-                                                <div class="text-center py-2.5 rounded-xl text-xs font-bold border border-gray-200 dark:border-slate-600 text-gray-500 peer-checked:bg-teal-50 peer-checked:dark:bg-teal-900/30 peer-checked:border-teal-500 peer-checked:text-teal-600 transition-all">توليد جدول ذكي</div>
-                                            </label>
-                                            
-                                            <div v-if="annForm.coverType === 'schedule'" class="col-span-2 mt-2">
-                                                <button @click="generateAutoSchedule" type="button" class="w-full bg-teal-100/80 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 py-3 rounded-xl text-xs font-bold active:scale-95 transition-all flex items-center justify-center gap-2">
-                                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i> إعادة توليد/تحديث الجدول
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <div v-if="annForm.coverType === 'single'" class="form-group mb-0">
-                                            <select v-model="annForm.substituteUid" class="form-input py-3" @change="generateSingleCoverText">
-                                                <option value="">اختر الموظف البديل...</option>
-                                                <option v-for="sub in annAvailableSubstitutes" :key="sub.uid" :value="sub.uid">{{ sub.name }} ({{ getDeptName(sub) }} - وردية {{ sub.shift }})</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </transition>
-
-                            <div class="relative">
-                                <textarea v-model="annForm.text" rows="4" placeholder="اكتب نص الإعلان هنا، أو التمهيد الخاص بالجدول..." class="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 p-4 rounded-2xl text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 mb-4 dark:text-white resize-none shadow-inner leading-relaxed transition-all"></textarea>
-                            </div>
-
-                            <div v-if="annForm.scheduleData.length > 0" class="mb-5 overflow-hidden rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm">
-                                <div class="overflow-x-auto no-scrollbar">
-                                    <table class="w-full text-center text-xs min-w-[500px]">
-                                        <thead class="bg-gray-50 dark:bg-slate-900 text-gray-600 dark:text-gray-300">
-                                            <tr>
-                                                <th class="p-3 font-bold border-b dark:border-slate-700 border-l dark:border-slate-700 w-28">التاريخ</th>
-                                                <th class="p-3 font-bold border-b dark:border-slate-700 border-l dark:border-slate-700">الأولى</th>
-                                                <th class="p-3 font-bold border-b dark:border-slate-700 border-l dark:border-slate-700">الثانية</th>
-                                                <th class="p-3 font-bold border-b dark:border-slate-700">الثالثة</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr v-for="row in annForm.scheduleData" :key="row.date" class="border-b dark:border-slate-700 last:border-0 bg-white dark:bg-slate-800">
-                                                <td class="p-2 border-l dark:border-slate-700 font-bold bg-gray-50/50 dark:bg-slate-900/30 text-gray-700 dark:text-gray-300">{{ row.date }}</td>
-                                                <td class="p-2 border-l dark:border-slate-700 transition-colors" :class="{'text-indigo-600 font-black dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/20': row.morning === row.subName, 'text-gray-500': row.morning !== row.subName}">{{ row.morning }}</td>
-                                                <td class="p-2 border-l dark:border-slate-700 transition-colors" :class="{'text-indigo-600 font-black dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/20': row.noon === row.subName, 'text-gray-500': row.noon !== row.subName}">{{ row.noon }}</td>
-                                                <td class="p-2 transition-colors" :class="{'text-indigo-600 font-black dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/20': row.evening === row.subName, 'text-gray-500': row.evening !== row.subName}">{{ row.evening }}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <button @click="publishAnnouncement" :disabled="!annForm.text.trim()" :class="annForm.text.trim() ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg hover:shadow-blue-500/30 active:scale-95' : 'bg-gray-300 dark:bg-slate-700 text-gray-500 cursor-not-allowed'" class="w-full text-white py-3.5 rounded-xl text-sm font-bold transition-all flex justify-center items-center gap-2">
-                                <i data-lucide="send" class="w-4 h-4"></i> نشر الإعلان
-                            </button>
-                        </div>
-
-                        <div class="space-y-4">
-                            <div v-for="ann in announcementsList" :key="ann.id" class="glass-panel p-5 rounded-[24px] shadow-sm relative overflow-hidden">
-                                <div class="absolute right-0 top-0 bottom-0 w-1.5 bg-amber-400 rounded-r-full"></div>
-                                <div class="flex justify-between items-start mb-4">
-                                    <span class="text-[10px] font-bold text-gray-500 bg-gray-100/50 dark:bg-slate-700/50 px-2.5 py-1.5 rounded-lg flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> {{ ann.date }}</span>
-                                    <button v-if="isAdmin" @click="deleteAnnouncement(ann.id)" class="text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-900/50 p-2 rounded-xl transition-colors"><i data-lucide="trash" class="w-4 h-4"></i></button>
-                                </div>
-                                
-                                <p class="text-sm font-bold text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap mb-2">{{ ann.text }}</p>
-                                
-                                <div v-if="ann.schedule && ann.schedule.length > 0" class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-slate-600 shadow-sm">
-                                    <div class="overflow-x-auto no-scrollbar">
-                                        <table class="w-full text-center text-xs min-w-[450px]">
-                                            <thead class="bg-gray-50 dark:bg-slate-900 text-gray-600 dark:text-gray-300">
-                                                <tr>
-                                                    <th class="p-2 border-b dark:border-slate-600 border-l dark:border-slate-600 w-24">اليوم</th>
-                                                    <th class="p-2 border-b dark:border-slate-600 border-l dark:border-slate-600">الأولى</th>
-                                                    <th class="p-2 border-b dark:border-slate-600 border-l dark:border-slate-600">الثانية</th>
-                                                    <th class="p-2 border-b dark:border-slate-600">الثالثة</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr v-for="row in ann.schedule" :key="row.date" class="border-b dark:border-slate-600 last:border-0 bg-white dark:bg-slate-800">
-                                                    <td class="p-2 border-l dark:border-slate-600 font-bold bg-gray-50/50 dark:bg-slate-900/30 text-gray-700 dark:text-gray-300 text-[10px]">{{ row.date }}</td>
-                                                    <td class="p-2 border-l dark:border-slate-600" :class="{'text-indigo-600 font-black bg-indigo-50/50': row.morning === row.subName, 'text-gray-500': row.morning !== row.subName}">{{ row.morning }}</td>
-                                                    <td class="p-2 border-l dark:border-slate-600" :class="{'text-indigo-600 font-black bg-indigo-50/50': row.noon === row.subName, 'text-gray-500': row.noon !== row.subName}">{{ row.noon }}</td>
-                                                    <td class="p-2" :class="{'text-indigo-600 font-black bg-indigo-50/50': row.evening === row.subName, 'text-gray-500': row.evening !== row.subName}">{{ row.evening }}</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div v-if="!isLoading && announcementsList.length === 0" class="text-center py-10 text-gray-400 text-sm font-medium">لا توجد إعلانات سابقة.</div>
-                        </div>
-                    </div>
-
-                    <!-- عرض القوائم الفعلية -->
-                    <div v-else-if="shift" class="space-y-3">
-                        <div class="flex justify-between items-center mb-5 mr-1">
-                            <h3 class="text-[11px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-1.5">القائمة الفعلية</h3>
-                            <div class="flex items-center gap-2">
-                                <div class="badge-status badge-active"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">نشط: {{ activeCount }}</span></div>
-                                <div class="badge-status" style="background-color: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.2);"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span><span class="text-[10px] font-bold text-amber-700 dark:text-amber-400">متدرب: {{ trainingCount }}</span></div>
-                                <div class="badge-status badge-inactive"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span><span class="text-[10px] font-bold text-rose-700 dark:text-rose-400">مرضي: {{ sickCount }}</span></div>
-                            </div>
-                        </div>
-                        <div v-if="!isLoading && filteredEmployees.length === 0" class="py-20 text-center text-gray-400 text-sm font-medium">لا توجد بيانات مسجلة</div>
-                        
-                        <div v-for="(e, index) in filteredEmployees" :key="e.uid" @click="openDetails(e.uid)" 
-                             :class="{'bg-rose-50/80 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800': e.status === 'sick', 'bg-amber-50/80 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/50': e.status === 'training', 'glass-panel border-transparent hover:border-blue-200 dark:hover:border-blue-800': e.status === 'active' || !e.status}" 
-                             class="p-4 rounded-[22px] flex items-center justify-between shadow-sm active:scale-[0.98] transition-all cursor-pointer hover:shadow-md">
-                            
-                            <div class="flex items-center gap-4 flex-1 min-w-0">
-                                <div @click.stop="e.department !== 'management' ? showSubstitutes(e.uid) : null" 
-                                     :class="{'bg-rose-200/50 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400': e.status === 'sick', 'bg-amber-200/50 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400': e.status === 'training', 'bg-blue-50 dark:bg-slate-700 text-blue-600 dark:text-blue-300': e.status === 'active' || !e.status, 'hover:ring-4 hover:ring-blue-100 active:scale-90 cursor-pointer': e.department !== 'management'}" 
-                                     class="w-12 h-12 rounded-[18px] flex items-center justify-center shrink-0 font-bold text-lg transition-all shadow-inner">
-                                    {{ e.department === 'management' ? '💼' : e.shift }}
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <h3 :class="{'text-rose-900 dark:text-rose-400': e.status === 'sick', 'text-amber-900 dark:text-amber-500': e.status === 'training', 'text-gray-900 dark:text-white': e.status === 'active' || !e.status}" class="font-bold text-[15px] truncate flex items-center gap-1.5">
-                                        <span v-if="e.status === 'sick'" class="text-[10px] bg-rose-500 text-white px-1.5 py-0.5 rounded-md">مرضي</span>
-                                        <span v-if="e.status === 'training'" class="text-[10px] bg-amber-500 text-white px-1.5 py-0.5 rounded-md">متدرب</span>
-                                        {{ e.name }}
-                                    </h3>
-                                    <p :class="{'text-rose-600/80 dark:text-rose-400/80': e.status === 'sick', 'text-amber-600/80 dark:text-amber-500/80': e.status === 'training', 'text-gray-500': e.status !== 'sick' && e.status !== 'training'}" class="text-[11px] truncate mt-0.5 font-medium">
-                                        {{ e.jobTitle }} <span v-if="e.code" class="opacity-50">|</span> <span v-if="e.code" class="font-bold">{{ e.code }}</span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div v-if="isAdmin && view === 'management'" class="flex flex-col gap-1.5 mr-3 shrink-0 border-r border-gray-100 dark:border-slate-700 pr-3" @click.stop><button @click.stop="moveEmployee(e.uid, 'up')" :class="{'opacity-30 pointer-events-none': index === 0}" class="w-8 h-8 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl flex items-center justify-center text-gray-500 dark:text-gray-300 active:scale-90 transition-all shadow-sm hover:bg-gray-50"><i data-lucide="chevron-up" class="w-4 h-4"></i></button><button @click.stop="moveEmployee(e.uid, 'down')" :class="{'opacity-30 pointer-events-none': index === filteredEmployees.length - 1}" class="w-8 h-8 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl flex items-center justify-center text-gray-500 dark:text-gray-300 active:scale-90 transition-all shadow-sm hover:bg-gray-50"><i data-lucide="chevron-down" class="w-4 h-4"></i></button></div>
-                        </div>
-                    </div>
-
-                    <!-- اختيار الورديات -->
-                    <div v-else-if="view !== 'home'">
-                        <div v-if="view.startsWith('line') || view === 'prep'" class="mb-5 flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-2xl bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-sm border border-gray-100 dark:border-slate-700">
-                                <i data-lucide="mouse-pointer-click" class="w-5 h-5"></i>
-                            </div>
-                            <h2 class="text-[15px] font-bold text-gray-800 dark:text-white">اختر الوردية المراد عرضها</h2>
-                        </div>
-
-                        <div class="space-y-4">
-                            <div v-for="s in ['A','B','C','D']" :key="s" @click="navigateShift(s)" :class="getShiftCardClass(s)" class="glass-panel p-4 rounded-[24px] flex items-center justify-between shadow-sm hover:shadow-md transition-all cursor-pointer border-transparent hover:border-blue-200"><div class="flex items-center gap-4"><div :class="getShiftIconClass(s)" class="w-14 h-14 rounded-[18px] text-white flex items-center justify-center text-xl font-bold shadow-md">{{ s }}</div><div><h3 class="text-gray-900 dark:text-white font-bold text-lg">وردية {{ s }}</h3><p :class="getShiftTextClass(s)" class="text-xs font-medium mt-0.5">{{ getShiftName(s) }}</p></div></div><div class="w-8 h-8 rounded-full bg-white/50 dark:bg-slate-800/50 flex items-center justify-center"><i data-lucide="chevron-left" class="w-4 h-4 text-gray-400"></i></div></div>
-                        </div>
-                        
-                        <div class="mt-8 flex justify-between items-center px-1">
-                            <h3 class="text-[11px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-1.5">القوة الإجمالية <span class="text-gray-900 dark:text-white bg-white/50 dark:bg-slate-800 px-2 py-0.5 rounded-md shadow-sm">{{ deptTotalCount }}</span></h3>
-                            <div class="flex items-center gap-2">
-                                <div class="badge-status badge-active"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">نشط: {{ deptActiveCount }}</span></div>
-                                <div class="badge-status" style="background-color: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.2);"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span><span class="text-[10px] font-bold text-amber-700 dark:text-amber-400">متدرب: {{ deptTrainingCount }}</span></div>
-                                <div class="badge-status badge-inactive"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span><span class="text-[10px] font-bold text-rose-700 dark:text-rose-400">مرضي: {{ deptSickCount }}</span></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- الصفحة الرئيسية Home -->
-                    <div v-else>
-                        <div class="mb-6 relative"><div class="glass-panel rounded-3xl shadow-sm overflow-hidden px-5 py-4 flex items-center justify-between gap-4"><div class="flex items-center gap-3 flex-1 min-w-0"><div class="relative w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div><div class="flex flex-col min-w-0"><span class="text-xs text-gray-500 font-medium leading-tight">الوردية العاملة الآن</span><span class="text-[15px] font-bold text-gray-900 dark:text-white leading-tight mt-0.5">الوردية {{ liveShift.name }}</span></div></div><div class="w-12 h-12 rounded-[18px] bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/50 dark:to-teal-900/50 flex items-center justify-center shadow-inner"><span class="text-xl font-black text-emerald-600 dark:text-emerald-400">{{ liveShift.group }}</span></div></div></div>
-                        
-                        <div class="glass-panel rounded-[32px] shadow-xl shadow-blue-900/5 border border-white/60 dark:border-slate-700/60 overflow-hidden">
-                            <div @click="navigate('management')" class="p-5 flex justify-between items-center cursor-pointer border-b border-gray-100/50 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all"><div class="flex items-center gap-4"><div class="w-14 h-14 rounded-[20px] bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-purple-500/30"><i data-lucide="briefcase" class="w-6 h-6"></i></div><div><h2 class="font-bold text-gray-900 dark:text-white text-[16px]">إدارة الإنتاج</h2><p class="text-xs text-gray-500 font-medium mt-1">{{ count('management') }} موظف مسجل</p></div></div><div class="w-8 h-8 rounded-full bg-gray-50 dark:bg-slate-800 flex items-center justify-center"><i data-lucide="chevron-left" class="w-4 h-4 text-gray-400"></i></div></div>
-                            <div @click="showRolling = !showRolling" class="p-5 flex justify-between items-center cursor-pointer border-b border-gray-100/50 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all"><div class="flex items-center gap-4 flex-1"><div class="w-14 h-14 rounded-[20px] bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center shadow-lg shadow-blue-500/30"><i data-lucide="layers" class="w-6 h-6"></i></div><div class="flex-1"><h2 class="font-bold text-gray-900 dark:text-white text-[16px]">خطوط الدرفلة</h2><p class="text-xs text-gray-500 font-medium mt-1">{{ count('rolling') }} موظف مسجل</p></div></div><div class="w-8 h-8 rounded-full bg-gray-50 dark:bg-slate-800 flex items-center justify-center transition-transform" :class="{'rotate-180 bg-blue-50 dark:bg-blue-900/30 text-blue-500': showRolling}"><i data-lucide="chevron-down" class="w-4 h-4"></i></div></div>
-                            <transition name="page-fade">
-                                <div v-if="showRolling" class="bg-gray-50/50 dark:bg-slate-800/30 p-5 space-y-3 shadow-inner"><div @click="navigate('line1')" class="bg-white dark:bg-slate-800 p-4 rounded-[20px] shadow-sm flex justify-between items-center cursor-pointer hover:ring-2 hover:ring-blue-100 dark:hover:ring-blue-900 transition-all"><span class="font-bold text-sm text-gray-800 dark:text-white flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-500"></div>خط درفلة 1</span><span class="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-3 py-1 rounded-lg text-xs font-bold">{{ count('rolling', '1') }}</span></div><div @click="navigate('line2')" class="bg-white dark:bg-slate-800 p-4 rounded-[20px] shadow-sm flex justify-between items-center cursor-pointer hover:ring-2 hover:ring-blue-100 dark:hover:ring-blue-900 transition-all"><span class="font-bold text-sm text-gray-800 dark:text-white flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-500"></div>خط درفلة 2</span><span class="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-3 py-1 rounded-lg text-xs font-bold">{{ count('rolling', '2') }}</span></div></div>
-                            </transition>
-                            <div @click="navigate('prep')" class="p-5 flex justify-between items-center cursor-pointer border-b border-gray-100/50 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all"><div class="flex items-center gap-4"><div class="w-14 h-14 rounded-[20px] bg-gradient-to-br from-teal-500 to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-teal-500/30"><i data-lucide="wrench" class="w-6 h-6"></i></div><div><h2 class="font-bold text-gray-900 dark:text-white text-[16px]">ورشة التجهيزات</h2><p class="text-xs text-gray-500 font-medium mt-1">{{ count('prep') }} موظف مسجل</p></div></div><div class="w-8 h-8 rounded-full bg-gray-50 dark:bg-slate-800 flex items-center justify-center"><i data-lucide="chevron-left" class="w-4 h-4 text-gray-400"></i></div></div>
-                            <div @click="navigate('announcements')" class="p-5 flex justify-between items-center cursor-pointer hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all"><div class="flex items-center gap-4 flex-1"><div class="w-14 h-14 rounded-[20px] bg-gradient-to-br from-orange-500 to-rose-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/30"><i data-lucide="megaphone" class="w-6 h-6"></i></div><div class="flex-1"><h2 class="font-bold text-gray-900 dark:text-white text-[16px]">الإعلانات الداخلية</h2><p class="text-xs text-gray-500 font-medium mt-1">تنبيهات وجداول ذكية</p></div></div><span class="bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-3 py-1.5 rounded-xl text-xs font-bold">{{ announcementsList.length }} إعلان</span></div>
-                        </div>
-                    </div>
+        <!-- الجزء الوحيد الذي سيتم عمل سكرول له -->
+        <main class="flex-1 overflow-y-auto px-5 pt-5 pb-32 no-scrollbar relative">
+            
+            <div v-if="query" class="space-y-3">
+                <div v-for="e in searchResults" :key="e.uid" @click="openDetails(e.uid)" class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-gray-100 dark:border-slate-700 flex items-center gap-4 shadow-sm cursor-pointer active:scale-95 transition-transform">
+                    <div class="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center font-normal">{{ e.department === 'management' ? '💼' : e.shift }}</div>
+                    <div class="text-right flex-1"><h3 class="text-sm text-gray-900 dark:text-white font-normal">{{ e.name }}</h3><p class="text-[10px] text-gray-400">{{ e.jobTitle }}</p></div>
                 </div>
-            </transition>
+                <div v-if="!isLoading && searchResults.length === 0" class="text-center py-10 text-gray-400 text-sm">لا توجد نتائج لـ "{{ query }}"</div>
+            </div>
+
+            <div v-else-if="view === 'dashboard'" class="space-y-6" style="animation: slideDown 0.4s ease-out;">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gradient-to-br from-blue-500 to-indigo-600 p-5 rounded-[24px] shadow-lg flex flex-col relative overflow-hidden"><i data-lucide="users" class="w-16 h-16 text-white/10 absolute -bottom-2 -left-2"></i><span class="text-3xl font-black text-white relative z-10">{{ employees.length }}</span><span class="text-[11px] text-blue-100 font-bold mt-1 relative z-10">إجمالي القوة (النشطة)</span></div>
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col relative overflow-hidden"><i data-lucide="activity" class="w-12 h-12 text-rose-50 dark:text-rose-900/20 absolute -bottom-2 -left-2"></i><span class="text-3xl font-black text-rose-500 relative z-10">{{ sickEmployeesCount }}</span><span class="text-[11px] text-gray-500 dark:text-gray-400 font-bold mt-1 relative z-10">إجازات مرضية</span></div>
+                </div>
+                
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-slate-700">
+                    <div class="flex items-center gap-2 mb-4 justify-center"><i data-lucide="pie-chart" class="w-4 h-4 text-gray-400"></i><h3 class="text-[11px] font-black text-gray-500 uppercase tracking-widest">حالة التواجد الكلية</h3></div>
+                    <div class="relative h-48 w-full"><canvas id="statusChart"></canvas></div>
+                </div>
+                
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-slate-700">
+                    <div class="flex items-center gap-2 mb-4 justify-center"><i data-lucide="briefcase" class="w-4 h-4 text-gray-400"></i><h3 class="text-[11px] font-black text-gray-500 uppercase tracking-widest">توزيع المهام الوظيفية الكلية</h3></div>
+                    <div class="relative h-96 w-full"><canvas id="rolesChart"></canvas></div>
+                </div>
+                
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-[24px] shadow-sm border border-gray-100 dark:border-slate-700 mb-10">
+                    <div class="flex items-center gap-2 mb-4 justify-center"><i data-lucide="clock" class="w-4 h-4 text-gray-400"></i><h3 class="text-[11px] font-black text-gray-500 uppercase tracking-widest">توزيع الورديات (تفصيلي)</h3></div>
+                    <div class="relative h-80 w-full"><canvas id="shiftDistChart"></canvas></div>
+                </div>
+            </div>
+
+            <div v-else-if="view === 'announcements'" class="space-y-6">
+                <div v-if="isAdmin" class="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700"><h3 class="text-xs font-bold text-blue-600 dark:text-blue-400 mb-3 flex items-center gap-1"><i data-lucide="edit" class="w-4 h-4"></i> نشر إعلان جديد</h3><textarea v-model="newAnnouncement" rows="2" placeholder="اكتب التنبيه هنا..." class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 p-3 rounded-xl text-sm outline-none focus:border-blue-500 mb-3 dark:text-white resize-none"></textarea><button @click="publishAnnouncement" class="w-full bg-blue-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-blue-700 active:scale-95 transition-all">نشر الآن</button></div>
+                <div class="space-y-3"><div v-for="ann in announcementsList" :key="ann.id" class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm relative overflow-hidden"><div class="absolute right-0 top-0 bottom-0 w-1 bg-amber-400"></div><div class="flex justify-between items-start mb-2"><span class="text-[10px] font-bold text-gray-400"><i data-lucide="clock" class="w-3 h-3 inline"></i> {{ ann.date }}</span><button v-if="isAdmin" @click="deleteAnnouncement(ann.id)" class="text-rose-500 hover:bg-rose-50 p-1 rounded-md"><i data-lucide="trash" class="w-3 h-3"></i></button></div><p class="text-sm font-bold text-gray-800 dark:text-gray-200 leading-relaxed">{{ ann.text }}</p></div><div v-if="!isLoading && announcementsList.length === 0" class="text-center py-10 text-gray-400 text-sm">لا توجد إعلانات سابقة.</div></div>
+            </div>
+
+            <div v-else-if="shift" class="space-y-4">
+                <div class="flex justify-between items-center mb-4 mr-1">
+                    <h3 class="text-[10px] text-gray-400 uppercase tracking-widest flex items-center gap-1.5"><span>القائمة الفعلية</span></h3>
+                    <div class="flex items-center gap-2"><div class="badge-status badge-active"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span class="text-[9px] font-bold text-emerald-700 dark:text-emerald-400">نشط: {{ activeCount }}</span></div><div class="badge-status badge-inactive"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span><span class="text-[9px] font-bold text-rose-700 dark:text-rose-400">مرضي: {{ sickCount }}</span></div></div>
+                </div>
+                <div v-if="!isLoading && filteredEmployees.length === 0" class="py-20 text-center text-gray-400 text-xs font-normal">لا توجد بيانات مسجلة</div>
+                <div v-for="(e, index) in filteredEmployees" :key="e.uid" @click="openDetails(e.uid)" :class="e.status === 'sick' ? 'bg-rose-50 dark:bg-rose-900/10 border-rose-200 dark:border-rose-800' : 'bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700'" class="p-4 rounded-[22px] border flex items-center justify-between shadow-sm active:scale-[0.98] transition-all cursor-pointer">
+                    <div class="flex items-center gap-4 flex-1 min-w-0"><div @click.stop="e.department !== 'management' ? showSubstitutes(e.uid) : null" :class="[e.status === 'sick' ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400' : 'bg-gray-50 dark:bg-slate-700 text-gray-500 dark:text-gray-300', e.department !== 'management' ? 'hover:ring-2 hover:ring-indigo-200 active:scale-90 cursor-pointer' : '']" class="w-11 h-11 rounded-[16px] flex items-center justify-center shrink-0 border border-black/5 dark:border-white/5 transition-all shadow-sm">{{ e.department === 'management' ? '💼' : e.shift }}</div><div class="flex-1 min-w-0"><h3 :class="e.status === 'sick' ? 'text-rose-900 dark:text-rose-400' : 'text-gray-900 dark:text-white'" class="font-normal text-sm truncate"><span v-if="e.status === 'sick'" class="text-[10px] bg-rose-200 dark:bg-rose-800 text-rose-700 dark:text-rose-200 px-1.5 rounded-sm mr-1">مرضي</span>{{ e.name }}</h3><p :class="e.status === 'sick' ? 'text-rose-500 dark:text-rose-400/80' : (view === 'management' || shift !== 'office' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400')" class="text-[10px] truncate mt-0.5">{{ e.jobTitle }} <span v-if="e.code">| {{ e.code }}</span></p></div></div>
+                    <div v-if="isAdmin && view === 'management'" class="flex flex-col gap-1.5 mr-3 shrink-0 border-r border-gray-100 dark:border-slate-700 pr-3" @click.stop><button @click.stop="moveEmployee(e.uid, 'up')" :class="{'opacity-30 pointer-events-none': index === 0}" class="w-8 h-7 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-[8px] flex items-center justify-center text-gray-500 dark:text-gray-300 active:scale-90 transition-all shadow-sm"><i data-lucide="chevron-up" class="w-4 h-4"></i></button><button @click.stop="moveEmployee(e.uid, 'down')" :class="{'opacity-30 pointer-events-none': index === filteredEmployees.length - 1}" class="w-8 h-7 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-[8px] flex items-center justify-center text-gray-500 dark:text-gray-300 active:scale-90 transition-all shadow-sm"><i data-lucide="chevron-down" class="w-4 h-4"></i></button></div>
+                </div>
+            </div>
+
+            <div v-else-if="view !== 'home'">
+                
+                <div v-if="view.startsWith('line') || view === 'prep'" class="mb-4 flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-sm">
+                        <i data-lucide="mouse-pointer-click" class="w-4 h-4"></i>
+                    </div>
+                    <h2 class="text-sm font-bold text-gray-800 dark:text-white">اختر الوردية المراد عرضها</h2>
+                </div>
+
+                <div class="space-y-4">
+                    <div v-for="s in ['A','B','C','D']" :key="s" @click="navigateShift(s)" :class="getShiftCardClass(s)" class="p-4 rounded-2xl border flex items-center justify-between shadow-sm hover:shadow-md transition-all cursor-pointer"><div class="flex items-center gap-4"><div :class="getShiftIconClass(s)" class="w-12 h-12 rounded-xl text-white flex items-center justify-center text-lg shadow-md">{{ s }}</div><div><h3 class="text-gray-900 dark:text-white font-normal">وردية {{ s }}</h3><p :class="getShiftTextClass(s)" class="text-xs font-normal">{{ getShiftName(s) }}</p></div></div><i data-lucide="chevron-left" class="w-5 h-5 text-gray-300 dark:text-gray-600"></i></div>
+                </div>
+                
+                <div class="mt-8 flex justify-between items-center px-1"><h3 class="text-[10px] text-gray-400 uppercase tracking-widest flex items-center gap-1.5"><span>القوة الإجمالية</span><span class="text-gray-900 dark:text-white font-bold">{{ deptTotalCount }}</span></h3><div class="flex items-center gap-2"><div class="badge-status badge-active"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span class="text-[9px] font-bold text-emerald-700 dark:text-emerald-400">نشط: {{ deptActiveCount }}</span></div><div class="badge-status badge-inactive"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span><span class="text-[9px] font-bold text-rose-700 dark:text-rose-400">مرضي: {{ deptSickCount }}</span></div></div></div>
+            </div>
+
+            <div v-else>
+                <div class="mb-6 relative"><div class="relative bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-2xl border border-gray-200/60 dark:border-slate-700/60 shadow-sm overflow-hidden px-4 py-3 flex items-center justify-between gap-3"><div class="flex items-center gap-2.5 flex-1 min-w-0"><div class="relative w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-sm"></div><div class="flex flex-col min-w-0"><span class="text-[11px] text-gray-500 font-normal leading-tight">الوردية الآن</span><span class="text-sm font-normal text-gray-900 dark:text-white leading-tight">الوردية {{ liveShift.name }}</span></div></div><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 border border-emerald-200/50 dark:border-emerald-800/50 flex items-center justify-center shadow-sm"><span class="text-base font-normal text-emerald-600 dark:text-emerald-400">{{ liveShift.group }}</span></div></div></div>
+                
+                <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-[32px] shadow-lg border border-white/50 dark:border-slate-700/50 overflow-hidden">
+                    <div @click="navigate('management')" class="p-5 flex justify-between items-center cursor-pointer border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50/50 dark:hover:bg-slate-700/50 transition-all"><div class="flex items-center gap-4"><div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 text-white flex items-center justify-center shadow-lg"><i data-lucide="briefcase"></i></div><div><h2 class="font-normal text-gray-900 dark:text-white text-base">إدارة الإنتاج</h2><p class="text-xs text-gray-500 mt-1">{{ count('management') }} موظف مسجل</p></div></div><div class="w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center"><i data-lucide="chevron-left" class="w-4 h-4 text-purple-600 dark:text-purple-400"></i></div></div>
+                    <div @click="showRolling = !showRolling" class="p-5 flex justify-between items-center cursor-pointer border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50/50 dark:hover:bg-slate-700/50 transition-all"><div class="flex items-center gap-4 flex-1"><div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center shadow-lg"><i data-lucide="layers"></i></div><div class="flex-1"><h2 class="font-normal text-gray-900 dark:text-white text-base">خطوط الدرفلة</h2><p class="text-xs text-gray-500 font-normal mt-1">{{ count('rolling') }} موظف مسجل</p></div></div><i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 transition-transform" :class="{'rotate-180': showRolling}"></i></div>
+                    <div v-if="showRolling" class="bg-gray-50/50 dark:bg-slate-800/50 p-5 space-y-3" style="animation: slideDown 0.3s ease-out;"><div @click="navigate('line1')" class="bg-white dark:bg-slate-700 p-4 rounded-2xl border border-gray-100 dark:border-slate-600 flex justify-between items-center shadow-sm cursor-pointer hover:border-blue-100 dark:hover:border-blue-500/50"><span class="font-normal text-[13px] text-gray-800 dark:text-white">خط درفلة 1</span><span class="badge-modern bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">{{ count('rolling', '1') }}</span></div><div @click="navigate('line2')" class="bg-white dark:bg-slate-700 p-4 rounded-2xl border border-gray-100 dark:border-slate-600 flex justify-between items-center shadow-sm cursor-pointer hover:border-blue-100 dark:hover:border-blue-500/50"><span class="font-normal text-[13px] text-gray-800 dark:text-white">خط درفلة 2</span><span class="badge-modern bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">{{ count('rolling', '2') }}</span></div></div>
+                    <div @click="navigate('prep')" class="p-5 flex justify-between items-center cursor-pointer border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50/50 dark:hover:bg-slate-700/50 transition-all"><div class="flex items-center gap-4"><div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 text-white flex items-center justify-center shadow-lg"><i data-lucide="wrench"></i></div><div><h2 class="font-normal text-gray-900 dark:text-white text-base">ورشة التجهيزات</h2><p class="text-xs text-gray-500 mt-1">{{ count('prep') }} موظف مسجل</p></div></div><div class="w-8 h-8 rounded-full bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center"><i data-lucide="chevron-left" class="w-4 h-4 text-teal-600 dark:text-teal-400"></i></div></div>
+                    <div @click="navigate('announcements')" class="p-5 flex justify-between items-center cursor-pointer hover:bg-gray-50/50 dark:hover:bg-slate-700/50 transition-all"><div class="flex items-center gap-4 flex-1"><div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center shadow-lg"><i data-lucide="megaphone"></i></div><div class="flex-1"><h2 class="font-normal text-gray-900 dark:text-white text-base">الإعلانات الداخلية</h2><p class="text-xs text-gray-500 font-normal mt-1">تنبيهات وملاحظات</p></div></div><span class="badge-modern bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400 text-xs">{{ announcementsList.length }} إعلان</span></div>
+                </div>
+            </div>
+
         </main>
 
         <button v-if="isAdmin && shift && !query" @click="openModal('form')" class="fab-enhanced"><i data-lucide="plus" class="w-7 h-7"></i></button>
 
-        <!-- نافذة تسجيل الدخول للإدارة -->
+        <!-- نافذة تسجيل الدخول للمدير -->
         <div class="fixed inset-0 z-[60] flex items-center justify-center p-5 pointer-events-none">
-            <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto" :class="modal === 'login' ? 'opacity-100' : 'opacity-0'" v-show="modal === 'login'" @click="closeModal"></div>
-            <div class="glass-panel w-full max-w-sm rounded-[32px] shadow-2xl p-8 transition-all duration-300 pointer-events-auto relative z-10" :class="modal === 'login' ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-10'" v-show="modal === 'login'">
-                <div class="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-inner"><i data-lucide="lock" class="w-8 h-8"></i></div>
-                <h3 class="text-center text-xl font-black text-gray-900 dark:text-white mb-2">صلاحيات الإدارة</h3>
-                <p class="text-center text-xs text-gray-500 mb-6 font-medium">الرجاء إدخال بيانات الاعتماد للمتابعة</p>
+            <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto" 
+                 :class="modal === 'login' ? 'opacity-100' : 'opacity-0'" 
+                 v-show="modal === 'login'" @click="closeModal"></div>
+            
+            <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-[24px] shadow-2xl p-6 transition-all duration-300 pointer-events-auto relative z-10"
+                 :class="modal === 'login' ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-10'"
+                 v-show="modal === 'login'">
+                <div class="w-14 h-14 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-100 dark:border-blue-800/50">
+                    <i data-lucide="lock" class="w-7 h-7"></i>
+                </div>
+                <h3 class="text-center text-lg font-black text-gray-900 dark:text-white mb-1">صلاحيات الإدارة</h3>
+                <p class="text-center text-xs text-gray-500 mb-6">الرجاء إدخال بيانات الاعتماد للمتابعة</p>
+                
                 <form @submit.prevent="handleLogin" class="space-y-4">
-                    <div><label class="form-label">اسم المستخدم</label><input v-model="loginData.username" type="text" class="form-input text-left" dir="ltr" required></div>
-                    <div><label class="form-label">كلمة المرور</label><input v-model="loginData.password" type="password" class="form-input text-left" dir="ltr" required></div>
-                    <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-500/30 hover:scale-[1.02] active:scale-95 transition-all mt-4">تسجيل الدخول</button>
+                    <div>
+                        <label class="form-label">اسم المستخدم</label>
+                        <input v-model="loginData.username" type="text" class="form-input text-left" dir="ltr" required>
+                    </div>
+                    <div>
+                        <label class="form-label">كلمة المرور</label>
+                        <input v-model="loginData.password" type="password" class="form-input text-left" dir="ltr" required>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-500/30 hover:bg-blue-700 active:scale-95 transition-all mt-3">تسجيل الدخول</button>
                 </form>
             </div>
         </div>
 
-        <!-- نافذة تأكيد الحذف -->
+        <!-- نافذة تأكيد حذف الموظف -->
         <div class="fixed inset-0 z-[70] flex items-center justify-center p-5 pointer-events-none">
-            <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto" :class="modal === 'confirm-delete' ? 'opacity-100' : 'opacity-0'" v-show="modal === 'confirm-delete'" @click="modal = 'details'"></div>
-            <div class="glass-panel w-full max-w-sm rounded-[32px] shadow-2xl p-8 transition-all duration-300 pointer-events-auto relative z-10 text-center" :class="modal === 'confirm-delete' ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-10'" v-show="modal === 'confirm-delete'">
-                <div class="w-20 h-20 bg-rose-50 dark:bg-rose-900/30 text-rose-500 rounded-[24px] flex items-center justify-center mx-auto mb-5 shadow-inner transform -rotate-6"><i data-lucide="trash-2" class="w-10 h-10"></i></div>
-                <h3 class="text-xl font-black text-gray-900 dark:text-white mb-3">هل تريد حذف الموظف؟</h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-8 leading-relaxed font-medium px-2">سيتم إخلاء طرف الموظف من مكانه الحالي، وسيبقى محفوظاً في النظام لإضافته لوردية أخرى لاحقاً.</p>
+            <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto" 
+                 :class="modal === 'confirm-delete' ? 'opacity-100' : 'opacity-0'" 
+                 v-show="modal === 'confirm-delete'" @click="modal = 'details'"></div>
+            
+            <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-[24px] shadow-2xl p-6 transition-all duration-300 pointer-events-auto relative z-10 text-center"
+                 :class="modal === 'confirm-delete' ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-10'"
+                 v-show="modal === 'confirm-delete'">
+                
+                <div class="w-16 h-16 bg-rose-50 dark:bg-rose-900/30 text-rose-500 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-100 dark:border-rose-800/50 shadow-sm transform -rotate-6">
+                    <i data-lucide="trash-2" class="w-8 h-8"></i>
+                </div>
+                
+                <h3 class="text-xl font-black text-gray-900 dark:text-white mb-2">هل تريد حذف الموظف ؟</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-6 leading-relaxed px-2">
+                    سيتم إخلاء طرف الموظف من مكانه الحالي، وسيبقى محفوظاً في النظام لإضافته لوردية أخرى لاحقاً.
+                </p>
+                
                 <div class="flex gap-3">
-                    <button @click="modal = 'details'" class="flex-[1] bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 font-bold py-3.5 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 active:scale-95 transition-all">إلغاء</button>
-                    <button @click="executeDelete" class="flex-[1.5] bg-gradient-to-r from-rose-500 to-red-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-rose-500/30 active:scale-95 transition-all">نعم، تأكيد الحذف</button>
+                    <button @click="modal = 'details'" class="flex-[1] bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 font-bold py-3.5 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 active:scale-95 transition-all shadow-sm">
+                        إلغاء
+                    </button>
+                    <button @click="executeDelete" class="flex-[1.5] bg-rose-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-rose-500/30 hover:bg-rose-600 active:scale-95 transition-all">
+                        نعم، تأكيد الحذف
+                    </button>
                 </div>
             </div>
         </div>
 
+        <!-- Modals -->
         <div class="sheet-overlay" :class="{'is-open': modal !== null && modal !== 'login' && modal !== 'confirm-delete'}" @click="closeModal"></div>
 
-        <!-- نموذج إضافة/تعديل الموظف -->
         <div class="sheet-container overflow-hidden" :class="{'is-open': modal === 'form'}">
-            <div class="pull-indicator"></div>
-            <div class="px-5 py-2 flex justify-between items-center border-b border-gray-100/50 dark:border-slate-700/50 shrink-0"><h2 class="text-[16px] font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">{{ form.uid ? 'تحديث بيانات الموظف' : 'تسجيل موظف جديد' }}</h2><button @click="closeModal" class="w-8 h-8 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center transition-colors text-gray-500 dark:text-gray-300 hover:bg-gray-200"><i data-lucide="x" class="w-4 h-4"></i></button></div>
-            <div class="px-5 py-4 overflow-y-auto no-scrollbar pb-10 flex-1">
+            <div class="px-5 py-3 flex justify-between items-center border-b border-gray-100 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 shrink-0"><h2 class="text-[15px] font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">{{ form.uid ? 'تحديث بيانات الموظف' : 'تسجيل موظف جديد' }}</h2><button @click="closeModal" class="w-7 h-7 bg-gray-50 dark:bg-slate-700 rounded-full flex items-center justify-center transition-colors text-gray-500 dark:text-gray-300"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></div>
+            <div class="px-5 py-3 overflow-y-auto no-scrollbar pb-8 flex-1">
                 <form @submit.prevent="saveEmployee">
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="briefcase" class="w-3.5 h-3.5"></i> المسمى الوظيفي</label>
+                        <label class="form-label"><i data-lucide="briefcase" class="w-3 h-3"></i> المسمى الوظيفي</label>
                         <select v-model="form.jobTitle" required class="form-input" @change="onJobSelect">
                             <option value="">اختر الوظيفة...</option>
                             <option v-for="job in availableJobs" :key="job" :value="job">{{ job }}</option>
                             <option value="__NEW_JOB__" class="font-bold text-indigo-600 dark:text-indigo-400">✨ ➕ إضافة وظيفة جديدة</option>
                         </select>
                     </div>
-                    <transition name="page-fade">
-                        <div v-if="form.jobTitle === '__NEW_JOB__'" class="form-group">
-                            <div class="p-3 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/30 dark:to-blue-900/30 rounded-[16px] border border-indigo-100 dark:border-indigo-800/50 relative overflow-hidden">
-                                <div class="absolute right-0 top-0 bottom-0 w-1.5 bg-indigo-500"></div>
-                                <label class="form-label text-indigo-800 dark:text-indigo-300"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i> ادخال وظيفة جديدة</label>
-                                <input v-model="form.newJob" type="text" class="form-input no-arrow focus:border-indigo-400" placeholder="أدخل المسمى الوظيفي بدقة...">
-                            </div>
+                    <div v-if="form.jobTitle === '__NEW_JOB__'" class="form-group" style="animation: slideDown 0.3s ease-out;">
+                        <div class="p-2.5 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/30 dark:to-blue-900/30 rounded-[12px] border border-indigo-100 dark:border-indigo-800/50 relative overflow-hidden">
+                            <div class="absolute right-0 top-0 bottom-0 w-1.5 bg-indigo-500 rounded-r-md"></div>
+                            <label class="form-label text-indigo-800 dark:text-indigo-300"><i data-lucide="sparkles" class="w-3 h-3"></i> ادخال وظيفة جديدة</label>
+                            <input v-model="form.newJob" type="text" class="form-input no-arrow focus:border-indigo-400 py-2" placeholder="أدخل المسمى الوظيفي بدقة...">
                         </div>
-                    </transition>
+                    </div>
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="user" class="w-3.5 h-3.5"></i> اسم الموظف</label>
+                        <label class="form-label"><i data-lucide="user" class="w-3 h-3"></i> اسم الموظف</label>
                         <select v-model="form.nameSelect" required class="form-input" @change="onNameSelect">
                             <option value="">{{ form.jobTitle && form.jobTitle !== '__NEW_JOB__' ? 'اختر الاسم المرتبط بالوظيفة...' : 'اختر الوظيفة أولاً...' }}</option>
                             <option v-for="name in availableNames" :key="name" :value="name">{{ name }}</option>
                             <option value="__NEW__" class="font-bold text-emerald-600 dark:text-emerald-400">➕ تسجيل اسم جديد غير مدرج</option>
                         </select>
                     </div>
-                    <transition name="page-fade">
-                        <div v-if="form.nameSelect === '__NEW__'" class="form-group">
-                            <div class="p-3 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-[16px] border border-emerald-100 dark:border-emerald-800/50 relative overflow-hidden">
-                                <div class="absolute right-0 top-0 bottom-0 w-1.5 bg-emerald-500"></div>
-                                <label class="form-label text-emerald-800 dark:text-emerald-300"><i data-lucide="user-plus" class="w-3.5 h-3.5"></i> تسجيل اسم جديد</label>
-                                <input v-model="form.newName" type="text" class="form-input no-arrow" placeholder="أدخل الاسم بالكامل رباعياً...">
-                            </div>
+                    <div v-if="form.nameSelect === '__NEW__'" class="form-group" style="animation: slideDown 0.3s ease-out;">
+                        <div class="p-2.5 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-[12px] border border-emerald-100 dark:border-emerald-800/50 relative overflow-hidden">
+                            <div class="absolute right-0 top-0 bottom-0 w-1.5 bg-emerald-500 rounded-r-md"></div>
+                            <label class="form-label text-emerald-800 dark:text-emerald-300"><i data-lucide="user-plus" class="w-3 h-3"></i> تسجيل اسم جديد</label>
+                            <input v-model="form.newName" type="text" class="form-input no-arrow py-2" placeholder="أدخل الاسم بالكامل رباعياً...">
                         </div>
-                    </transition>
+                    </div>
                     <div class="grid grid-cols-5 gap-3">
                         <div class="form-group col-span-2">
-                            <label class="form-label"><i data-lucide="hash" class="w-3.5 h-3.5"></i> الكود</label>
-                            <input v-model="form.code" type="number" class="form-input no-arrow text-center font-bold text-blue-600" placeholder="---">
+                            <label class="form-label"><i data-lucide="hash" class="w-3 h-3"></i> الكود</label>
+                            <input v-model="form.code" type="number" class="form-input no-arrow text-center font-bold text-blue-700 dark:text-blue-400" placeholder="---">
                         </div>
                         <div class="form-group col-span-3">
-                            <label class="form-label"><i data-lucide="smartphone" class="w-3.5 h-3.5"></i> الموبايل</label>
-                            <input v-model="form.phone" type="tel" class="form-input no-arrow text-left tracking-wider font-medium" dir="ltr" placeholder="01X XXXX XXXX">
+                            <label class="form-label"><i data-lucide="smartphone" class="w-3 h-3"></i> الموبايل</label>
+                            <input v-model="form.phone" type="tel" class="form-input no-arrow text-left tracking-wider" dir="ltr" placeholder="01X XXXX XXXX">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label"><i data-lucide="activity" class="w-3.5 h-3.5"></i> الحالة الجسدية</label>
-                        <select v-model="form.status" class="form-input font-bold">
-                            <option value="active">🟢 متواجد على قوة العمل</option>
-                            <option value="training">🟡 تحت التدريب</option>
-                            <option value="sick">🔴 إجازة مرضية</option>
-                        </select>
+                        <label class="form-label"><i data-lucide="activity" class="w-3 h-3"></i> الحالة الجسدية</label>
+                        <select v-model="form.status" class="form-input font-bold"><option value="active">🟢 متواجد على قوة العمل</option><option value="sick">🔴 إجازة مرضية</option></select>
                     </div>
-                    <div v-if="['rolling','prep'].includes(form.department)" class="mt-4 p-4 bg-gray-50/80 dark:bg-slate-800/80 rounded-[20px] border border-gray-200/50 dark:border-slate-700 shadow-sm">
-                        <h4 class="text-[11px] font-black text-gray-500 dark:text-gray-400 uppercase flex items-center gap-1.5 mb-3"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> موقع العمل الفعلي</h4>
+                    <div v-if="['rolling','prep'].includes(form.department)" class="mt-3 p-3 bg-slate-50/80 dark:bg-slate-800 rounded-[14px] border border-slate-200/60 dark:border-slate-700 shadow-sm">
+                        <h4 class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1.5 mb-2"><i data-lucide="map-pin" class="w-3 h-3"></i> موقع العمل الفعلي</h4>
                         <div class="grid grid-cols-2 gap-3">
                             <div v-if="form.department === 'rolling'" class="form-group mb-0">
                                 <label class="form-label">الخط</label>
-                                <select v-model="form.line" class="form-input"><option value="1">خط 1</option><option value="2">خط 2</option></select>
+                                <select v-model="form.line" class="form-input py-2"><option value="1">خط 1</option><option value="2">خط 2</option></select>
                             </div>
                             <div class="form-group mb-0">
                                 <label class="form-label">الوردية</label>
-                                <select v-model="form.shift" class="form-input"><option value="A">وردية A</option><option value="B">وردية B</option><option value="C">وردية C</option><option value="D">وردية D</option></select>
+                                <select v-model="form.shift" class="form-input py-2"><option value="A">وردية A</option><option value="B">وردية B</option><option value="C">وردية C</option><option value="D">وردية D</option></select>
                             </div>
                         </div>
                     </div>
-                    <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3.5 rounded-[16px] font-bold text-sm shadow-lg shadow-blue-500/30 active:scale-95 transition-all flex items-center justify-center gap-2 mt-5"><i data-lucide="save" class="w-4 h-4"></i> حفظ التعديلات</button>
+                    <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-[14px] font-bold text-[13px] shadow-lg shadow-blue-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-4"><i data-lucide="save" class="w-4 h-4"></i> حفظ</button>
                 </form>
             </div>
         </div>
 
-        <!-- تفاصيل الموظف والبدلاء -->
-        <div class="sheet-container overflow-hidden bg-white dark:bg-slate-900" :class="{'is-open': modal === 'details' || modal === 'substitutes'}">
-            <div class="absolute top-4 right-4 z-50"><button @click="closeModal" class="w-9 h-9 bg-black/20 hover:bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center transition-all text-white active:scale-90"><i data-lucide="x" class="w-5 h-5"></i></button></div>
-            <div class="overflow-y-auto no-scrollbar flex-1 w-full h-full pb-8">
+        <!-- Details & Substitutes Modal -->
+        <div class="sheet-container overflow-hidden bg-gray-50 dark:bg-slate-900" :class="{'is-open': modal === 'details' || modal === 'substitutes'}">
+            <div class="absolute top-4 right-4 z-50"><button @click="closeModal" class="w-8 h-8 bg-black/20 hover:bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center transition-all text-white active:scale-90"><i data-lucide="x" class="w-4 h-4"></i></button></div>
+            <div class="overflow-y-auto no-scrollbar flex-1 w-full h-full pb-6">
                 
-                <transition name="page-fade" mode="out-in">
-                    <div v-show="modal === 'details' && selectedEmployee" :key="'details'">
-                        <div v-if="selectedEmployee" 
-                             :class="{'bg-gradient-to-br from-rose-600 to-red-500': selectedEmployee.status === 'sick', 'bg-gradient-to-br from-amber-500 to-orange-500': selectedEmployee.status === 'training', 'bg-gradient-to-br from-blue-600 to-indigo-700': selectedEmployee.status === 'active' || !selectedEmployee.status}" 
-                             class="relative rounded-b-[40px] pt-14 pb-14 px-6 text-center shadow-xl">
-                            <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-                            <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -ml-5 -mb-5 pointer-events-none"></div>
-                            <div class="relative inline-block mb-4">
-                                <div class="w-24 h-24 bg-white/20 backdrop-blur-md rounded-[28px] flex items-center justify-center text-4xl font-black shadow-2xl border border-white/30 relative z-10 text-white">
-                                    {{ selectedEmployee.department === 'management' ? '💼' : selectedEmployee.shift }}
-                                </div>
-                                <div v-if="selectedEmployee.status === 'sick'" class="absolute -bottom-3 -right-3 bg-white text-rose-600 text-xs px-3 py-1 rounded-full font-black shadow-lg z-20">مرضي</div>
-                                <div v-if="selectedEmployee.status === 'training'" class="absolute -bottom-3 -right-3 bg-white text-amber-600 text-xs px-3 py-1 rounded-full font-black shadow-lg z-20">متدرب</div>
-                            </div>
-                            <h2 class="text-2xl font-black text-white leading-tight mb-2">{{ selectedEmployee.name }}</h2>
-                            <div class="inline-flex items-center gap-2 bg-black/20 backdrop-blur-md px-4 py-1.5 text-white text-xs font-bold rounded-xl border border-white/10"><i data-lucide="briefcase" class="w-4 h-4"></i><span class="truncate max-w-[250px]">{{ selectedEmployee.jobTitle }}</span></div>
-                        </div>
-                        
-                        <div v-if="selectedEmployee && (selectedEmployee.phone || isAdmin)" class="flex gap-4 px-6 -mt-7 relative z-20 mb-6">
-                            <a v-if="selectedEmployee.phone" :href="'tel:' + selectedEmployee.phone" class="flex-1 bg-white dark:bg-slate-800 rounded-[20px] shadow-lg shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-slate-700 p-4 flex flex-col items-center justify-center gap-2 hover:bg-gray-50 active:scale-95 transition-all"><div class="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center"><i data-lucide="phone" class="w-5 h-5"></i></div><span class="text-xs font-bold text-gray-800 dark:text-gray-200">اتصال مباشر</span></a>
-                            <a v-if="selectedEmployee.phone" :href="'https://wa.me/' + cleanPhone(selectedEmployee.phone)" target="_blank" class="flex-1 bg-white dark:bg-slate-800 rounded-[20px] shadow-lg shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-slate-700 p-4 flex flex-col items-center justify-center gap-2 hover:bg-gray-50 active:scale-95 transition-all"><div class="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center"><i data-lucide="message-circle" class="w-5 h-5"></i></div><span class="text-xs font-bold text-gray-800 dark:text-gray-200">مراسلة واتساب</span></a>
-                        </div>
-                        
-                        <div class="px-6 mb-6" v-if="selectedEmployee">
-                            <div class="grid grid-cols-2 gap-3">
-                                <div v-if="selectedEmployee.status === 'sick'" class="col-span-2 bg-rose-50/80 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-[20px] p-5 flex items-center justify-between shadow-sm"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-white dark:bg-rose-900 text-rose-500 flex items-center justify-center shadow-sm"><i data-lucide="activity" class="w-5 h-5"></i></div><span class="text-sm font-bold text-rose-800 dark:text-rose-300">حالة التواجد</span></div><span class="text-xs font-black text-rose-600 bg-white dark:bg-rose-900/50 px-3 py-1.5 rounded-lg shadow-sm">إجازة مرضية</span></div>
-                                <div v-if="selectedEmployee.status === 'training'" class="col-span-2 bg-amber-50/80 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-[20px] p-5 flex items-center justify-between shadow-sm"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-white dark:bg-amber-900 text-amber-500 flex items-center justify-center shadow-sm"><i data-lucide="award" class="w-5 h-5"></i></div><span class="text-sm font-bold text-amber-800 dark:text-amber-300">حالة التواجد</span></div><span class="text-xs font-black text-amber-600 bg-white dark:bg-amber-900/50 px-3 py-1.5 rounded-lg shadow-sm">تحت التدريب</span></div>
-                                
-                                <div v-if="selectedEmployee.code" class="glass-panel rounded-[20px] p-4 flex flex-col justify-center"><span class="text-[11px] text-gray-500 font-bold uppercase mb-2 flex items-center gap-1.5"><i data-lucide="hash" class="w-3.5 h-3.5"></i> الكود الوظيفي</span><span class="text-lg font-black text-gray-900 dark:text-white">{{ selectedEmployee.code }}</span></div>
-                                <div v-if="selectedEmployee.phone" class="glass-panel rounded-[20px] p-4 flex flex-col justify-center"><span class="text-[11px] text-gray-500 font-bold uppercase mb-2 flex items-center gap-1.5"><i data-lucide="smartphone" class="w-3.5 h-3.5"></i> رقم الهاتف</span><span class="text-[15px] font-black text-blue-600 dark:text-blue-400 tracking-wider" dir="ltr">{{ selectedEmployee.phone }}</span></div>
-                                <div :class="(selectedEmployee.code && selectedEmployee.phone) ? 'col-span-2' : (selectedEmployee.code || selectedEmployee.phone ? 'col-span-1' : 'col-span-2')" class="glass-panel rounded-[20px] p-4 flex flex-col justify-center"><span class="text-[11px] text-gray-500 font-bold uppercase mb-2 flex items-center gap-1.5"><i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> القسم المعين</span><span class="text-[15px] font-bold text-gray-900 dark:text-white">{{ getDeptName(selectedEmployee) }}</span></div>
-                            </div>
-                        </div>
+                <div v-show="modal === 'details' && selectedEmployee">
+                    <div v-if="selectedEmployee" :class="selectedEmployee.status === 'sick' ? 'emp-sick-bg' : 'emp-header-bg'" class="relative rounded-b-[40px] pt-12 pb-12 px-6 text-center shadow-lg"><div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div><div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl -ml-5 -mb-5 pointer-events-none"></div><div class="relative inline-block mb-3"><div class="w-20 h-20 bg-white dark:bg-slate-800 rounded-[22px] flex items-center justify-center text-3xl font-black shadow-2xl border-4 border-white/20 dark:border-white/10 relative z-10" :class="selectedEmployee.status === 'sick' ? 'text-rose-600 dark:text-rose-400' : 'text-blue-600 dark:text-blue-400'">{{ selectedEmployee.department === 'management' ? '💼' : selectedEmployee.shift }}</div><div v-if="selectedEmployee.status === 'sick'" class="absolute -bottom-2 -right-2 bg-rose-500 text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold shadow-md border-2 border-white z-20">مرضي</div></div><h2 class="text-[20px] font-black text-white leading-tight mb-1">{{ selectedEmployee.name }}</h2><div class="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-3 py-1 text-white text-[11px] font-bold rounded-xl border border-white/20"><i data-lucide="briefcase" class="w-3.5 h-3.5"></i><span class="truncate max-w-[200px]">{{ selectedEmployee.jobTitle }}</span></div></div>
+                    <div v-if="selectedEmployee && (selectedEmployee.phone || isAdmin)" class="flex gap-3 px-6 -mt-6 relative z-20 mb-6"><a v-if="selectedEmployee.phone" :href="'tel:' + selectedEmployee.phone" class="flex-1 bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-700 p-3.5 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors active:scale-95"><div class="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center"><i data-lucide="phone" class="w-4 h-4"></i></div><span class="text-xs font-bold text-gray-800 dark:text-gray-200">اتصال هاتف</span></a><a v-if="selectedEmployee.phone" :href="'https://wa.me/' + cleanPhone(selectedEmployee.phone)" target="_blank" class="flex-1 bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-700 p-3.5 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors active:scale-95"><div class="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center"><i data-lucide="message-circle" class="w-4 h-4"></i></div><span class="text-xs font-bold text-gray-800 dark:text-gray-200">واتساب</span></a></div>
+                    <div class="px-5 mb-6" v-if="selectedEmployee"><div class="grid grid-cols-2 gap-3"><div v-if="selectedEmployee.status === 'sick'" class="col-span-2 bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-800 rounded-2xl p-4 flex items-center justify-between shadow-sm"><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full bg-white dark:bg-rose-900 text-rose-500 dark:text-rose-300 flex items-center justify-center"><i data-lucide="activity" class="w-4 h-4"></i></div><span class="text-xs font-bold text-rose-800 dark:text-rose-300">حالة التواجد</span></div><span class="text-xs font-black text-rose-600 dark:text-rose-400 bg-white dark:bg-rose-900/50 px-2 py-1 rounded-md">إجازة مرضية</span></div><div v-if="selectedEmployee.code" class="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl p-4 shadow-sm flex flex-col justify-center"><span class="text-[10px] text-gray-400 font-bold uppercase mb-1 flex items-center gap-1"><i data-lucide="hash" class="w-3 h-3"></i> الكود الوظيفي</span><span class="text-base font-black text-blue-700 dark:text-blue-400">{{ selectedEmployee.code }}</span></div><div v-if="selectedEmployee.phone" class="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl p-4 shadow-sm flex flex-col justify-center"><span class="text-[10px] text-gray-400 font-bold uppercase mb-1 flex items-center gap-1"><i data-lucide="smartphone" class="w-3 h-3"></i> رقم الهاتف</span><span class="text-sm font-black text-gray-900 dark:text-white tracking-wide" dir="ltr">{{ selectedEmployee.phone }}</span></div><div :class="(selectedEmployee.code && selectedEmployee.phone) ? 'col-span-2' : (selectedEmployee.code || selectedEmployee.phone ? 'col-span-1' : 'col-span-2')" class="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl p-4 shadow-sm flex flex-col justify-center"><span class="text-[10px] text-gray-400 font-bold uppercase mb-1 flex items-center gap-1"><i data-lucide="layout-grid" class="w-3 h-3"></i> القسم المعين</span><span class="text-sm font-bold text-gray-900 dark:text-white">{{ getDeptName(selectedEmployee) }}</span></div></div></div>
+                    <div v-if="isAdmin && selectedEmployee" class="px-5 pt-2 border-t border-gray-200/50 dark:border-slate-700 flex gap-3"><button @click="deleteEmployee(selectedEmployee.uid)" class="flex-[1] bg-white dark:bg-slate-800 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 rounded-2xl py-3.5 text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95"><i data-lucide="archive" class="w-4 h-4"></i> مسح</button><button @click="openModal('form', selectedEmployee.uid)" class="flex-[2] bg-gray-900 dark:bg-blue-600 text-white rounded-2xl py-3.5 text-xs font-bold flex items-center justify-center gap-1.5 shadow-md active:scale-95"><i data-lucide="edit-3" class="w-4 h-4"></i> تعديل البيانات</button></div>
+                </div>
 
-                        <div v-if="isAdmin && selectedEmployee" class="px-6 pt-2 pb-4 flex gap-3">
-                            <button @click="deleteEmployee(selectedEmployee.uid)" class="flex-[1] bg-white dark:bg-slate-800 border-2 border-rose-100 dark:border-rose-900/50 text-rose-500 rounded-[18px] py-4 text-sm font-bold flex items-center justify-center gap-2 active:scale-95 transition-all"><i data-lucide="archive" class="w-5 h-5"></i> مسح</button>
-                            <button @click="openModal('form', selectedEmployee.uid)" class="flex-[2] bg-gray-900 dark:bg-blue-600 text-white rounded-[18px] py-4 text-sm font-bold flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all"><i data-lucide="edit-3" class="w-5 h-5"></i> تعديل البيانات</button>
-                        </div>
-                    </div>
-                </transition>
-
-                <transition name="page-fade" mode="out-in">
-                    <div v-show="modal === 'substitutes' && selectedEmployee" :key="'substitutes'">
-                        <div v-if="selectedEmployee" class="bg-gradient-to-br from-indigo-600 to-purple-600 relative rounded-b-[40px] pt-14 pb-14 px-6 text-center shadow-xl mb-6"><div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div><div class="relative inline-block mb-4 z-10"><div class="w-24 h-24 bg-white/20 backdrop-blur-md rounded-[28px] flex items-center justify-center text-white shadow-2xl border border-white/30"><i data-lucide="users" class="w-12 h-12"></i></div></div><h2 class="relative z-10 text-2xl font-black text-white leading-tight mb-2">طاقم البدلاء المتاحين</h2><div class="relative z-10 inline-flex items-center gap-2 bg-black/20 backdrop-blur-md px-4 py-1.5 text-white text-xs font-bold rounded-xl border border-white/10"><i data-lucide="briefcase" class="w-4 h-4"></i><span class="truncate max-w-[250px]">{{ selectedEmployee.jobTitle }}</span></div></div>
-                        <div v-if="availableSubstitutes.length === 0" class="py-10 flex flex-col items-center justify-center text-center px-6"><div class="w-20 h-20 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 shadow-inner"><i data-lucide="user-x" class="w-10 h-10 text-gray-300 dark:text-gray-600"></i></div><h4 class="text-base font-bold text-gray-500 dark:text-gray-400 mb-2">عفواً، لا يوجد بدلاء مسجلين</h4><p class="text-xs text-gray-400">تأكد من وجود موظفين نشطين بنفس المسمى الوظيفي</p></div>
-                        <div class="space-y-4 px-6 mb-6"><div v-for="sub in availableSubstitutes" :key="sub.uid" :class="{'border-rose-200 dark:border-rose-900/50': sub.status === 'sick', 'border-amber-200 dark:border-amber-900/50': sub.status === 'training', 'border-gray-100 dark:border-slate-700 hover:border-blue-200': sub.status === 'active' || !sub.status}" class="glass-panel p-4 rounded-[24px] shadow-sm flex flex-col gap-4 transition-colors">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-4">
-                                    <div :class="{'bg-rose-100 dark:bg-rose-900/30 text-rose-600': sub.status === 'sick', 'bg-amber-100 dark:bg-amber-900/30 text-amber-600': sub.status === 'training', 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400': sub.status === 'active' || !sub.status}" class="w-12 h-12 rounded-[16px] flex items-center justify-center font-bold text-lg shadow-inner">{{ sub.shift === 'office' ? '💼' : sub.shift }}</div>
-                                    <div>
-                                        <h4 :class="{'text-rose-700 dark:text-rose-400': sub.status === 'sick', 'text-amber-700 dark:text-amber-400': sub.status === 'training', 'text-gray-900 dark:text-white': sub.status === 'active' || !sub.status}" class="text-[15px] font-bold">{{ sub.name }}</h4>
-                                        <p class="text-[11px] text-gray-500 font-medium mt-1 flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i> {{ getDeptName(sub) }}</p>
-                                    </div>
-                                </div>
-                                <div class="badge-status" :class="{'badge-inactive': sub.status === 'sick', 'badge-active': sub.status === 'active' || !sub.status}" :style="sub.status === 'training' ? 'background-color: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.2);' : ''">
-                                    <span :class="{'bg-rose-500': sub.status === 'sick', 'bg-amber-500': sub.status === 'training', 'bg-emerald-500': sub.status === 'active' || !sub.status}" class="w-1.5 h-1.5 rounded-full"></span>
-                                    <span :class="{'text-rose-700 dark:text-rose-400': sub.status === 'sick', 'text-amber-700 dark:text-amber-400': sub.status === 'training', 'text-emerald-700 dark:text-emerald-400': sub.status === 'active' || !sub.status}" class="text-[10px] font-bold">{{ sub.status === 'sick' ? 'مرضي' : (sub.status === 'training' ? 'متدرب' : 'متاح') }}</span>
-                                </div>
-                            </div>
-                            <div v-if="sub.phone" class="flex gap-3 pt-3 border-t border-gray-100/50 dark:border-slate-700/50"><a :href="'tel:' + sub.phone" class="flex-1 bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-gray-300 py-2.5 rounded-[12px] flex items-center justify-center gap-2 text-xs font-bold hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"><i data-lucide="phone" class="w-4 h-4"></i> اتصال</a><a :href="'https://wa.me/' + cleanPhone(sub.phone)" target="_blank" class="flex-1 bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-gray-300 py-2.5 rounded-[12px] flex items-center justify-center gap-2 text-xs font-bold hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"><i data-lucide="message-circle" class="w-4 h-4"></i> واتساب</a></div>
-                        </div></div>
-                    </div>
-                </transition>
+                <div v-show="modal === 'substitutes' && selectedEmployee">
+                    <div v-if="selectedEmployee" class="substitutes-header-bg relative rounded-b-[40px] pt-12 pb-12 px-6 text-center shadow-lg mb-6"><div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div><div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl -ml-5 -mb-5 pointer-events-none"></div><div class="relative inline-block mb-3 z-10"><div class="w-20 h-20 bg-white dark:bg-slate-800 rounded-[22px] flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-2xl border-4 border-white/20 dark:border-white/10"><i data-lucide="users" class="w-10 h-10"></i></div></div><h2 class="relative z-10 text-[20px] font-black text-white leading-tight mb-2">طاقم البدلاء المتاحين</h2><div class="relative z-10 inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-4 py-1.5 text-white text-[11px] font-bold rounded-xl border border-white/20"><i data-lucide="briefcase" class="w-3.5 h-3.5"></i><span class="truncate max-w-[200px]">{{ selectedEmployee.jobTitle }}</span></div></div>
+                    <div v-if="availableSubstitutes.length === 0" class="py-6 flex flex-col items-center justify-center text-center px-6"><div class="w-16 h-16 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3"><i data-lucide="user-x" class="w-8 h-8 text-gray-300 dark:text-gray-600"></i></div><h4 class="text-sm font-bold text-gray-500 dark:text-gray-400 mb-1">عفواً، لا يوجد بدلاء مسجلين</h4></div>
+                    <div class="space-y-3 px-5 mb-6"><div v-for="sub in availableSubstitutes" :key="sub.uid" :class="sub.status === 'sick' ? 'border-rose-100 dark:border-rose-900/50' : 'border-gray-100 dark:border-slate-700'" class="bg-white dark:bg-slate-800 p-3.5 rounded-[16px] border shadow-sm flex flex-col gap-3"><div class="flex items-center justify-between"><div class="flex items-center gap-3"><div :class="sub.status === 'sick' ? 'bg-rose-50 dark:bg-rose-900/30 text-rose-500 dark:text-rose-400' : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'" class="w-10 h-10 rounded-[12px] flex items-center justify-center font-bold text-sm">{{ sub.shift === 'office' ? '💼' : sub.shift }}</div><div><h4 :class="sub.status === 'sick' ? 'text-rose-700 dark:text-rose-400' : 'text-gray-900 dark:text-white'" class="text-[13px] font-bold">{{ sub.name }}</h4><p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5"><i data-lucide="map-pin" class="w-3 h-3 inline"></i> {{ getDeptName(sub) }}</p></div></div><div :class="sub.status === 'sick' ? 'badge-inactive' : 'badge-active'" class="badge-status"><span :class="sub.status === 'sick' ? 'bg-rose-500' : 'bg-emerald-500'" class="w-1.5 h-1.5 rounded-full"></span><span :class="sub.status === 'sick' ? 'text-rose-700 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'" class="text-[9px] font-bold">{{ sub.status === 'sick' ? 'مرضي' : 'متاح' }}</span></div></div><div v-if="sub.phone" class="flex gap-2 pt-2 border-t border-gray-50 dark:border-slate-700"><a :href="'tel:' + sub.phone" class="flex-1 bg-gray-50 dark:bg-slate-700 text-gray-600 dark:text-gray-300 py-2 rounded-[10px] flex items-center justify-center gap-2 text-[11px] font-bold"><i data-lucide="phone" class="w-3.5 h-3.5"></i> اتصال</a><a :href="'https://wa.me/' + cleanPhone(sub.phone)" target="_blank" class="flex-1 bg-gray-50 dark:bg-slate-700 text-gray-600 dark:text-gray-300 py-2 rounded-[10px] flex items-center justify-center gap-2 text-[11px] font-bold"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i> واتساب</a></div></div></div>
+                </div>
             </div>
         </div>
 

@@ -18,15 +18,7 @@ const Hierarchy = [
     "فني درفلة المرحلة الإبتدائية", "فني درفلة المرحلة النهائية", "فني مراقبة سرير التبريد" 
 ];
 
-function debounce(func, timeout = 300){
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => { func.apply(this, args); }, timeout);
-  };
-}
-
-const { createApp, ref, reactive, computed, onMounted, onUpdated, nextTick, watch } = Vue;
+const { createApp, ref, reactive, computed, onMounted, onUpdated, nextTick } = Vue;
 
 const app = createApp({
     setup() {
@@ -42,28 +34,15 @@ const app = createApp({
 
         const view = ref('home');
         const shift = ref(null);
-        const searchQuery = ref('');
         const query = ref('');
         const modal = ref(null);
         const selectedUid = ref(null);
         const showRolling = ref(false);
 
-        watch(searchQuery, debounce((newVal) => {
-            query.value = newVal;
-        }, 300));
-
         const employees = ref([]);
         const customContacts = ref([]);
         const announcementsList = ref([]);
-
-        const annForm = reactive({
-            type: 'alert',
-            fromDate: '', toDate: '',
-            jobTitle: '', employeeUid: '',
-            coverType: '', substituteUid: '',
-            text: '',
-            scheduleData: [] 
-        });
+        const newAnnouncement = ref('');
 
         const form = reactive({ uid: '', jobTitle: '', newJob: '', nameSelect: '', newName: '', code: '', phone: '', status: 'active', department: '', line: '1', shift: 'A' });
 
@@ -87,7 +66,7 @@ const app = createApp({
             else { 
                 document.documentElement.classList.remove('dark'); 
                 localStorage.setItem('theme', 'light'); 
-                if(themeMeta) themeMeta.setAttribute('content', '#f8fafc');
+                if(themeMeta) themeMeta.setAttribute('content', '#3B82F6');
             }
             updateIcons();
         };
@@ -96,7 +75,9 @@ const app = createApp({
             headerClickCount.value++;
             clearTimeout(headerClickTimer);
             
-            headerClickTimer = setTimeout(() => { headerClickCount.value = 0; }, 1500);
+            headerClickTimer = setTimeout(() => {
+                headerClickCount.value = 0;
+            }, 1500);
 
             if (headerClickCount.value >= 5) {
                 headerClickCount.value = 0;
@@ -114,7 +95,8 @@ const app = createApp({
                 isAdmin.value = true;
                 closeModal();
                 showToast("تم تفعيل صلاحيات الإدارة بنجاح 🔓", "success");
-                loginData.username = ''; loginData.password = '';
+                loginData.username = ''; 
+                loginData.password = '';
             } else {
                 showToast("بيانات الدخول غير صحيحة ❌", "error");
             }
@@ -134,6 +116,7 @@ const app = createApp({
             return "قسم الإنتاج"; 
         });
 
+        // قائمة العرض تفلتر الموظفين بناءً على أماكنهم، الموظف (غير المعين) لن يظهر هنا
         const filteredEmployees = computed(() => {
             let filtered = employees.value.filter(e => {
                 if (view.value === 'management') return e.department === 'management';
@@ -149,16 +132,15 @@ const app = createApp({
             return employees.value.filter(e => (e.name && e.name.toLowerCase().includes(q)) || (e.code && e.code.toString().includes(q)));
         });
 
-        const activeCount = computed(() => filteredEmployees.value.filter(e => e.status !== 'sick' && e.status !== 'training').length);
-        const trainingCount = computed(() => filteredEmployees.value.filter(e => e.status === 'training').length);
+        const activeCount = computed(() => filteredEmployees.value.filter(e => e.status !== 'sick').length);
         const sickCount = computed(() => filteredEmployees.value.filter(e => e.status === 'sick').length);
         
+        // إحصائيات الموظفين النشطين في الشركة (نستبعد غير المعينين من إجمالي القوة العاملة)
         const activeCompanyEmployees = computed(() => employees.value.filter(e => e.department !== 'unassigned'));
         const sickEmployeesCount = computed(() => activeCompanyEmployees.value.filter(e => e.status === 'sick').length);
         
         const deptTotalCount = computed(() => employees.value.filter(e => (view.value === 'prep' && e.department === 'prep') || (view.value.startsWith('line') && e.line === view.value.replace('line', ''))).length);
-        const deptActiveCount = computed(() => employees.value.filter(e => e.status !== 'sick' && e.status !== 'training' && ((view.value === 'prep' && e.department === 'prep') || (view.value.startsWith('line') && e.line === view.value.replace('line', '')))).length);
-        const deptTrainingCount = computed(() => employees.value.filter(e => e.status === 'training' && ((view.value === 'prep' && e.department === 'prep') || (view.value.startsWith('line') && e.line === view.value.replace('line', '')))).length);
+        const deptActiveCount = computed(() => employees.value.filter(e => e.status !== 'sick' && ((view.value === 'prep' && e.department === 'prep') || (view.value.startsWith('line') && e.line === view.value.replace('line', '')))).length);
         const deptSickCount = computed(() => employees.value.filter(e => e.status === 'sick' && ((view.value === 'prep' && e.department === 'prep') || (view.value.startsWith('line') && e.line === view.value.replace('line', '')))).length);
 
         const latestAnnouncement = computed(() => announcementsList.value.length > 0 ? announcementsList.value[0] : null);
@@ -188,223 +170,18 @@ const app = createApp({
 
         const availableSubstitutes = computed(() => {
             if(!selectedEmployee.value) return []; 
-            let raw = employees.value.filter(x => 
-                x.jobTitle === selectedEmployee.value.jobTitle && 
-                x.uid !== selectedUid.value && 
-                x.department !== 'unassigned' &&
-                x.status !== 'sick' &&
-                x.status !== 'training'
-            ); 
+            // إظهار البدلاء من الموظفين المعينين فقط
+            let raw = employees.value.filter(x => x.jobTitle === selectedEmployee.value.jobTitle && x.uid !== selectedUid.value && x.department !== 'unassigned'); 
             raw.sort((a, b) => (b.line === selectedEmployee.value.line ? 1 : 0) - (a.line === selectedEmployee.value.line ? 1 : 0)); 
             const unique = []; const seen = new Set(); 
             for (const sub of raw) { if (!seen.has(sub.name)) { seen.add(sub.name); unique.push(sub); } } 
             return unique;
         });
 
-        const getTitlePrefix = (jobTitle) => {
-            if (!jobTitle) return "السيد";
-            if (jobTitle.includes("مشغل")) return "المشغل";
-            if (jobTitle.includes("فني")) return "الفني";
-            if (jobTitle.includes("ملاحظ")) return "الملاحظ";
-            if (jobTitle.includes("مهندس")) return "المهندس";
-            if (jobTitle.includes("مدير")) return "المدير";
-            return "السيد";
-        };
-
-        const annAvailableJobs = computed(() => {
-            const validEmps = employees.value.filter(e => e.department !== 'unassigned' && e.jobTitle);
-            return [...new Set(validEmps.map(e => e.jobTitle))].sort();
-        });
-
-        const annAvailableEmployees = computed(() => {
-            if (!annForm.jobTitle) return [];
-            return employees.value.filter(e => e.jobTitle === annForm.jobTitle && e.department !== 'unassigned').sort((a, b) => a.name.localeCompare(b.name, 'ar'));
-        });
-
-        const annAvailableSubstitutes = computed(() => {
-            if (!annForm.employeeUid) return [];
-            const targetEmp = employees.value.find(e => e.uid === annForm.employeeUid);
-            if (!targetEmp) return [];
-            return employees.value.filter(e => 
-                e.jobTitle === targetEmp.jobTitle && 
-                e.department === targetEmp.department && 
-                e.line === targetEmp.line && 
-                e.uid !== targetEmp.uid &&
-                e.status !== 'sick' && 
-                e.status !== 'training'
-            );
-        });
-
-        const resetAnnFormSteps = (level) => {
-            if(level <= 1) { annForm.fromDate = ''; annForm.toDate = ''; }
-            if(level <= 2) { annForm.jobTitle = ''; }
-            if(level <= 3) { annForm.employeeUid = ''; }
-            if(level <= 4) { annForm.coverType = ''; annForm.substituteUid = ''; }
-            if(level <= 5) { annForm.text = ''; annForm.scheduleData = []; }
-        };
-
-        const generateSingleCoverText = () => {
-            annForm.scheduleData = []; 
-            if(!annForm.substituteUid || !annForm.employeeUid) return;
-            const emp = employees.value.find(e => e.uid === annForm.employeeUid);
-            const sub = employees.value.find(e => e.uid === annForm.substituteUid);
-            const typeName = annForm.type === 'sick' ? 'إجازة مرضية 💊' : (annForm.type === 'summer' ? 'إجازة مصيف 🏖️' : 'إجازة عمرة 🕋');
-            
-            const prefixEmp = getTitlePrefix(emp.jobTitle);
-            const prefixSub = getTitlePrefix(sub.jobTitle);
-
-            annForm.text = `📌 تنبيه ${typeName}\n\n` +
-                           `${prefixEmp} / ${emp.name} (${emp.jobTitle})\n` +
-                           `في إجازة من تاريخ: ${annForm.fromDate} إلى تاريخ: ${annForm.toDate}.\n\n` +
-                           `🔄 سيقوم بتغطية العمل الخاص به:\n${prefixSub} / ${sub.name}`;
-        };
-
-        const generateAutoSchedule = () => {
-            setTimeout(() => {
-                try {
-                    if(!annForm.employeeUid || !annForm.fromDate || !annForm.toDate) {
-                        showToast("الرجاء تحديد التواريخ والموظف أولاً", "error");
-                        annForm.coverType = ''; return;
-                    }
-
-                    const absentEmp = employees.value.find(e => e.uid === annForm.employeeUid);
-                    if(!absentEmp) return;
-
-                    const subs = annAvailableSubstitutes.value;
-                    if(subs.length === 0) {
-                        showToast("لا يوجد بدلاء متاحين (غير مرضي/متدرب) لهذه الوظيفة لعمل جدول!", "error");
-                        annForm.coverType = ''; return;
-                    }
-
-                    const prefixEmp = getTitlePrefix(absentEmp.jobTitle);
-                    const typeName = annForm.type === 'sick' ? 'إجازة مرضية 💊' : (annForm.type === 'summer' ? 'إجازة مصيف 🏖️' : 'إجازة عمرة 🕋');
-                    annForm.text = `📌 تنبيه ${typeName}\n\n${prefixEmp} / ${absentEmp.name} (${absentEmp.jobTitle})\nفي إجازة من تاريخ: ${annForm.fromDate} إلى تاريخ: ${annForm.toDate}.\n\n📅 جدول تغطية العمل (مرفق أسفل التنبيه):`;
-                    
-                    const start = new Date(annForm.fromDate);
-                    const end = new Date(annForm.toDate);
-                    
-                    let subIndex = 0; 
-                    let lastAssignedSubUid = null;
-                    let scheduleRows = [];
-                    
-                    let normalWorkers = employees.value.filter(e => 
-                        e.jobTitle === absentEmp.jobTitle && 
-                        e.department === absentEmp.department && 
-                        e.line === absentEmp.line &&
-                        e.status !== 'sick' &&
-                        e.status !== 'training'
-                    );
-
-                    const shiftMap = { 'morning': 1, 'noon': 2, 'evening': 3 };
-
-                    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                        let currentDate = new Date(d);
-                        let targetStatus = getGroupStatus(absentEmp.shift, currentDate); 
-                        
-                        if (targetStatus.type.includes('rest')) {
-                            lastAssignedSubUid = null; 
-                            continue; 
-                        }
-                        
-                        let targetShiftNum = shiftMap[targetStatus.type]; 
-                        let dateStr = currentDate.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'numeric', day: 'numeric' });
-                        
-                        let dailyAssignments = { morning: null, noon: null, evening: null };
-                        ['A', 'B', 'C', 'D'].forEach(g => {
-                            let stat = getGroupStatus(g, currentDate).type;
-                            if (stat === 'morning') dailyAssignments.morning = g;
-                            if (stat === 'noon') dailyAssignments.noon = g;
-                            if (stat === 'evening') dailyAssignments.evening = g;
-                        });
-
-                        let assignedSub = null;
-                        
-                        for (let i = 0; i < subs.length; i++) {
-                            let currentSub = subs[(subIndex + i) % subs.length];
-                            if (currentSub.uid === lastAssignedSubUid) continue;
-
-                            let subStatus = getGroupStatus(currentSub.shift, currentDate);
-                            
-                            if (!subStatus.type.includes('rest')) {
-                                let subShiftNum = shiftMap[subStatus.type];
-                                if (Math.abs(targetShiftNum - subShiftNum) === 1) {
-                                    assignedSub = currentSub;
-                                    subIndex = (subIndex + i + 1) % subs.length; 
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (assignedSub) { lastAssignedSubUid = assignedSub.uid; } else { lastAssignedSubUid = null; }
-
-                        let rowData = { date: dateStr, morning: '—', noon: '—', evening: '—', subName: assignedSub ? assignedSub.name : null };
-
-                        const fillCell = (shiftPeriod) => { 
-                            let groupInThisShift = dailyAssignments[shiftPeriod];
-                            if(!groupInThisShift) return '—';
-                            
-                            if(groupInThisShift === absentEmp.shift) {
-                                return assignedSub ? assignedSub.name : 'بدون تغطية';
-                            } else {
-                                let worker = normalWorkers.find(w => w.shift === groupInThisShift);
-                                return worker ? worker.name : '—';
-                            }
-                        };
-
-                        rowData.morning = fillCell('morning');
-                        rowData.noon = fillCell('noon');
-                        rowData.evening = fillCell('evening');
-
-                        scheduleRows.push(rowData);
-                    }
-
-                    annForm.scheduleData = scheduleRows;
-                    nextTick(() => { updateIcons(); });
-                    
-                    if(scheduleRows.length === 0) {
-                        showToast("جميع أيام الإجازة المحددة هي أيام راحة فعلية للموظف! لا يوجد جدول.", "info");
-                    } else {
-                        showToast("تم توليد الجدول بنجاح (بدون تكرار لأيام متتالية)", "success");
-                    }
-
-                } catch (err) {
-                    console.error("خطأ في توليد الجدول:", err);
-                    showToast("حدث خطأ تقني أثناء التوليد، تأكد من صحة بيانات الموظف", "error");
-                }
-            }, 50);
-        };
-
-        const publishAnnouncement = () => {
-            const finalTxt = annForm.text.trim();
-            if(!finalTxt) return showToast("لا يمكن نشر إعلان فارغ!", "error");
-            
-            const ann = { 
-                id: "ANN-" + Date.now(), 
-                text: finalTxt, 
-                schedule: annForm.coverType === 'schedule' ? annForm.scheduleData : null,
-                date: new Date().toLocaleString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), 
-                timestamp: Date.now() 
-            };
-            
-            db.ref('announcements/' + ann.id).set(ann).then(() => { 
-                annForm.type = 'alert'; resetAnnFormSteps(1); annForm.text = ''; annForm.scheduleData = [];
-                showToast("تم نشر التنبيه بنجاح", "success"); 
-            });
-        };
-
-        const deleteAnnouncement = (id) => { if(confirm("مسح التنبيه؟")) db.ref('announcements/' + id).remove(); };
-
         const getGroupStatus = (group, date) => {
-            if (!['A', 'B', 'C', 'D'].includes(group)) {
-                return { type: date.getDay() === 5 ? 'morning-rest' : 'morning', day: 1 };
-            }
-
-            const startDate = new Date(2025, 0, 1); 
-            const diff = Math.round((date - startDate) / 86400000); 
+            const startDate = new Date(2025, 0, 1); const diff = Math.round((date - startDate) / 86400000); 
             const initialStatuses = { 'A': { type: 'evening', day: 3 }, 'B': { type: 'morning-rest', day: 1 }, 'C': { type: 'noon', day: 5 }, 'D': { type: 'morning', day: 1 } }; 
-            let { type, day } = initialStatuses[group]; 
-            const remain = diff % 20;
-            
+            let { type, day } = initialStatuses[group]; const remain = diff % 20;
             for (let i = 0; i < remain; i++) { 
                 day++; 
                 switch (type) { 
@@ -420,13 +197,13 @@ const app = createApp({
         };
 
         const pushState = () => { history.pushState({ view: view.value, shift: shift.value, query: query.value, modal: modal.value, uid: selectedUid.value }, ""); updateIcons(); };
-        const navigate = (v) => { view.value = v; shift.value = (v === 'management' ? 'office' : v === 'announcements' ? 'broadcast' : null); query.value = ''; searchQuery.value = ''; modal.value = null; pushState(); if(v === 'dashboard') setTimeout(() => initCharts(), 100); };
+        const navigate = (v) => { view.value = v; shift.value = (v === 'management' ? 'office' : v === 'announcements' ? 'broadcast' : null); query.value = ''; modal.value = null; pushState(); if(v === 'dashboard') setTimeout(() => initCharts(), 100); };
         const navigateShift = (s) => { shift.value = s; modal.value = null; pushState(); };
         const count = (dept, line = null) => employees.value.filter(e => line ? e.department === dept && e.line === line : e.department === dept).length;
         const getDeptName = (e) => e.department === 'unassigned' ? 'غير معين بوردية' : (e.department === 'management' ? 'إدارة الإنتاج' : (e.department === 'prep' ? 'ورشة التجهيزات' : (e.department === 'announcements' ? 'الإعلانات' : `خط درفلة ${e.line}`)));
         const cleanPhone = (p) => { let c = p.replace(/\D/g, ''); return c.startsWith('0') ? '20' + c.substring(1) : (c.startsWith('1') ? '20' + c : c); };
-        const getShiftCardClass = (s) => { const status = getGroupStatus(s, liveShift.value.targetDate); if(s === liveShift.value.group) return 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800/50'; if(status.type.includes('rest')) return 'bg-rose-50/50 dark:bg-rose-900/10 border-rose-200 dark:border-rose-800/50'; return ''; };
-        const getShiftIconClass = (s) => { const status = getGroupStatus(s, liveShift.value.targetDate); if(s === liveShift.value.group) return 'bg-gradient-to-br from-emerald-500 to-teal-500 shadow-emerald-500/30'; if(status.type.includes('rest')) return 'bg-gradient-to-br from-rose-500 to-red-500 shadow-rose-500/30'; return 'bg-gradient-to-br from-gray-400 to-slate-500 dark:from-slate-600 dark:to-slate-700'; };
+        const getShiftCardClass = (s) => { const status = getGroupStatus(s, liveShift.value.targetDate); if(s === liveShift.value.group) return 'from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-emerald-200 dark:border-emerald-800/50'; if(status.type.includes('rest')) return 'from-rose-50 to-red-50 dark:from-rose-900/20 dark:to-red-900/20 border-rose-200 dark:border-rose-800/50'; return 'from-gray-50 to-slate-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700'; };
+        const getShiftIconClass = (s) => { const status = getGroupStatus(s, liveShift.value.targetDate); if(s === liveShift.value.group) return 'bg-gradient-to-br from-emerald-500 to-teal-500'; if(status.type.includes('rest')) return 'bg-gradient-to-br from-rose-500 to-red-500'; return 'bg-gradient-to-br from-gray-400 to-slate-500 dark:from-slate-600 dark:to-slate-700'; };
         const getShiftTextClass = (s) => { const status = getGroupStatus(s, liveShift.value.targetDate); if(s === liveShift.value.group) return 'text-emerald-600 dark:text-emerald-400'; if(status.type.includes('rest')) return 'text-rose-600 dark:text-rose-400'; return 'text-gray-500 dark:text-gray-400'; };
         const getShiftName = (s) => { const status = getGroupStatus(s, liveShift.value.targetDate); const typeMap = { 'morning':'الوردية الأولى', 'noon':'الوردية الثانية', 'evening':'الوردية الثالثة', 'morning-rest':'راحة', 'noon-rest':'راحة', 'evening-rest':'راحة' }; return typeMap[status.type] || 'خارج الدوام'; };
 
@@ -451,14 +228,30 @@ const app = createApp({
         
         const onJobSelect = () => { if (form.jobTitle === '__NEW_JOB__') { form.nameSelect = '__NEW__'; } else { form.nameSelect = ''; form.code = ''; form.phone = ''; form.uid = ''; } };
         
+        // 🔴 تعديل ذكي: عند اختيار اسم من القائمة المنسدلة، نمسك الـ UID الخاص به لكي ننقله ولا نكرره
         const onNameSelect = () => { 
             if (form.nameSelect !== '__NEW__' && form.nameSelect !== '') { 
                 let personData = employees.value.find(i => i.name === form.nameSelect); 
                 if (!personData) { personData = customContacts.value.find(i => i.name === form.nameSelect); }
-                if (personData) { form.code = personData.code || ''; form.phone = personData.phone || ''; form.uid = personData.uid || ''; } 
-                else { form.code = ''; form.phone = ''; form.uid = ''; }
-            } else { form.code = ''; form.phone = ''; form.uid = ''; }
+                
+                if (personData) { 
+                    form.code = personData.code || ''; 
+                    form.phone = personData.phone || ''; 
+                    form.uid = personData.uid || ''; // احتفظ بالمعرف
+                } else { 
+                    form.code = ''; form.phone = ''; form.uid = '';
+                }
+            } else { 
+                form.code = ''; form.phone = ''; form.uid = '';
+            }
         };
+
+        const publishAnnouncement = () => {
+            if(!newAnnouncement.value.trim()) return showToast("اكتب نص الإعلان أولاً", "error");
+            const ann = { id: "ANN-" + Date.now(), text: newAnnouncement.value.trim(), date: new Date().toLocaleString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), timestamp: Date.now() };
+            db.ref('announcements/' + ann.id).set(ann).then(() => { newAnnouncement.value = ''; showToast("تم نشر الإعلان للجميع", "success"); });
+        };
+        const deleteAnnouncement = (id) => { if(confirm("مسح الإعلان؟")) db.ref('announcements/' + id).remove(); };
 
         const saveEmployee = () => { 
             let finalName = form.nameSelect === '__NEW__' ? form.newName.trim() : form.nameSelect; 
@@ -466,21 +259,35 @@ const app = createApp({
             if (!finalName || !finalJob) return showToast("يرجى استكمال البيانات", "error"); 
             if (form.nameSelect === '__NEW__') { db.ref('contacts/' + finalName.replace(/[.#$[\]]/g, "")).set({ job: finalJob, name: finalName, code: form.code, phone: form.phone }); } 
             
+            // إذا كان الموظف موجوداً مسبقاً سيتم استخدام الـ UID الخاص به ونقله، وإلا سيتم إنشاء واحد جديد
             let uid = form.uid || "ID-" + Date.now(); 
             let jobIdx = Hierarchy.indexOf(finalJob); 
             let emp = { uid: uid, name: finalName, code: form.code, jobTitle: finalJob, department: form.department, line: form.department === 'rolling' ? form.line : 'none', shift: form.department === 'management' ? 'office' : (form.department === 'announcements' ? 'broadcast' : form.shift), phone: form.phone, status: form.status, sortOrder: jobIdx !== -1 ? jobIdx * 100 : 99999 }; 
             
-            db.ref('employees/' + uid).set(emp).then(() => { showToast("تم الحفظ بنجاح", "success"); closeModal(); }); 
+            db.ref('employees/' + uid).set(emp).then(() => { showToast("تم الحفظ وتعيين الموظف بنجاح", "success"); closeModal(); }); 
         };
         
-        const deleteEmployee = (uid) => { selectedUid.value = uid; modal.value = 'confirm-delete'; };
+        // 🔴 فتح نافذة التأكيد الاحترافية 🔴
+        const deleteEmployee = (uid) => { 
+            selectedUid.value = uid; 
+            modal.value = 'confirm-delete'; // إظهار النافذة الجديدة بدلاً من رسالة المتصفح
+        };
 
+        // 🔴 تنفيذ الحذف الفعلي بعد التأكيد 🔴
         const executeDelete = () => { 
             const uid = selectedUid.value;
             if (!uid) return;
-            db.ref('employees/' + uid).update({ department: 'unassigned', shift: 'none', line: 'none' }).then(() => {
-                modal.value = null; showToast("تم إخلاء طرف الموظف، وهو متاح للتعيين في مكان آخر", "success");
-            }).catch(err => { showToast("حدث خطأ أثناء الاتصال", "error"); });
+
+            db.ref('employees/' + uid).update({
+                department: 'unassigned', // جعله غير معين بأي قسم
+                shift: 'none',            // سحب الوردية
+                line: 'none'              // سحب الخط
+            }).then(() => {
+                modal.value = null; // إغلاق جميع النوافذ وإعادته للقائمة
+                showToast("تم إخلاء طرف الموظف، وهو متاح للتعيين في مكان آخر", "success");
+            }).catch(err => {
+                showToast("حدث خطأ أثناء الاتصال", "error");
+            });
         };
 
         const moveEmployee = (uid, direction) => { 
@@ -495,45 +302,23 @@ const app = createApp({
 
         const initCharts = () => {
             if(window.chartInstances) { Object.values(window.chartInstances).forEach(c => c?.destroy()); } else { window.chartInstances = {}; }
-            const textColor = isDarkMode.value ? '#f1f5f9' : '#1F2937'; 
-            const gridColor = isDarkMode.value ? 'rgba(51, 65, 85, 0.3)' : 'rgba(226, 232, 240, 0.5)';
+            const textColor = isDarkMode.value ? '#f1f5f9' : '#1F2937'; const gridColor = isDarkMode.value ? '#334155' : '#E2E8F0';
+            const activeColor = '#10B981'; const sickColor = '#F43F5E';
             
+            // في الرسوم البيانية، نستخدم فقط الموظفين المعينين في الشركة (نستبعد غير المعينين)
             const chartsData = employees.value.filter(e => e.department !== 'unassigned');
             
-            Chart.defaults.font.family = 'Tajawal';
-
-            const getGradient = (ctxId, colorStart, colorEnd) => {
-                const ctx = document.getElementById(ctxId)?.getContext('2d');
-                if(!ctx) return colorStart;
-                let grad = ctx.createLinearGradient(0, 0, 400, 0);
-                grad.addColorStop(0, colorStart);
-                grad.addColorStop(1, colorEnd);
-                return grad;
-            };
-
-            const activeColor = getGradient('rolesChart', '#10B981', '#059669'); 
-            const trainingColor = getGradient('rolesChart', '#F59E0B', '#D97706');
-            const sickColor = getGradient('rolesChart', '#F43F5E', '#E11D48');
-            
-            const active = chartsData.filter(e => e.status !== 'sick' && e.status !== 'training').length; 
-            const training = chartsData.filter(e => e.status === 'training').length; 
+            const active = chartsData.filter(e => e.status !== 'sick').length; 
             const sick = chartsData.filter(e => e.status === 'sick').length;
             
-            if(document.getElementById('statusChart')) { 
-                window.chartInstances.status = new Chart(document.getElementById('statusChart'), { 
-                    type: 'doughnut', 
-                    data: { labels: ['متواجد', 'متدرب', 'إجازة'], datasets: [{ data: [active, training, sick], backgroundColor: ['#10B981', '#F59E0B', '#F43F5E'], borderWidth: 0, hoverOffset: 4 }] }, 
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, usePointStyle: true } }, tooltip: { backgroundColor: isDarkMode.value ? '#1e293b' : '#ffffff', titleColor: textColor, bodyColor: textColor, borderColor: gridColor, borderWidth: 1, padding: 10, cornerRadius: 12, callbacks: { label: function(context) { return ' ' + context.label + ': ' + Number(context.raw).toString(); } } } }, cutout: '75%' } 
-                }); 
-            }
+            if(document.getElementById('statusChart')) { window.chartInstances.status = new Chart(document.getElementById('statusChart'), { type: 'doughnut', data: { labels: ['متواجد', 'إجازة'], datasets: [{ data: [active, sick], backgroundColor: [activeColor, sickColor], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { family: 'Tajawal' } } }, tooltip: { callbacks: { label: function(context) { return ' ' + context.label + ': ' + Number(context.raw).toString(); } } } }, cutout: '70%' } }); }
             
             let rolesSet = new Set();
             chartsData.forEach(e => { if(e.jobTitle) rolesSet.add(e.jobTitle); });
             let rolesLabels = Array.from(rolesSet);
             rolesLabels.sort((a, b) => { let idxA = Hierarchy.indexOf(a); let idxB = Hierarchy.indexOf(b); if (idxA === -1 && idxB === -1) return a.localeCompare(b, 'ar'); if (idxA === -1) return 1; if (idxB === -1) return -1; return idxA - idxB; });
 
-            let rolesActiveData = rolesLabels.map(role => chartsData.filter(e => e.jobTitle === role && e.status !== 'sick' && e.status !== 'training').length);
-            let rolesTrainingData = rolesLabels.map(role => chartsData.filter(e => e.jobTitle === role && e.status === 'training').length);
+            let rolesActiveData = rolesLabels.map(role => chartsData.filter(e => e.jobTitle === role && e.status !== 'sick').length);
             let rolesSickData = rolesLabels.map(role => chartsData.filter(e => e.jobTitle === role && e.status === 'sick').length);
             
             if(document.getElementById('rolesChart')) { 
@@ -542,21 +327,20 @@ const app = createApp({
                     data: { 
                         labels: rolesLabels, 
                         datasets: [
-                            { label: 'نشط', data: rolesActiveData, backgroundColor: activeColor, borderRadius: 6, borderSkipped: false },
-                            { label: 'متدرب', data: rolesTrainingData, backgroundColor: trainingColor, borderRadius: 6, borderSkipped: false },
-                            { label: 'مرضي', data: rolesSickData, backgroundColor: sickColor, borderRadius: 6, borderSkipped: false }
+                            { label: 'نشط', data: rolesActiveData, backgroundColor: activeColor, borderRadius: 4 },
+                            { label: 'مرضي', data: rolesSickData, backgroundColor: sickColor, borderRadius: 4 }
                         ] 
                     }, 
                     options: { 
                         indexAxis: 'y', responsive: true, maintainAspectRatio: false, 
                         interaction: { mode: 'index', intersect: false },
                         scales: { 
-                            x: { stacked: true, grid: { color: gridColor }, ticks: { color: textColor, stepSize: 1 } }, 
-                            y: { stacked: true, grid: { display: false }, ticks: { color: textColor, font: { weight: 'bold', size: 11 } } } 
+                            x: { stacked: true, grid: { color: gridColor }, ticks: { color: textColor, stepSize: 1, callback: function(val) { return Number(val).toString(); } } }, 
+                            y: { stacked: true, grid: { display: false }, ticks: { color: textColor, font: { family: 'Tajawal', weight: 'bold', size: 10 } } } 
                         }, 
                         plugins: { 
-                            legend: { display: true, position: 'top', labels: { color: textColor, usePointStyle: true } },
-                            tooltip: { backgroundColor: isDarkMode.value ? '#1e293b' : '#ffffff', titleColor: textColor, bodyColor: textColor, borderColor: gridColor, borderWidth: 1, padding: 10, cornerRadius: 12, callbacks: { label: function(context) { return ' ' + context.dataset.label + ': ' + Number(context.raw).toString(); } } }
+                            legend: { display: true, position: 'bottom', labels: { color: textColor, font: { family: 'Tajawal' } } },
+                            tooltip: { callbacks: { label: function(context) { return ' ' + context.dataset.label + ': ' + Number(context.raw).toString(); } } }
                         } 
                     } 
                 }); 
@@ -580,8 +364,7 @@ const app = createApp({
 
             let activeShifts = shiftConfigs.filter(c => chartsData.filter(c.f).length > 0);
             let shiftLabels = activeShifts.map(c => c.label);
-            let shiftActiveData = activeShifts.map(c => chartsData.filter(e => c.f(e) && e.status !== 'sick' && e.status !== 'training').length);
-            let shiftTrainingData = activeShifts.map(c => chartsData.filter(e => c.f(e) && e.status === 'training').length);
+            let shiftActiveData = activeShifts.map(c => chartsData.filter(e => c.f(e) && e.status !== 'sick').length);
             let shiftSickData = activeShifts.map(c => chartsData.filter(e => c.f(e) && e.status === 'sick').length);
 
             if(document.getElementById('shiftDistChart')) { 
@@ -590,21 +373,20 @@ const app = createApp({
                     data: { 
                         labels: shiftLabels, 
                         datasets: [
-                            { label: 'نشط', data: shiftActiveData, backgroundColor: activeColor, borderRadius: 6, borderSkipped: false },
-                            { label: 'متدرب', data: shiftTrainingData, backgroundColor: trainingColor, borderRadius: 6, borderSkipped: false },
-                            { label: 'مرضي', data: shiftSickData, backgroundColor: sickColor, borderRadius: 6, borderSkipped: false }
+                            { label: 'نشط', data: shiftActiveData, backgroundColor: activeColor, borderRadius: 4 },
+                            { label: 'مرضي', data: shiftSickData, backgroundColor: sickColor, borderRadius: 4 }
                         ] 
                     }, 
                     options: { 
                         indexAxis: 'y', responsive: true, maintainAspectRatio: false, 
                         interaction: { mode: 'index', intersect: false },
                         scales: { 
-                            x: { stacked: true, grid: { color: gridColor }, ticks: { color: textColor, stepSize: 1 } }, 
-                            y: { stacked: true, grid: { display: false }, ticks: { color: textColor, font: { weight: 'bold', size: 10 } } } 
+                            x: { stacked: true, grid: { color: gridColor }, ticks: { color: textColor, stepSize: 1, callback: function(val) { return Number(val).toString(); } } }, 
+                            y: { stacked: true, grid: { display: false }, ticks: { color: textColor, font: { family: 'Tajawal', weight: 'bold', size: 10 } } } 
                         }, 
                         plugins: { 
-                            legend: { display: true, position: 'top', labels: { color: textColor, usePointStyle: true } },
-                            tooltip: { backgroundColor: isDarkMode.value ? '#1e293b' : '#ffffff', titleColor: textColor, bodyColor: textColor, borderColor: gridColor, borderWidth: 1, padding: 10, cornerRadius: 12, callbacks: { label: function(context) { return ' ' + context.dataset.label + ': ' + Number(context.raw).toString(); } } }
+                            legend: { display: true, position: 'bottom', labels: { color: textColor, font: { family: 'Tajawal' } } },
+                            tooltip: { callbacks: { label: function(context) { return ' ' + context.dataset.label + ': ' + Number(context.raw).toString(); } } }
                         } 
                     } 
                 }); 
@@ -615,40 +397,53 @@ const app = createApp({
             if(localStorage.getItem('theme') === 'dark') { isDarkMode.value = true; document.documentElement.classList.add('dark'); document.getElementById('theme-color-meta').setAttribute('content', '#0f172a'); }
             
             window.addEventListener('popstate', (e) => {
-                if (e.state) { view.value = e.state.view || 'home'; shift.value = e.state.shift || null; query.value = e.state.query || ''; searchQuery.value = e.state.query || ''; modal.value = e.state.modal || null; selectedUid.value = e.state.uid || null; if(view.value === 'home') showRolling.value = false; } 
-                else { view.value = 'home'; shift.value = null; query.value = ''; searchQuery.value = ''; modal.value = null; showRolling.value = false; }
+                if (e.state) { view.value = e.state.view || 'home'; shift.value = e.state.shift || null; query.value = e.state.query || ''; modal.value = e.state.modal || null; selectedUid.value = e.state.uid || null; if(view.value === 'home') showRolling.value = false; } 
+                else { view.value = 'home'; shift.value = null; query.value = ''; modal.value = null; showRolling.value = false; }
                 updateIcons(); if(view.value === 'dashboard') setTimeout(() => initCharts(), 100);
             });
 
             const cachedEmployees = localStorage.getItem('offline_employees');
-            if (cachedEmployees) { employees.value = JSON.parse(cachedEmployees); isLoading.value = false; }
+            if (cachedEmployees) { 
+                employees.value = JSON.parse(cachedEmployees); 
+                isLoading.value = false; 
+            }
+
             const cachedContacts = localStorage.getItem('offline_contacts');
             if (cachedContacts) { customContacts.value = JSON.parse(cachedContacts); }
+
             const cachedAnnouncements = localStorage.getItem('offline_announcements');
             if (cachedAnnouncements) { announcementsList.value = JSON.parse(cachedAnnouncements); }
 
             if (cachedEmployees && view.value === 'dashboard') { setTimeout(() => initCharts(), 100); }
 
+            // 🟢 مراقبة الاتصال بالإنترنت 🟢
             let isFirstLoad = true;
             db.ref('.info/connected').on('value', function(snap) {
                 if (snap.val() === true) {
                     if (!isFirstLoad) showToast("تمت استعادة الاتصال بالإنترنت 🟢", "success");
                     isFirstLoad = false;
                 } else {
-                    if (!isFirstLoad) { setTimeout(() => { showToast("أنت الآن في وضع عدم الاتصال (أوفلاين) 🔴", "error"); }, 1500); }
+                    if (!isFirstLoad) {
+                        setTimeout(() => { showToast("أنت الآن في وضع عدم الاتصال (أوفلاين) 🔴", "error"); }, 1500);
+                    }
                 }
             });
 
             auth.signInAnonymously().then(() => {
+                // 🟢 استرجاع الموظفين بشكله الأصلي والاعتماد على حالة "unassigned" في الفلترة
                 db.ref('employees').on('value', (s) => { 
                     const d = s.val(); 
+                    
                     employees.value = d ? Object.values(d).sort((a, b) => { 
                         if (a.department === 'management' && b.department === 'management') return (a.sortOrder || 0) - (b.sortOrder || 0); 
-                        const idxA = Hierarchy.indexOf(a.jobTitle); const idxB = Hierarchy.indexOf(b.jobTitle); 
+                        const idxA = Hierarchy.indexOf(a.jobTitle); 
+                        const idxB = Hierarchy.indexOf(b.jobTitle); 
                         if (idxA !== idxB) return idxA - idxB; 
                         return (a.sortOrder || 0) - (b.sortOrder || 0); 
                     }) : []; 
+                    
                     localStorage.setItem('offline_employees', JSON.stringify(employees.value));
+                    
                     isLoading.value = false; 
                     if(view.value === 'dashboard') setTimeout(() => initCharts(), 100); 
                 });
@@ -665,23 +460,24 @@ const app = createApp({
                     localStorage.setItem('offline_announcements', JSON.stringify(announcementsList.value));
                 });
 
-            }).catch(() => { if (!cachedEmployees) { isLoading.value = false; showToast("لا يوجد اتصال بالإنترنت", "error"); } });
+            }).catch(() => { 
+                if (!cachedEmployees) { 
+                    isLoading.value = false; 
+                    showToast("لا يوجد اتصال بالإنترنت", "error"); 
+                } 
+            });
         });
 
         onUpdated(() => { updateIcons(); });
 
         return {
             isAdmin, isDarkMode, isLoading, toasts,
-            view, shift, searchQuery, query, modal, selectedUid, showRolling, form, employees, announcementsList,
-            headerTitle, filteredEmployees, searchResults, activeCount, trainingCount, sickCount, sickEmployeesCount, 
-            deptTotalCount, deptActiveCount, deptTrainingCount, deptSickCount, latestAnnouncement, selectedEmployee, liveShift,
-            availableJobs, availableNames, availableSubstitutes, loginData, activeCompanyEmployees,
-            
-            annForm, annAvailableJobs, annAvailableEmployees, annAvailableSubstitutes,
-            resetAnnFormSteps, generateSingleCoverText, generateAutoSchedule,
-            
+            view, shift, query, modal, selectedUid, showRolling, form, employees, announcementsList,
+            headerTitle, filteredEmployees, searchResults, activeCount, sickCount, sickEmployeesCount, 
+            deptTotalCount, deptActiveCount, deptSickCount, latestAnnouncement, selectedEmployee, liveShift,
+            availableJobs, availableNames, availableSubstitutes, newAnnouncement, loginData, activeCompanyEmployees,
             sunIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>',
-            moonIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>',
+            moonIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>',
             toggleDarkMode, navigate, navigateShift, count, getDeptName, cleanPhone, getShiftCardClass, getShiftIconClass, getShiftTextClass, getShiftName,
             openModal, closeModal, openDetails, showSubstitutes, onJobSelect, onNameSelect,
             publishAnnouncement, deleteAnnouncement, saveEmployee, deleteEmployee, executeDelete, moveEmployee, handleHeaderClick, handleLogin
