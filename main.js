@@ -154,9 +154,125 @@ const app = createApp({
                 if (view.value === 'announcements') return e.department === 'announcements';
                 return e.shift === shift.value && (view.value === 'prep' ? e.department === 'prep' : e.line === view.value.replace('line', ''));
             });
-            if (view.value === 'management') filtered.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+            filtered.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
             return filtered;
         });
+
+        // ----------------- Drag & Drop System -----------------
+        const draggedItem = ref(null);
+        const dragOverItem = ref(null);
+        const dragDirection = ref('down');
+        const wasDragging = ref(false);
+        let longPressTimeout = null;
+        let startY = 0;
+
+        const handleTouchStart = (e, uid) => {
+            if (!isAdmin.value || query.value) return;
+            startY = e.touches[0].clientY;
+            wasDragging.value = false;
+            
+            longPressTimeout = setTimeout(() => {
+                draggedItem.value = uid;
+                wasDragging.value = true;
+                if (navigator.vibrate) navigator.vibrate(50);
+            }, 400); 
+        };
+
+        const handleTouchMove = (e) => {
+            if (!draggedItem.value) {
+                clearTimeout(longPressTimeout);
+                return;
+            }
+            e.preventDefault();
+            wasDragging.value = true;
+            
+            const touch = e.touches[0];
+            const currentY = touch.clientY;
+            dragDirection.value = currentY < startY ? 'up' : 'down';
+            startY = currentY;
+
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+            const targetCard = element?.closest('.employee-card');
+            
+            if (targetCard) {
+                const targetUid = targetCard.dataset.uid;
+                if (targetUid !== draggedItem.value) {
+                    dragOverItem.value = targetUid;
+                }
+            } else {
+                dragOverItem.value = null;
+            }
+        };
+
+        const handleTouchEnd = () => {
+            clearTimeout(longPressTimeout);
+            if (draggedItem.value && dragOverItem.value && draggedItem.value !== dragOverItem.value) {
+                executeReorder(draggedItem.value, dragOverItem.value);
+            }
+            setTimeout(() => { draggedItem.value = null; dragOverItem.value = null; }, 50);
+            setTimeout(() => { wasDragging.value = false; }, 300);
+        };
+
+        const handleDragStart = (e, uid) => {
+            if (!isAdmin.value || query.value) return;
+            startY = e.clientY;
+            wasDragging.value = false;
+            
+            longPressTimeout = setTimeout(() => {
+                draggedItem.value = uid;
+                wasDragging.value = true;
+            }, 250);
+        };
+
+        const handleDragMove = (e) => {
+            if (!draggedItem.value) { clearTimeout(longPressTimeout); return; }
+            e.preventDefault();
+            wasDragging.value = true;
+            
+            const currentY = e.clientY;
+            dragDirection.value = currentY < startY ? 'up' : 'down';
+            startY = currentY;
+
+            const element = document.elementFromPoint(e.clientX, e.clientY);
+            const targetCard = element?.closest('.employee-card');
+            
+            if (targetCard) {
+                const targetUid = targetCard.dataset.uid;
+                if (targetUid !== draggedItem.value) {
+                    dragOverItem.value = targetUid;
+                }
+            } else {
+                dragOverItem.value = null;
+            }
+        };
+
+        const handleDragEnd = () => {
+            clearTimeout(longPressTimeout);
+            if (draggedItem.value && dragOverItem.value && draggedItem.value !== dragOverItem.value) {
+                executeReorder(draggedItem.value, dragOverItem.value);
+            }
+            setTimeout(() => { draggedItem.value = null; dragOverItem.value = null; }, 50);
+            setTimeout(() => { wasDragging.value = false; }, 300);
+        };
+
+        const executeReorder = (draggedUid, targetUid) => {
+            let list = [...filteredEmployees.value];
+            const draggedIndex = list.findIndex(e => e.uid === draggedUid);
+            const targetIndex = list.findIndex(e => e.uid === targetUid);
+
+            if (draggedIndex === -1 || targetIndex === -1) return;
+
+            const [movedItem] = list.splice(draggedIndex, 1);
+            list.splice(targetIndex, 0, movedItem);
+
+            list.forEach((e, i) => {
+                e.sortOrder = i * 10;
+                db.ref(`employees/${e.uid}`).update({ sortOrder: e.sortOrder });
+            });
+            
+            if (navigator.vibrate) navigator.vibrate(50);
+        };
+        // ------------------------------------------------------
 
         const searchResults = computed(() => {
             let q = query.value.toLowerCase(); 
@@ -302,7 +418,6 @@ const app = createApp({
                     const prefixEmp = getTitlePrefix(absentEmp.jobTitle);
                     const typeName = annForm.type === 'sick' ? 'إجازة مرضية 💊' : (annForm.type === 'summer' ? 'إجازة مصيف 🏖️' : 'إجازة عمرة 🕋');
                     
-                    // التعديل الخاص بكلمة "اضغط لظهور الجدول" هنا
                     annForm.text = `📌 تنبيه ${typeName}\n\n${prefixEmp} / ${absentEmp.name} (${absentEmp.jobTitle})\nفي إجازة من تاريخ: ${annForm.fromDate} إلى تاريخ: ${annForm.toDate}.\n\n📅 جدول تغطية العمل (اضغط لظهور الجدول 👇):`;
                     
                     const start = new Date(annForm.fromDate);
@@ -368,7 +483,6 @@ const app = createApp({
                             lastAssignedSubUid = null;
                         }
 
-                        // تحديد الوردية التي سيغيب فيها الموظف فعلياً لتلوينها بالأحمر لاحقاً
                         let targetShiftPeriod = null;
                         if (dailyAssignments.morning === absentEmp.shift) targetShiftPeriod = 'morning';
                         else if (dailyAssignments.noon === absentEmp.shift) targetShiftPeriod = 'noon';
@@ -490,7 +604,11 @@ const app = createApp({
             pushState(); 
         };
         const closeModal = () => { if(modal.value !== null) window.history.back(); };
-        const openDetails = (uid) => openModal('details', uid);
+        
+        const openDetails = (uid) => {
+            if (wasDragging.value) return; 
+            openModal('details', uid);
+        };
         const showSubstitutes = (uid) => openModal('substitutes', uid);
         
         const onJobSelect = () => { if (form.jobTitle === '__NEW_JOB__') { form.nameSelect = '__NEW__'; } else { form.nameSelect = ''; form.code = ''; form.phone = ''; form.uid = ''; } };
@@ -525,16 +643,6 @@ const app = createApp({
             db.ref('employees/' + uid).update({ department: 'unassigned', shift: 'none', line: 'none' }).then(() => {
                 modal.value = null; showToast("تم إخلاء طرف الموظف، وهو متاح للتعيين في مكان آخر", "success");
             }).catch(err => { showToast("حدث خطأ أثناء الاتصال", "error"); });
-        };
-
-        const moveEmployee = (uid, direction) => { 
-            if (view.value !== 'management') return; 
-            let filtered = employees.value.filter(e => e.department === 'management').sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)); 
-            const idx = filtered.findIndex(e => e.uid === uid); if (idx < 0) return; 
-            const targetIdx = direction === 'up' ? idx - 1 : idx + 1; if (targetIdx < 0 || targetIdx >= filtered.length) return; 
-            filtered.forEach((e, i) => e.sortOrder = i * 10); 
-            let temp = filtered[idx].sortOrder; filtered[idx].sortOrder = filtered[targetIdx].sortOrder; filtered[targetIdx].sortOrder = temp; 
-            filtered.forEach(e => db.ref(`employees/${e.uid}`).update({ sortOrder: e.sortOrder })); 
         };
 
         const initCharts = () => {
@@ -669,9 +777,6 @@ const app = createApp({
                 db.ref('employees').on('value', (s) => { 
                     const d = s.val(); 
                     employees.value = d ? Object.values(d).sort((a, b) => { 
-                        if (a.department === 'management' && b.department === 'management') return (a.sortOrder || 0) - (b.sortOrder || 0); 
-                        const idxA = Hierarchy.indexOf(a.jobTitle); const idxB = Hierarchy.indexOf(b.jobTitle); 
-                        if (idxA !== idxB) return idxA - idxB; 
                         return (a.sortOrder || 0) - (b.sortOrder || 0); 
                     }) : []; 
                     localStorage.setItem('offline_employees', JSON.stringify(employees.value));
@@ -706,11 +811,15 @@ const app = createApp({
             annForm, annAvailableJobs, annAvailableEmployees, annAvailableSubstitutes,
             resetAnnFormSteps, generateSingleCoverText, generateAutoSchedule,
             
+            draggedItem, dragOverItem, dragDirection,
+            handleTouchStart, handleTouchMove, handleTouchEnd,
+            handleDragStart, handleDragMove, handleDragEnd,
+
             sunIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>',
             moonIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>',
             toggleDarkMode, navigate, navigateShift, count, getDeptName, cleanPhone, getShiftCardClass, getShiftIconClass, getShiftTextClass, getShiftName,
             openModal, closeModal, openDetails, showSubstitutes, onJobSelect, onNameSelect,
-            publishAnnouncement, deleteAnnouncement, saveEmployee, deleteEmployee, executeDelete, moveEmployee, handleHeaderClick, handleLogin
+            publishAnnouncement, deleteAnnouncement, saveEmployee, deleteEmployee, executeDelete, handleHeaderClick, handleLogin
         };
     }
 });

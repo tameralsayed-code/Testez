@@ -21,9 +21,9 @@
 body {
     background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
     color: #1F2937;
-    overflow: hidden; /* يمنع السكرول للشاشة بالكامل */
+    overflow: hidden; 
     height: 100vh;
-    height: 100dvh; /* توافق مثالي مع شاشات الهواتف الحديثة */
+    height: 100dvh; 
     position: relative;
     transition: background 0.3s, color 0.3s;
 }
@@ -33,7 +33,6 @@ body {
     color: #f1f5f9;
 }
 
-/* إخفاء شريط التمرير الوهمي ليكون التصميم أنظف */
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }
@@ -228,3 +227,42 @@ input[type=number] {
 .emp-header-bg { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
 .emp-sick-bg { background: linear-gradient(135deg, #881337 0%, #e11d48 100%); }
 .substitutes-header-bg { background: linear-gradient(135deg, #4f46e5 0%, #7e22ce 100%); }
+
+/* خصائص الإطارات أثناء عملية الـ Drag and Drop */
+.employee-card {
+    transition: transform 0.2s ease, opacity 0.2s ease, border 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+.employee-card.is-draggable {
+    touch-action: none; /* إيقاف التمرير أثناء السحب النشط */
+}
+
+.employee-card.dragging {
+    opacity: 0.6;
+    transform: scale(0.96);
+    border: 2px dashed #3B82F6 !important;
+    background-color: rgba(59, 130, 246, 0.05) !important;
+    box-shadow: 0 15px 35px rgba(59, 130, 246, 0.2) !important;
+    z-index: 40;
+}
+
+.dark .employee-card.dragging {
+    background-color: rgba(59, 130, 246, 0.15) !important;
+}
+
+.employee-card.drag-over-top {
+    border-top: 3px solid #3B82F6 !important;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    transform: translateY(3px);
+}
+
+.employee-card.drag-over-bottom {
+    border-bottom: 3px solid #3B82F6 !important;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    transform: translateY(-3px);
+}

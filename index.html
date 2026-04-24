@@ -255,13 +255,30 @@
                 </div>
                 <div v-if="!isLoading && filteredEmployees.length === 0" class="py-20 text-center text-gray-400 text-xs font-normal">لا توجد بيانات مسجلة</div>
                 
-                <div v-for="(e, index) in filteredEmployees" :key="e.uid" @click="openDetails(e.uid)" 
-                     :class="{'bg-rose-50 dark:bg-rose-900/10 border-rose-200 dark:border-rose-800': e.status === 'sick', 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/50': e.status === 'training', 'bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700': e.status === 'active' || !e.status}" 
-                     class="p-4 rounded-[22px] border flex items-center justify-between shadow-sm active:scale-[0.98] transition-all cursor-pointer">
+                <div v-for="(e, index) in filteredEmployees" :key="e.uid" 
+                     :data-uid="e.uid"
+                     @click="openDetails(e.uid)"
+                     @mousedown="isAdmin ? handleDragStart($event, e.uid) : null"
+                     @mousemove="isAdmin ? handleDragMove($event) : null"
+                     @mouseup="isAdmin ? handleDragEnd() : null"
+                     @mouseleave="isAdmin ? handleDragEnd() : null"
+                     @touchstart="isAdmin ? handleTouchStart($event, e.uid) : null"
+                     @touchmove="isAdmin ? handleTouchMove($event) : null"
+                     @touchend="isAdmin ? handleTouchEnd() : null"
+                     @contextmenu.prevent
+                     :class="{
+                        'bg-rose-50 dark:bg-rose-900/10 border-rose-200 dark:border-rose-800': e.status === 'sick', 
+                        'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/50': e.status === 'training', 
+                        'bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700': e.status === 'active' || !e.status,
+                        'dragging': draggedItem === e.uid,
+                        'drag-over-top': dragOverItem === e.uid && dragDirection === 'up',
+                        'drag-over-bottom': dragOverItem === e.uid && dragDirection === 'down',
+                        'is-draggable': draggedItem !== null
+                     }" 
+                     class="employee-card p-4 rounded-[22px] border flex items-center justify-between shadow-sm transition-all cursor-pointer relative overflow-hidden">
                     
-                    <div class="flex items-center gap-4 flex-1 min-w-0">
-                        <div @click.stop="e.department !== 'management' ? showSubstitutes(e.uid) : null" 
-                             :class="{'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400': e.status === 'sick', 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400': e.status === 'training', 'bg-gray-50 dark:bg-slate-700 text-gray-500 dark:text-gray-300': e.status === 'active' || !e.status, 'hover:ring-2 hover:ring-indigo-200 active:scale-90 cursor-pointer': e.department !== 'management'}" 
+                    <div class="flex items-center gap-4 flex-1 min-w-0 pointer-events-none">
+                        <div :class="{'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400': e.status === 'sick', 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400': e.status === 'training', 'bg-gray-50 dark:bg-slate-700 text-gray-500 dark:text-gray-300': e.status === 'active' || !e.status}" 
                              class="w-11 h-11 rounded-[16px] flex items-center justify-center shrink-0 border border-black/5 dark:border-white/5 transition-all shadow-sm">
                             {{ e.department === 'management' ? '💼' : e.shift }}
                         </div>
@@ -276,7 +293,10 @@
                             </p>
                         </div>
                     </div>
-                    <div v-if="isAdmin && view === 'management'" class="flex flex-col gap-1.5 mr-3 shrink-0 border-r border-gray-100 dark:border-slate-700 pr-3" @click.stop><button @click.stop="moveEmployee(e.uid, 'up')" :class="{'opacity-30 pointer-events-none': index === 0}" class="w-8 h-7 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-[8px] flex items-center justify-center text-gray-500 dark:text-gray-300 active:scale-90 transition-all shadow-sm"><i data-lucide="chevron-up" class="w-4 h-4"></i></button><button @click.stop="moveEmployee(e.uid, 'down')" :class="{'opacity-30 pointer-events-none': index === filteredEmployees.length - 1}" class="w-8 h-7 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-[8px] flex items-center justify-center text-gray-500 dark:text-gray-300 active:scale-90 transition-all shadow-sm"><i data-lucide="chevron-down" class="w-4 h-4"></i></button></div>
+                    
+                    <div v-if="isAdmin" class="flex flex-col items-center justify-center text-gray-300 dark:text-gray-600 shrink-0 pr-3 pointer-events-none">
+                        <i data-lucide="grip-vertical" class="w-5 h-5"></i>
+                    </div>
                 </div>
             </div>
 
