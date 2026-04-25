@@ -101,6 +101,11 @@ input[type=number] {
     border-color: #3B82F6;
 }
 
+.form-input:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
 .sheet-container {
     transform: translateY(100%);
     transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -219,6 +224,13 @@ input[type=number] {
     border: 1px solid transparent;
 }
 
+.badge-modern {
+    padding: 2px 12px;
+    border-radius: 99px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
 .badge-active { background-color: #ecfdf5; border-color: #d1fae5; }
 .dark .badge-active { background-color: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2); }
 .badge-inactive { background-color: #fef2f2; border-color: #fee2e2; }
@@ -228,41 +240,24 @@ input[type=number] {
 .emp-sick-bg { background: linear-gradient(135deg, #881337 0%, #e11d48 100%); }
 .substitutes-header-bg { background: linear-gradient(135deg, #4f46e5 0%, #7e22ce 100%); }
 
-/* خصائص الإطارات أثناء عملية الـ Drag and Drop */
-.employee-card {
-    transition: transform 0.2s ease, opacity 0.2s ease, border 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
+/* تأثيرات السحب والإفلات (Drag & Drop) */
+.sortable-ghost {
+    opacity: 0.4;
+    background-color: #f1f5f9;
+    border: 2px dashed #cbd5e1;
+    transform: scale(0.98);
 }
 
-.employee-card.is-draggable {
-    touch-action: none; /* إيقاف التمرير أثناء السحب النشط */
+.dark .sortable-ghost {
+    background-color: #1e293b;
+    border-color: #475569;
 }
 
-.employee-card.dragging {
-    opacity: 0.6;
-    transform: scale(0.96);
-    border: 2px dashed #3B82F6 !important;
-    background-color: rgba(59, 130, 246, 0.05) !important;
-    box-shadow: 0 15px 35px rgba(59, 130, 246, 0.2) !important;
-    z-index: 40;
-}
-
-.dark .employee-card.dragging {
-    background-color: rgba(59, 130, 246, 0.15) !important;
-}
-
-.employee-card.drag-over-top {
-    border-top: 3px solid #3B82F6 !important;
-    border-top-left-radius: 6px;
-    border-top-right-radius: 6px;
-    transform: translateY(3px);
-}
-
-.employee-card.drag-over-bottom {
-    border-bottom: 3px solid #3B82F6 !important;
-    border-bottom-left-radius: 6px;
-    border-bottom-right-radius: 6px;
-    transform: translateY(-3px);
+.sortable-drag {
+    opacity: 1 !important;
+    background-color: var(--glass-bg);
+    box-shadow: 0 25px 50px -12px rgba(59, 130, 246, 0.4) !important;
+    transform: scale(1.02) !important;
+    cursor: grabbing !important;
+    z-index: 100;
 }

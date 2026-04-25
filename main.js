@@ -9,7 +9,6 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig); 
 const db = firebase.database(); 
-const auth = firebase.auth();
 
 const Hierarchy = [ 
     "مدير الإدارة", "مدير الورشة", "مدير درفلة 1", "مدير درفلة 2", "مهندس الوردية", 
@@ -18,19 +17,18 @@ const Hierarchy = [
     "فني درفلة المرحلة الإبتدائية", "فني درفلة المرحلة النهائية", "فني مراقبة سرير التبريد" 
 ];
 
-const { createApp, ref, reactive, computed, onMounted, onUpdated, nextTick } = Vue;
+const { createApp, ref, reactive, computed, onMounted, onUpdated, nextTick, watch } = Vue;
 
 const app = createApp({
     setup() {
+        const isAuthenticated = ref(false);
+        const isCheckingLogin = ref(false);
         const isAdmin = ref(false); 
         const isDarkMode = ref(false);
         const isLoading = ref(true);
         const toasts = ref([]);
-
-        const headerClickCount = ref(0);
-        let headerClickTimer = null;
         
-        const loginData = reactive({ username: '', password: '' });
+        const loginData = reactive({ username: '', password: '', role: 'user' });
 
         const view = ref('home');
         const shift = ref(null);
@@ -38,46 +36,17 @@ const app = createApp({
         const modal = ref(null);
         const selectedUid = ref(null);
         const showRolling = ref(false);
-        
-        // متغيرات ودوال إظهار/إخفاء جدول الإعلانات
-        const expandedAnns = ref([]);
-        const toggleSchedule = (id) => {
-            if (expandedAnns.value.includes(id)) {
-                expandedAnns.value = expandedAnns.value.filter(x => x !== id);
-            } else {
-                expandedAnns.value.push(id);
-            }
-        };
+        const employeeListContainer = ref(null);
+        let sortableInstance = null;
 
         const employees = ref([]);
         const customContacts = ref([]);
         const announcementsList = ref([]);
 
         const annForm = reactive({
-            type: 'alert',
-            fromDate: '', toDate: '',
-            jobTitle: '', employeeUid: '',
-            coverType: '', substituteUid: '',
-            text: '',
-            scheduleData: [] 
+            type: 'alert', fromDate: '', toDate: '', jobTitle: '', employeeUid: '',
+            coverType: '', substituteUid: '', text: '', scheduleData: [] 
         });
-
-        // متغيرات ودوال تعديل الجدول يدوياً
-        const cellEdit = reactive({ active: false, rowIndex: -1, shiftPeriod: '', currentValue: '' });
-        
-        const openCellEdit = (index, period, currentVal) => {
-            cellEdit.rowIndex = index;
-            cellEdit.shiftPeriod = period;
-            cellEdit.currentValue = currentVal;
-            cellEdit.active = true;
-        };
-
-        const saveCellEdit = () => {
-            if (cellEdit.rowIndex > -1 && cellEdit.shiftPeriod) {
-                annForm.scheduleData[cellEdit.rowIndex][cellEdit.shiftPeriod] = cellEdit.currentValue;
-            }
-            cellEdit.active = false;
-        };
 
         const form = reactive({ uid: '', jobTitle: '', newJob: '', nameSelect: '', newName: '', code: '', phone: '', status: 'active', department: '', line: '1', shift: 'A' });
 
@@ -92,13 +61,11 @@ const app = createApp({
         const toggleDarkMode = () => {
             isDarkMode.value = !isDarkMode.value;
             const themeMeta = document.getElementById('theme-color-meta');
-            
             if (isDarkMode.value) { 
                 document.documentElement.classList.add('dark'); 
                 localStorage.setItem('theme', 'dark'); 
                 if(themeMeta) themeMeta.setAttribute('content', '#0f172a');
-            } 
-            else { 
+            } else { 
                 document.documentElement.classList.remove('dark'); 
                 localStorage.setItem('theme', 'light'); 
                 if(themeMeta) themeMeta.setAttribute('content', '#3B82F6');
@@ -106,32 +73,40 @@ const app = createApp({
             updateIcons();
         };
 
-        const handleHeaderClick = () => {
-            headerClickCount.value++;
-            clearTimeout(headerClickTimer);
-            
-            headerClickTimer = setTimeout(() => { headerClickCount.value = 0; }, 1500);
+        const handleLogin = () => {
+            isCheckingLogin.value = true;
+            db.ref(`app_auth/${loginData.role}`).once('value').then(snap => {
+                const data = snap.val();
+                isCheckingLogin.value = false;
 
-            if (headerClickCount.value >= 5) {
-                headerClickCount.value = 0;
-                if (isAdmin.value) {
-                    isAdmin.value = false;
-                    showToast("تم تسجيل الخروج من وضع الإدارة 🔒", "info");
+                if (data && data.username === loginData.username && data.password === loginData.password) {
+                    isAuthenticated.value = true;
+                    isAdmin.value = (loginData.role === 'admin');
+                    
+                    localStorage.setItem('ezz_auth_session', JSON.stringify({
+                        role: loginData.role,
+                        verified: true,
+                        timestamp: Date.now()
+                    }));
+
+                    showToast(isAdmin.value ? "تم تفعيل صلاحيات الإدارة 🔓" : "تم الدخول بنجاح 👋", "success");
+                    loginData.password = '';
+                    updateIcons();
                 } else {
-                    openModal('login');
+                    showToast("بيانات الدخول غير صحيحة ❌", "error");
                 }
-            }
+            }).catch(() => {
+                isCheckingLogin.value = false;
+                showToast("خطأ في الاتصال بقاعدة البيانات 🔴", "error");
+            });
         };
 
-        const handleLogin = () => {
-            if (loginData.username === 'admin' && loginData.password === '1234') {
-                isAdmin.value = true;
-                closeModal();
-                showToast("تم تفعيل صلاحيات الإدارة بنجاح 🔓", "success");
-                loginData.username = ''; loginData.password = '';
-            } else {
-                showToast("بيانات الدخول غير صحيحة ❌", "error");
-            }
+        const logout = () => {
+            localStorage.removeItem('ezz_auth_session');
+            isAuthenticated.value = false;
+            isAdmin.value = false;
+            loginData.password = '';
+            showToast("تم تسجيل الخروج وإغلاق النظام 🔒", "info");
         };
 
         const headerTitle = computed(() => {
@@ -157,122 +132,6 @@ const app = createApp({
             filtered.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
             return filtered;
         });
-
-        // ----------------- Drag & Drop System -----------------
-        const draggedItem = ref(null);
-        const dragOverItem = ref(null);
-        const dragDirection = ref('down');
-        const wasDragging = ref(false);
-        let longPressTimeout = null;
-        let startY = 0;
-
-        const handleTouchStart = (e, uid) => {
-            if (!isAdmin.value || query.value) return;
-            startY = e.touches[0].clientY;
-            wasDragging.value = false;
-            
-            longPressTimeout = setTimeout(() => {
-                draggedItem.value = uid;
-                wasDragging.value = true;
-                if (navigator.vibrate) navigator.vibrate(50);
-            }, 400); 
-        };
-
-        const handleTouchMove = (e) => {
-            if (!draggedItem.value) {
-                clearTimeout(longPressTimeout);
-                return;
-            }
-            e.preventDefault();
-            wasDragging.value = true;
-            
-            const touch = e.touches[0];
-            const currentY = touch.clientY;
-            dragDirection.value = currentY < startY ? 'up' : 'down';
-            startY = currentY;
-
-            const element = document.elementFromPoint(touch.clientX, touch.clientY);
-            const targetCard = element?.closest('.employee-card');
-            
-            if (targetCard) {
-                const targetUid = targetCard.dataset.uid;
-                if (targetUid !== draggedItem.value) {
-                    dragOverItem.value = targetUid;
-                }
-            } else {
-                dragOverItem.value = null;
-            }
-        };
-
-        const handleTouchEnd = () => {
-            clearTimeout(longPressTimeout);
-            if (draggedItem.value && dragOverItem.value && draggedItem.value !== dragOverItem.value) {
-                executeReorder(draggedItem.value, dragOverItem.value);
-            }
-            setTimeout(() => { draggedItem.value = null; dragOverItem.value = null; }, 50);
-            setTimeout(() => { wasDragging.value = false; }, 300);
-        };
-
-        const handleDragStart = (e, uid) => {
-            if (!isAdmin.value || query.value) return;
-            startY = e.clientY;
-            wasDragging.value = false;
-            
-            longPressTimeout = setTimeout(() => {
-                draggedItem.value = uid;
-                wasDragging.value = true;
-            }, 250);
-        };
-
-        const handleDragMove = (e) => {
-            if (!draggedItem.value) { clearTimeout(longPressTimeout); return; }
-            e.preventDefault();
-            wasDragging.value = true;
-            
-            const currentY = e.clientY;
-            dragDirection.value = currentY < startY ? 'up' : 'down';
-            startY = currentY;
-
-            const element = document.elementFromPoint(e.clientX, e.clientY);
-            const targetCard = element?.closest('.employee-card');
-            
-            if (targetCard) {
-                const targetUid = targetCard.dataset.uid;
-                if (targetUid !== draggedItem.value) {
-                    dragOverItem.value = targetUid;
-                }
-            } else {
-                dragOverItem.value = null;
-            }
-        };
-
-        const handleDragEnd = () => {
-            clearTimeout(longPressTimeout);
-            if (draggedItem.value && dragOverItem.value && draggedItem.value !== dragOverItem.value) {
-                executeReorder(draggedItem.value, dragOverItem.value);
-            }
-            setTimeout(() => { draggedItem.value = null; dragOverItem.value = null; }, 50);
-            setTimeout(() => { wasDragging.value = false; }, 300);
-        };
-
-        const executeReorder = (draggedUid, targetUid) => {
-            let list = [...filteredEmployees.value];
-            const draggedIndex = list.findIndex(e => e.uid === draggedUid);
-            const targetIndex = list.findIndex(e => e.uid === targetUid);
-
-            if (draggedIndex === -1 || targetIndex === -1) return;
-
-            const [movedItem] = list.splice(draggedIndex, 1);
-            list.splice(targetIndex, 0, movedItem);
-
-            list.forEach((e, i) => {
-                e.sortOrder = i * 10;
-                db.ref(`employees/${e.uid}`).update({ sortOrder: e.sortOrder });
-            });
-            
-            if (navigator.vibrate) navigator.vibrate(50);
-        };
-        // ------------------------------------------------------
 
         const searchResults = computed(() => {
             let q = query.value.toLowerCase(); 
@@ -331,15 +190,6 @@ const app = createApp({
             return unique;
         });
 
-        const editAvailableNames = computed(() => {
-            if (!annForm.jobTitle) return [];
-            let emps = employees.value.filter(e => e.jobTitle === annForm.jobTitle && e.status !== 'sick' && e.status !== 'training');
-            let names = emps.map(e => e.name);
-            return ['بدون تغطية', '—', ...new Set(names)];
-        });
-
-        // ================== منظومة الإعلانات الذكية ==================
-
         const getTitlePrefix = (jobTitle) => {
             if (!jobTitle) return "السيد";
             if (jobTitle.includes("مشغل")) return "المشغل";
@@ -392,10 +242,7 @@ const app = createApp({
             const prefixEmp = getTitlePrefix(emp.jobTitle);
             const prefixSub = getTitlePrefix(sub.jobTitle);
 
-            annForm.text = `📌 تنبيه ${typeName}\n\n` +
-                           `${prefixEmp} / ${emp.name} (${emp.jobTitle})\n` +
-                           `في إجازة من تاريخ: ${annForm.fromDate} إلى تاريخ: ${annForm.toDate}.\n\n` +
-                           `🔄 سيقوم بتغطية العمل الخاص به:\n${prefixSub} / ${sub.name}`;
+            annForm.text = `📌 تنبيه ${typeName}\n\n${prefixEmp} / ${emp.name} (${emp.jobTitle})\nفي إجازة من تاريخ: ${annForm.fromDate} إلى تاريخ: ${annForm.toDate}.\n\n🔄 سيقوم بتغطية العمل الخاص به:\n${prefixSub} / ${sub.name}`;
         };
 
         const generateAutoSchedule = () => {
@@ -405,10 +252,8 @@ const app = createApp({
                         showToast("الرجاء تحديد التواريخ والموظف أولاً", "error");
                         annForm.coverType = ''; return;
                     }
-
                     const absentEmp = employees.value.find(e => e.uid === annForm.employeeUid);
                     if(!absentEmp) return;
-
                     const subs = annAvailableSubstitutes.value;
                     if(subs.length === 0) {
                         showToast("لا يوجد بدلاء متاحين (غير مرضي/متدرب) لهذه الوظيفة لعمل جدول!", "error");
@@ -417,39 +262,24 @@ const app = createApp({
 
                     const prefixEmp = getTitlePrefix(absentEmp.jobTitle);
                     const typeName = annForm.type === 'sick' ? 'إجازة مرضية 💊' : (annForm.type === 'summer' ? 'إجازة مصيف 🏖️' : 'إجازة عمرة 🕋');
-                    
-                    annForm.text = `📌 تنبيه ${typeName}\n\n${prefixEmp} / ${absentEmp.name} (${absentEmp.jobTitle})\nفي إجازة من تاريخ: ${annForm.fromDate} إلى تاريخ: ${annForm.toDate}.\n\n📅 جدول تغطية العمل (اضغط لظهور الجدول 👇):`;
+                    annForm.text = `📌 تنبيه ${typeName}\n\n${prefixEmp} / ${absentEmp.name} (${absentEmp.jobTitle})\nفي إجازة من تاريخ: ${annForm.fromDate} إلى تاريخ: ${annForm.toDate}.\n\n📅 جدول تغطية العمل (مرفق أسفل التنبيه):`;
                     
                     const start = new Date(annForm.fromDate);
                     const end = new Date(annForm.toDate);
-                    
                     let subIndex = 0; 
                     let lastAssignedSubUid = null; 
-                    
                     let scheduleRows = [];
                     
-                    let normalWorkers = employees.value.filter(e => 
-                        e.jobTitle === absentEmp.jobTitle && 
-                        e.department === absentEmp.department && 
-                        e.line === absentEmp.line &&
-                        e.status !== 'sick' &&
-                        e.status !== 'training'
-                    );
-
+                    let normalWorkers = employees.value.filter(e => e.jobTitle === absentEmp.jobTitle && e.department === absentEmp.department && e.line === absentEmp.line && e.status !== 'sick' && e.status !== 'training');
                     const shiftMap = { 'morning': 1, 'noon': 2, 'evening': 3 };
 
                     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
                         let currentDate = new Date(d);
                         let targetStatus = getGroupStatus(absentEmp.shift, currentDate); 
-                        
-                        if (targetStatus.type.includes('rest')) {
-                            lastAssignedSubUid = null; 
-                            continue; 
-                        }
+                        if (targetStatus.type.includes('rest')) { lastAssignedSubUid = null; continue; }
                         
                         let targetShiftNum = shiftMap[targetStatus.type]; 
                         let dateStr = currentDate.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'numeric', day: 'numeric' });
-                        
                         let dailyAssignments = { morning: null, noon: null, evening: null };
                         ['A', 'B', 'C', 'D'].forEach(g => {
                             let stat = getGroupStatus(g, currentDate).type;
@@ -459,14 +289,10 @@ const app = createApp({
                         });
 
                         let assignedSub = null;
-                        
                         for (let i = 0; i < subs.length; i++) {
                             let currentSub = subs[(subIndex + i) % subs.length];
-                            
                             if (currentSub.uid === lastAssignedSubUid) continue;
-
                             let subStatus = getGroupStatus(currentSub.shift, currentDate);
-                            
                             if (!subStatus.type.includes('rest')) {
                                 let subShiftNum = shiftMap[subStatus.type];
                                 if (Math.abs(targetShiftNum - subShiftNum) === 1) {
@@ -477,93 +303,42 @@ const app = createApp({
                             }
                         }
 
-                        if (assignedSub) {
-                            lastAssignedSubUid = assignedSub.uid;
-                        } else {
-                            lastAssignedSubUid = null;
-                        }
+                        if (assignedSub) { lastAssignedSubUid = assignedSub.uid; } else { lastAssignedSubUid = null; }
 
-                        let targetShiftPeriod = null;
-                        if (dailyAssignments.morning === absentEmp.shift) targetShiftPeriod = 'morning';
-                        else if (dailyAssignments.noon === absentEmp.shift) targetShiftPeriod = 'noon';
-                        else if (dailyAssignments.evening === absentEmp.shift) targetShiftPeriod = 'evening';
-
-                        let rowData = { 
-                            date: dateStr, 
-                            morning: '—', 
-                            noon: '—', 
-                            evening: '—', 
-                            subName: assignedSub ? assignedSub.name : null,
-                            targetShift: targetShiftPeriod
-                        };
-
+                        let rowData = { date: dateStr, morning: '—', noon: '—', evening: '—', subName: assignedSub ? assignedSub.name : null };
                         const fillCell = (shiftPeriod) => { 
                             let groupInThisShift = dailyAssignments[shiftPeriod];
                             if(!groupInThisShift) return '—';
-                            
-                            if(groupInThisShift === absentEmp.shift) {
-                                return assignedSub ? assignedSub.name : 'بدون تغطية';
-                            } else {
-                                let worker = normalWorkers.find(w => w.shift === groupInThisShift);
-                                return worker ? worker.name : '—';
-                            }
+                            if(groupInThisShift === absentEmp.shift) { return assignedSub ? assignedSub.name : 'بدون تغطية'; } 
+                            else { let worker = normalWorkers.find(w => w.shift === groupInThisShift); return worker ? worker.name : '—'; }
                         };
 
-                        rowData.morning = fillCell('morning');
-                        rowData.noon = fillCell('noon');
-                        rowData.evening = fillCell('evening');
-
+                        rowData.morning = fillCell('morning'); rowData.noon = fillCell('noon'); rowData.evening = fillCell('evening');
                         scheduleRows.push(rowData);
                     }
 
                     annForm.scheduleData = scheduleRows;
                     nextTick(() => { updateIcons(); });
-                    
-                    if(scheduleRows.length === 0) {
-                        showToast("جميع أيام الإجازة المحددة هي أيام راحة فعلية للموظف! لا يوجد جدول.", "info");
-                    } else {
-                        showToast("تم توليد الجدول بنجاح (بدون تكرار لأيام متتالية)", "success");
-                    }
-
-                } catch (err) {
-                    console.error("خطأ في توليد الجدول:", err);
-                    showToast("حدث خطأ تقني أثناء التوليد، تأكد من صحة بيانات الموظف", "error");
-                }
+                    if(scheduleRows.length === 0) showToast("جميع أيام الإجازة المحددة راحة فعلية!", "info"); else showToast("تم توليد الجدول بنجاح", "success");
+                } catch (err) { showToast("حدث خطأ تقني أثناء التوليد", "error"); }
             }, 50);
         };
 
         const publishAnnouncement = () => {
             const finalTxt = annForm.text.trim();
             if(!finalTxt) return showToast("لا يمكن نشر إعلان فارغ!", "error");
-            
-            const ann = { 
-                id: "ANN-" + Date.now(), 
-                text: finalTxt, 
-                schedule: annForm.coverType === 'schedule' ? annForm.scheduleData : null,
-                date: new Date().toLocaleString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), 
-                timestamp: Date.now() 
-            };
-            
-            db.ref('announcements/' + ann.id).set(ann).then(() => { 
-                annForm.type = 'alert'; resetAnnFormSteps(1); annForm.text = ''; annForm.scheduleData = [];
-                showToast("تم نشر التنبيه بنجاح", "success"); 
-            });
+            const ann = { id: "ANN-" + Date.now(), text: finalTxt, schedule: annForm.coverType === 'schedule' ? annForm.scheduleData : null, date: new Date().toLocaleString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), timestamp: Date.now() };
+            db.ref('announcements/' + ann.id).set(ann).then(() => { annForm.type = 'alert'; resetAnnFormSteps(1); annForm.text = ''; annForm.scheduleData = []; showToast("تم نشر التنبيه بنجاح", "success"); });
         };
 
         const deleteAnnouncement = (id) => { if(confirm("مسح التنبيه؟")) db.ref('announcements/' + id).remove(); };
 
         const getGroupStatus = (group, date) => {
-            if (!['A', 'B', 'C', 'D'].includes(group)) {
-                return { type: date.getDay() === 5 ? 'morning-rest' : 'morning', day: 1 };
-            }
-
-            const startDate = new Date(2025, 0, 1); 
-            const diff = Math.round((date - startDate) / 86400000); 
+            if (!['A', 'B', 'C', 'D'].includes(group)) return { type: date.getDay() === 5 ? 'morning-rest' : 'morning', day: 1 };
+            const diff = Math.round((date - new Date(2025, 0, 1)) / 86400000); 
             const initialStatuses = { 'A': { type: 'evening', day: 3 }, 'B': { type: 'morning-rest', day: 1 }, 'C': { type: 'noon', day: 5 }, 'D': { type: 'morning', day: 1 } }; 
             let { type, day } = initialStatuses[group]; 
-            const remain = diff % 20;
-            
-            for (let i = 0; i < remain; i++) { 
+            for (let i = 0; i < diff % 20; i++) { 
                 day++; 
                 switch (type) { 
                     case 'morning': if (day > 5) { type='morning-rest'; day=1; } break; 
@@ -604,11 +379,7 @@ const app = createApp({
             pushState(); 
         };
         const closeModal = () => { if(modal.value !== null) window.history.back(); };
-        
-        const openDetails = (uid) => {
-            if (wasDragging.value) return; 
-            openModal('details', uid);
-        };
+        const openDetails = (uid) => openModal('details', uid);
         const showSubstitutes = (uid) => openModal('substitutes', uid);
         
         const onJobSelect = () => { if (form.jobTitle === '__NEW_JOB__') { form.nameSelect = '__NEW__'; } else { form.nameSelect = ''; form.code = ''; form.phone = ''; form.uid = ''; } };
@@ -644,6 +415,54 @@ const app = createApp({
                 modal.value = null; showToast("تم إخلاء طرف الموظف، وهو متاح للتعيين في مكان آخر", "success");
             }).catch(err => { showToast("حدث خطأ أثناء الاتصال", "error"); });
         };
+
+        const handleSortEnd = (evt) => {
+            if (evt.oldIndex === evt.newIndex) return;
+
+            let currentList = [...filteredEmployees.value];
+            const movedItem = currentList.splice(evt.oldIndex, 1)[0];
+            currentList.splice(evt.newIndex, 0, movedItem);
+
+            let newSortOrder = 0;
+            const prevItem = currentList[evt.newIndex - 1];
+            const nextItem = currentList[evt.newIndex + 1];
+
+            if (prevItem && nextItem) {
+                newSortOrder = ((prevItem.sortOrder || 0) + (nextItem.sortOrder || 0)) / 2;
+            } else if (prevItem) {
+                newSortOrder = (prevItem.sortOrder || 0) + 100;
+            } else if (nextItem) {
+                newSortOrder = (nextItem.sortOrder || 0) - 100;
+            } else {
+                newSortOrder = 1000;
+            }
+
+            movedItem.sortOrder = newSortOrder;
+
+            db.ref(`employees/${movedItem.uid}`).update({ sortOrder: newSortOrder })
+              .catch(() => showToast("حدث خطأ أثناء حفظ الترتيب 🔴", "error"));
+        };
+
+        const initSortable = () => {
+            if (sortableInstance) {
+                sortableInstance.destroy();
+                sortableInstance = null;
+            }
+            if (isAdmin.value && employeeListContainer.value) {
+                sortableInstance = new Sortable(employeeListContainer.value, {
+                    delay: 250, 
+                    delayOnTouchOnly: true, 
+                    animation: 200, 
+                    ghostClass: 'sortable-ghost',
+                    dragClass: 'sortable-drag',
+                    onEnd: handleSortEnd
+                });
+            }
+        };
+
+        watch([isAdmin, shift, view], () => {
+            nextTick(() => { initSortable(); updateIcons(); });
+        });
 
         const initCharts = () => {
             if(window.chartInstances) { Object.values(window.chartInstances).forEach(c => c?.destroy()); } else { window.chartInstances = {}; }
@@ -746,6 +565,13 @@ const app = createApp({
         };
 
         onMounted(() => {
+            const session = localStorage.getItem('ezz_auth_session');
+            if (session) {
+                const sessionData = JSON.parse(session);
+                isAuthenticated.value = true;
+                isAdmin.value = (sessionData.role === 'admin');
+            }
+
             if(localStorage.getItem('theme') === 'dark') { isDarkMode.value = true; document.documentElement.classList.add('dark'); document.getElementById('theme-color-meta').setAttribute('content', '#0f172a'); }
             
             window.addEventListener('popstate', (e) => {
@@ -753,15 +579,6 @@ const app = createApp({
                 else { view.value = 'home'; shift.value = null; query.value = ''; modal.value = null; showRolling.value = false; }
                 updateIcons(); if(view.value === 'dashboard') setTimeout(() => initCharts(), 100);
             });
-
-            const cachedEmployees = localStorage.getItem('offline_employees');
-            if (cachedEmployees) { employees.value = JSON.parse(cachedEmployees); isLoading.value = false; }
-            const cachedContacts = localStorage.getItem('offline_contacts');
-            if (cachedContacts) { customContacts.value = JSON.parse(cachedContacts); }
-            const cachedAnnouncements = localStorage.getItem('offline_announcements');
-            if (cachedAnnouncements) { announcementsList.value = JSON.parse(cachedAnnouncements); }
-
-            if (cachedEmployees && view.value === 'dashboard') { setTimeout(() => initCharts(), 100); }
 
             let isFirstLoad = true;
             db.ref('.info/connected').on('value', function(snap) {
@@ -773,15 +590,23 @@ const app = createApp({
                 }
             });
 
-            auth.signInAnonymously().then(() => {
+            try {
                 db.ref('employees').on('value', (s) => { 
                     const d = s.val(); 
-                    employees.value = d ? Object.values(d).sort((a, b) => { 
-                        return (a.sortOrder || 0) - (b.sortOrder || 0); 
-                    }) : []; 
-                    localStorage.setItem('offline_employees', JSON.stringify(employees.value));
+                    if (d) {
+                        employees.value = Object.values(d).sort((a, b) => { 
+                            if (a.department === 'management' && b.department === 'management') return (a.sortOrder || 0) - (b.sortOrder || 0); 
+                            const idxA = Hierarchy.indexOf(a.jobTitle); const idxB = Hierarchy.indexOf(b.jobTitle); 
+                            if (idxA !== idxB) return idxA - idxB; 
+                            return (a.sortOrder || 0) - (b.sortOrder || 0); 
+                        });
+                        localStorage.setItem('offline_employees', JSON.stringify(employees.value));
+                    } else {
+                        employees.value = [];
+                    }
                     isLoading.value = false; 
-                    if(view.value === 'dashboard') setTimeout(() => initCharts(), 100); 
+                    if(view.value === 'dashboard') setTimeout(() => initCharts(), 100);
+                    nextTick(() => { initSortable(); }); 
                 });
 
                 db.ref('contacts').on('value', (s) => { 
@@ -795,31 +620,28 @@ const app = createApp({
                     announcementsList.value = d ? Object.values(d).sort((a,b) => b.timestamp - a.timestamp) : []; 
                     localStorage.setItem('offline_announcements', JSON.stringify(announcementsList.value));
                 });
-
-            }).catch(() => { if (!cachedEmployees) { isLoading.value = false; showToast("لا يوجد اتصال بالإنترنت", "error"); } });
+            } catch (err) {
+                isLoading.value = false; showToast("حدث خطأ في جلب البيانات، يرجى التحقق من الشبكة", "error");
+            }
         });
 
         onUpdated(() => { updateIcons(); });
 
         return {
-            isAdmin, isDarkMode, isLoading, toasts, expandedAnns, toggleSchedule, cellEdit, editAvailableNames, openCellEdit, saveCellEdit,
+            isAuthenticated, isCheckingLogin, isAdmin, isDarkMode, isLoading, toasts,
             view, shift, query, modal, selectedUid, showRolling, form, employees, announcementsList,
             headerTitle, filteredEmployees, searchResults, activeCount, trainingCount, sickCount, sickEmployeesCount, 
             deptTotalCount, deptActiveCount, deptTrainingCount, deptSickCount, latestAnnouncement, selectedEmployee, liveShift,
             availableJobs, availableNames, availableSubstitutes, loginData, activeCompanyEmployees,
-            
+            employeeListContainer,
             annForm, annAvailableJobs, annAvailableEmployees, annAvailableSubstitutes,
             resetAnnFormSteps, generateSingleCoverText, generateAutoSchedule,
             
-            draggedItem, dragOverItem, dragDirection,
-            handleTouchStart, handleTouchMove, handleTouchEnd,
-            handleDragStart, handleDragMove, handleDragEnd,
-
             sunIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>',
             moonIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>',
-            toggleDarkMode, navigate, navigateShift, count, getDeptName, cleanPhone, getShiftCardClass, getShiftIconClass, getShiftTextClass, getShiftName,
+            toggleDarkMode, handleLogin, logout, navigate, navigateShift, count, getDeptName, cleanPhone, getShiftCardClass, getShiftIconClass, getShiftTextClass, getShiftName,
             openModal, closeModal, openDetails, showSubstitutes, onJobSelect, onNameSelect,
-            publishAnnouncement, deleteAnnouncement, saveEmployee, deleteEmployee, executeDelete, handleHeaderClick, handleLogin
+            publishAnnouncement, deleteAnnouncement, saveEmployee, deleteEmployee, executeDelete
         };
     }
 });
