@@ -1,5 +1,5 @@
 // قم بتغيير هذا الرقم في كل مرة ترفع فيها تحديثاً جديداً على GitHub
-const CACHE_NAME = 'ezz-steel-prod-v2';
+const CACHE_NAME = 'ezz-steel-prod-v3.1';
 
 // الملفات الأساسية التي سيتم تحميلها للعمل أوفلاين
 const urlsToCache = [
